@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Subjects | CAS_Faculty Attendance Monitoring
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+
+        body {
+            background: #f5f7f6;
+            color: #333;
+            min-height: 100vh;
+        }
+
+
+        /* ==============================
+           HEADER
+        ============================== */
+
+        .header {
+            background: #198754;
+            color: white;
+            padding: 15px 25px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+
+        .header-content {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+
+        .header h1 {
+            font-size: 23px;
+            white-space: nowrap;
+        }
+
+
+        .header-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+
+        .header-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 10px;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+
+        .header-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+
+        /* ==============================
+           MAIN CONTAINER
+        ============================== */
+
+        .container {
+            width: 100%;
+            max-width: 1250px;
+            margin: 0 auto;
+            padding: 30px 20px 40px;
+        }
+
+
+        /* ==============================
+           TOP SECTION
+        ============================== */
+
+        .top-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+
+        .top-section h2 {
+            font-size: 24px;
+        }
+
+
+        /* ==============================
+           ADD BUTTON
+        ============================== */
+
+        .add-button {
+            background: #198754;
+            color: white;
+            text-decoration: none;
+            padding: 11px 18px;
+            border-radius: 6px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+
+        .add-button:hover {
+            background: #146c43;
+        }
+
+
+        /* ==============================
+           SEARCH AREA
+        ============================== */
+
+        .search-actions-row {
+            display: flex;
+            align-items: stretch;
+            gap: 12px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+
+        .search-box {
+            position: relative;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.08);
+            flex: 1;
+            min-width: 0;
+        }
+
+
+        .search-box form {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+
+        .search-input-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+        }
+
+
+        .search-box input {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #198754;
+            box-shadow:
+                0 0 0 2px rgba(25, 135, 84, 0.10);
+        }
+
+
+        .search-button {
+            background: #198754;
+            color: white;
+            border: none;
+            padding: 11px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+
+        .search-button:hover {
+            background: #146c43;
+        }
+
+
+        /* ==============================
+           SEARCH SUGGESTIONS
+        ============================== */
+
+        .suggestions {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 4px);
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow:
+                0 5px 15px rgba(0, 0, 0, 0.12);
+            z-index: 500;
+            max-height: 260px;
+            overflow-y: auto;
+            display: none;
+        }
+
+
+        .suggestion-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+
+        .suggestion-item:hover {
+            background: #eaf7ee;
+        }
+
+
+        .suggestion-code {
+            font-weight: bold;
+            color: #198754;
+        }
+
+
+        .suggestion-name {
+            color: #555;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+
+        /* ==============================
+           DELETE SELECTED
+        ============================== */
+
+        .delete-selected {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 11px 16px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            align-self: stretch;
+        }
+
+
+        .delete-selected:hover:not(:disabled) {
+            background: #bb2d3b;
+        }
+
+
+        .delete-selected:disabled {
+            background: #adb5bd;
+            cursor: not-allowed;
+        }
+
+
+        /* ==============================
+           MESSAGES
+        ============================== */
+
+        .floating-message {
+            position: fixed;
+            top: 75px;
+            right: 25px;
+            z-index: 3000;
+            min-width: 280px;
+            max-width: 450px;
+            padding: 14px 18px;
+            border-radius: 7px;
+            box-shadow:
+                0 4px 15px rgba(0, 0, 0, 0.18);
+            transition: opacity 0.4s ease;
+        }
+
+
+        .message-success {
+            background: #d1e7dd;
+            color: #0f5132;
+            border-left: 5px solid #198754;
+        }
+
+
+        .message-error {
+            background: #f8d7da;
+            color: #842029;
+            border-left: 5px solid #dc3545;
+        }
+
+
+        .message-warning {
+            background: #fff3cd;
+            color: #664d03;
+            border-left: 5px solid #ffc107;
+        }
+
+
+        /* ==============================
+           TABLE CONTAINER
+        ============================== */
+
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            overflow-x: auto;
+            overflow-y: visible;
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.08);
+            width: 100%;
+        }
+
+
+        /* ==============================
+           TABLE
+        ============================== */
+
+        table {
+            width: 100%;
+            min-width: 750px;
+            border-collapse: collapse;
+        }
+
+
+        th {
+            background: #198754;
+            color: white;
+            padding: 13px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+
+        td {
+            padding: 13px;
+            border-bottom: 1px solid #eee;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+
+        /* ==============================
+           NUMBER
+        ============================== */
+
+        .number-cell {
+            width: 60px;
+            text-align: center;
+        }
+
+
+        /* ==============================
+           ACTION HEADER
+        ============================== */
+
+        .actions-header {
+            min-width: 230px;
+            padding: 8px 10px;
+        }
+
+
+        .actions-header-content {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            justify-items: center;
+            column-gap: 8px;
+        }
+
+
+        .actions-title {
+            grid-column: 1;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+        }
+
+
+        .select-all-box {
+            grid-column: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            width: 100%;
+        }
+
+
+        .select-all-label {
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+
+        .select-all-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            margin: 0;
+        }
+
+
+        /* ==============================
+           ACTIONS BODY
+        ============================== */
+
+        .actions-content {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            justify-items: center;
+            column-gap: 8px;
+        }
+
+
+        .action-buttons {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+        }
+
+
+        .action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+
+        .edit {
+            background: #ffc107;
+            color: #212529;
+        }
+
+
+        .edit:hover {
+            background: #ffca2c;
+        }
+
+
+        .delete {
+            background: #dc3545;
+            color: white;
+        }
+
+
+        .delete:hover {
+            background: #bb2d3b;
+        }
+
+
+        .checkbox-cell {
+            grid-column: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+
+        .row-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            margin: 0;
+        }
+
+
+        /* ==============================
+           EMPTY
+        ============================== */
+
+        .empty {
+            text-align: center;
+            padding: 35px;
+            color: #777;
+        }
+
+
+        /* ==============================
+           BACK
+        ============================== */
+
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #198754;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+
+        .back:hover {
+            text-decoration: underline;
+        }
+
+
+        /* ==============================
+           CONFIRM MODAL
+        ============================== */
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 4000;
+        }
+
+
+        .modal {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow:
+                0 8px 30px rgba(0, 0, 0, 0.25);
+        }
+
+
+        .modal h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+
+        .modal p {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+
+        .modal-cancel,
+        .modal-confirm {
+            border: none;
+            padding: 10px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+
+        .modal-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+
+        .modal-confirm {
+            background: #dc3545;
+            color: white;
+        }
+
+
+        .modal-cancel:hover {
+            background: #5c636a;
+        }
+
+
+        .modal-confirm:hover {
+            background: #bb2d3b;
+        }
+
+
+        /* ==============================
+           TABLET
+        ============================== */
+
+        @media (max-width: 800px) {
+
+            .header {
+                padding: 14px 18px;
+            }
+
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+
+            .header-links {
+                width: 100%;
+            }
+
+
+            .container {
+                padding: 25px 15px 35px;
+            }
+
+        }
+
+
+        /* ==============================
+           MOBILE
+        ============================== */
+
+        @media (max-width: 600px) {
+
+            .container {
+                padding: 20px 12px 30px;
+            }
+
+
+            .top-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+
+            .top-section h2 {
+                font-size: 21px;
+            }
+
+
+            .add-button {
+                width: 100%;
+                text-align: center;
+            }
+
+
+            .search-actions-row {
+                flex-direction: column;
+            }
+
+
+            .search-box {
+                padding: 12px;
+            }
+
+
+            .search-box form {
+                flex-direction: column;
+            }
+
+
+            .search-button {
+                width: 100%;
+            }
+
+
+            .delete-selected {
+                width: 100%;
+                padding: 12px;
+            }
+
+
+            .floating-message {
+                left: 15px;
+                right: 15px;
+                top: 110px;
+                min-width: auto;
+            }
+
+
+            .modal-buttons {
+                flex-direction: column;
+            }
+
+
+            .modal-cancel,
+            .modal-confirm {
+                width: 100%;
+            }
+
+        }
+
+
+        @media (max-width: 380px) {
+
+            .header h1 {
+                font-size: 19px;
+            }
+
+
+            .header-link {
+                font-size: 11px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ==============================
+     HEADER
+============================== -->
+
+<header class="header">
+
+    <div class="header-content">
+
+        <h1>
+            CAS_Faculty Attendance Monitoring
+        </h1>
+
+
+        <div class="header-links">
+
+            <a
+                href="{% url 'dashboard' %}"
+                class="header-link"
+            >
+                ← Back to Dashboard
+            </a>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- ==============================
+     MAIN
+============================== -->
+
+<div class="container">
+
+
+    <!-- TOP -->
+
+    <div class="top-section">
+
+        <h2>
+            Subjects
+        </h2>
+
+
+        <a
+            href="{% url 'subject_create' %}"
+            class="add-button"
+        >
+            + Add Subject
+        </a>
+
+    </div>
+
+
+    <!-- SEARCH + DELETE -->
+
+    <div class="search-actions-row">
+
+
+        <div class="search-box">
+
+            <form
+                method="GET"
+                action="{% url 'subject_list' %}"
+            >
+
+                <div class="search-input-wrapper">
+
+                    <input
+                        type="text"
+                        id="subject-search"
+                        name="search"
+                        placeholder="Search subject code or name..."
+                        value="{{ search }}"
+                        autocomplete="off"
+                    >
+
+
+                    <div
+                        id="suggestions"
+                        class="suggestions"
+                    ></div>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="search-button"
+                >
+                    Search
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <button
+            type="button"
+            id="delete-selected-btn"
+            class="delete-selected"
+            disabled
+        >
+            🗑️ Delete Selected
+        </button>
+
+    </div>
+
+
+    <!-- MESSAGES -->
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div
+                class="
+                    floating-message
+                    {% if message.tags == 'error' %}
+                        message-error
+                    {% elif message.tags == 'warning' %}
+                        message-warning
+                    {% else %}
+                        message-success
+                    {% endif %}
+                "
+            >
+                {{ message }}
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+
+    <!-- TABLE -->
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th class="number-cell">
+                        #
+                    </th>
+
+                    <th>
+                        Subject Code
+                    </th>
+
+                    <th>
+                        Subject Name
+                    </th>
+
+                    <th class="actions-header">
+
+                        <div class="actions-header-content">
+
+                            <div class="actions-title">
+                                Actions
+                            </div>
+
+
+                            <label class="select-all-box">
+
+                                <span class="select-all-label">
+                                    Select All
+                                </span>
+
+
+                                <input
+                                    type="checkbox"
+                                    id="select-all"
+                                    class="select-all-checkbox"
+                                >
+
+                            </label>
+
+                        </div>
+
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+
+                {% for subject in subjects %}
+
+                    <tr>
+
+                        <td class="number-cell">
+                            {{ forloop.counter }}
+                        </td>
+
+
+                        <td>
+
+                            <strong>
+                                {{ subject.subject_code }}
+                            </strong>
+
+                        </td>
+
+
+                        <td>
+                            {{ subject.subject_name }}
+                        </td>
+
+
+                        <td>
+
+                            <div class="actions-content">
+
+
+                                <div class="action-buttons">
+
+                                    <a
+                                        href="{% url 'subject_update' subject.id %}"
+                                        class="action edit"
+                                    >
+                                        Edit
+                                    </a>
+
+
+                                    <a
+                                        href="{% url 'subject_delete' subject.id %}"
+                                        class="action delete"
+                                    >
+                                        Delete
+                                    </a>
+
+                                </div>
+
+
+                                <div class="checkbox-cell">
+
+                                    <input
+                                        type="checkbox"
+                                        class="row-checkbox"
+                                        value="{{ subject.id }}"
+                                        data-subject-name="{{ subject.subject_code|escapejs }}"
+                                    >
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+
+                {% empty %}
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            class="empty"
+                        >
+                            No subjects found.
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <a
+        href="{% url 'dashboard' %}"
+        class="back"
+    >
+        ← Back to Dashboard
+    </a>
+
+
+</div>
+
+
+<!-- ==============================
+     DELETE MODAL
+============================== -->
+
+<div
+    id="delete-modal"
+    class="modal-overlay"
+>
+
+    <div class="modal">
+
+        <h3>
+            Delete Selected Subjects
+        </h3>
+
+
+        <p id="delete-modal-text">
+            Are you sure you want to delete
+            the selected subjects?
+        </p>
+
+
+        <div class="modal-buttons">
+
+            <button
+                type="button"
+                id="cancel-delete"
+                class="modal-cancel"
+            >
+                Cancel
+            </button>
+
+
+            <button
+                type="button"
+                id="confirm-delete"
+                class="modal-confirm"
+            >
+                Delete
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==============================
+     BULK DELETE FORM
+============================== -->
+
+<form
+    id="bulk-delete-form"
+    method="POST"
+    action="{% url 'subject_bulk_delete' %}"
+    style="display:none;"
+>
+
+    {% csrf_token %}
+
+</form>
+
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+
+        /* =================================
+           ELEMENTS
+        ================================= */
+
+        const rowCheckboxes =
+            document.querySelectorAll(
+                ".row-checkbox"
+            );
+
+
+        const selectAllCheckbox =
+            document.getElementById(
+                "select-all"
+            );
+
+
+        const deleteSelectedButton =
+            document.getElementById(
+                "delete-selected-btn"
+            );
+
+
+        const deleteModal =
+            document.getElementById(
+                "delete-modal"
+            );
+
+
+        const deleteModalText =
+            document.getElementById(
+                "delete-modal-text"
+            );
+
+
+        const cancelDelete =
+            document.getElementById(
+                "cancel-delete"
+            );
+
+
+        const confirmDelete =
+            document.getElementById(
+                "confirm-delete"
+            );
+
+
+        const bulkDeleteForm =
+            document.getElementById(
+                "bulk-delete-form"
+            );
+
+
+        const searchInput =
+            document.getElementById(
+                "subject-search"
+            );
+
+
+        const suggestions =
+            document.getElementById(
+                "suggestions"
+            );
+
+
+        /* =================================
+           SELECTION
+        ================================= */
+
+        function updateSelection() {
+
+            const selected =
+                document.querySelectorAll(
+                    ".row-checkbox:checked"
+                );
+
+
+            const selectedCount =
+                selected.length;
+
+
+            deleteSelectedButton.disabled =
+                selectedCount === 0;
+
+
+            if (selectedCount > 0) {
+
+                deleteSelectedButton.textContent =
+                    "🗑️ Delete Selected (" +
+                    selectedCount +
+                    ")";
+
+            } else {
+
+                deleteSelectedButton.textContent =
+                    "🗑️ Delete Selected";
+
+            }
+
+
+            if (rowCheckboxes.length === 0) {
+
+                selectAllCheckbox.checked =
+                    false;
+
+                selectAllCheckbox.indeterminate =
+                    false;
+
+                return;
+
+            }
+
+
+            if (
+                selectedCount ===
+                rowCheckboxes.length
+            ) {
+
+                selectAllCheckbox.checked =
+                    true;
+
+                selectAllCheckbox.indeterminate =
+                    false;
+
+            }
+
+            else if (
+                selectedCount > 0
+            ) {
+
+                selectAllCheckbox.checked =
+                    false;
+
+                selectAllCheckbox.indeterminate =
+                    true;
+
+            }
+
+            else {
+
+                selectAllCheckbox.checked =
+                    false;
+
+                selectAllCheckbox.indeterminate =
+                    false;
+
+            }
+
+        }
+
+
+        /* =================================
+           SELECT ALL
+        ================================= */
+
+        selectAllCheckbox.addEventListener(
+            "change",
+            function () {
+
+                rowCheckboxes.forEach(
+                    function (checkbox) {
+
+                        checkbox.checked =
+                            selectAllCheckbox.checked;
+
+                    }
+                );
+
+
+                updateSelection();
+
+            }
+        );
+
+
+        /* =================================
+           INDIVIDUAL CHECKBOX
+        ================================= */
+
+        rowCheckboxes.forEach(
+            function (checkbox) {
+
+                checkbox.addEventListener(
+                    "change",
+                    function () {
+
+                        updateSelection();
+
+                    }
+                );
+
+            }
+        );
+
+
+        /* =================================
+           OPEN DELETE MODAL
+        ================================= */
+
+        deleteSelectedButton.addEventListener(
+            "click",
+            function () {
+
+                const selected =
+                    document.querySelectorAll(
+                        ".row-checkbox:checked"
+                    );
+
+
+                const count =
+                    selected.length;
+
+
+                if (count === 0) {
+                    return;
+                }
+
+
+                deleteModalText.textContent =
+                    "Are you sure you want to delete " +
+                    count +
+                    " selected subject" +
+                    (count === 1 ? "" : "s") +
+                    "?";
+
+
+                deleteModal.style.display =
+                    "flex";
+
+            }
+        );
+
+
+        /* =================================
+           CANCEL DELETE
+        ================================= */
+
+        cancelDelete.addEventListener(
+            "click",
+            function () {
+
+                deleteModal.style.display =
+                    "none";
+
+            }
+        );
+
+
+        /* =================================
+           CONFIRM DELETE
+        ================================= */
+
+        confirmDelete.addEventListener(
+            "click",
+            function () {
+
+
+                const selected =
+                    document.querySelectorAll(
+                        ".row-checkbox:checked"
+                    );
+
+
+                selected.forEach(
+                    function (checkbox) {
+
+                        const input =
+                            document.createElement(
+                                "input"
+                            );
+
+
+                        input.type = "hidden";
+
+                        input.name =
+                            "subject_ids";
+
+                        input.value =
+                            checkbox.value;
+
+
+                        bulkDeleteForm.appendChild(
+                            input
+                        );
+
+                    }
+                );
+
+
+                bulkDeleteForm.submit();
+
+            }
+        );
+
+
+        /* =================================
+           CLICK OUTSIDE MODAL
+        ================================= */
+
+        deleteModal.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target ===
+                    deleteModal
+                ) {
+
+                    deleteModal.style.display =
+                        "none";
+
+                }
+
+            }
+        );
+
+
+        /* =================================
+           SUBJECT AUTOCOMPLETE DATA
+        ================================= */
+
+        const subjects = [
+
+            {% for subject in all_subjects %}
+
+                {
+                    id:
+                        "{{ subject.id }}",
+
+                    code:
+                        "{{ subject.subject_code|escapejs }}",
+
+                    name:
+                        "{{ subject.subject_name|escapejs }}"
+                },
+
+            {% endfor %}
+
+        ];
+
+
+        /* =================================
+           SEARCH SUGGESTIONS
+        ================================= */
+
+        searchInput.addEventListener(
+            "input",
+            function () {
+
+                const value =
+                    this.value
+                        .trim()
+                        .toLowerCase();
+
+
+                suggestions.innerHTML =
+                    "";
+
+
+                if (!value) {
+
+                    suggestions.style.display =
+                        "none";
+
+                    return;
+
+                }
+
+
+                const matches =
+                    subjects
+                        .filter(
+                            function (subject) {
+
+                                return (
+                                    subject.code
+                                        .toLowerCase()
+                                        .includes(value)
+                                    ||
+                                    subject.name
+                                        .toLowerCase()
+                                        .includes(value)
+                                );
+
+                            }
+                        )
+                        .slice(0, 10);
+
+
+                if (matches.length === 0) {
+
+                    suggestions.style.display =
+                        "none";
+
+                    return;
+
+                }
+
+
+                matches.forEach(
+                    function (subject) {
+
+                        const item =
+                            document.createElement(
+                                "div"
+                            );
+
+
+                        item.className =
+                            "suggestion-item";
+
+
+                        item.innerHTML =
+                            `
+                                <div class="suggestion-code">
+                                    ${escapeHtml(subject.code)}
+                                </div>
+
+                                <div class="suggestion-name">
+                                    ${escapeHtml(subject.name)}
+                                </div>
+                            `;
+
+
+                        item.addEventListener(
+                            "click",
+                            function () {
+
+                                searchInput.value =
+                                    subject.code;
+
+
+                                suggestions.style.display =
+                                    "none";
+
+                            }
+                        );
+
+
+                        suggestions.appendChild(
+                            item
+                        );
+
+                    }
+                );
+
+
+                suggestions.style.display =
+                    "block";
+
+            }
+        );
+
+
+        /* =================================
+           ESCAPE HTML
+        ================================= */
+
+        function escapeHtml(value) {
+
+            return value
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
+        }
+
+
+        /* =================================
+           CLOSE SUGGESTIONS
+        ================================= */
+
+        document.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    !searchInput.contains(
+                        event.target
+                    )
+                    &&
+                    !suggestions.contains(
+                        event.target
+                    )
+                ) {
+
+                    suggestions.style.display =
+                        "none";
+
+                }
+
+            }
+        );
+
+
+        /* =================================
+           AUTO-HIDE MESSAGES
+        ================================= */
+
+        setTimeout(
+            function () {
+
+                document
+                    .querySelectorAll(
+                        ".floating-message"
+                    )
+                    .forEach(
+                        function (message) {
+
+                            message.style.opacity =
+                                "0";
+
+
+                            setTimeout(
+                                function () {
+
+                                    message.remove();
+
+                                },
+                                400
+                            );
+
+                        }
+                    );
+
+            },
+            4000
+        );
+
+
+        /* =================================
+           INITIAL STATE
+        ================================= */
+
+        updateSelection();
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,4009 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Weekly Reports | CAS_Faculty Attendance Monitoring
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            background: #f5f7f6;
+            color: #333;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+
+        .header {
+            width: 100%;
+            background: #198754;
+            color: white;
+            padding: 14px 25px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-content {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            line-height: 1.3;
+        }
+
+        .back-dashboard {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+            white-space: nowrap;
+        }
+
+        .back-dashboard:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+
+        /* =====================================================
+           MAIN
+        ===================================================== */
+
+        .container {
+            width: 100%;
+            padding: 30px 25px 70px;
+        }
+
+        .page-card {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            box-shadow:
+                0 2px 10px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+        }
+
+        .page-title {
+            color: #198754;
+            font-size: 25px;
+            margin-bottom: 6px;
+        }
+
+        .page-description {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+
+        /* =====================================================
+           WEEK + CLASSIFICATION
+        ===================================================== */
+
+        .week-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .week-label {
+            font-weight: bold;
+        }
+
+        .week-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .week-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border: 1px solid #198754;
+            background: white;
+            color: #198754;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .week-button:hover {
+            background: #eaf7f0;
+        }
+
+        .week-select {
+            min-width: 280px;
+            height: 38px;
+            padding: 7px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: white;
+            font-size: 14px;
+        }
+
+        .classification-select {
+            min-width: 210px;
+        }
+
+
+        /* =====================================================
+           SEARCH
+        ===================================================== */
+
+        .search-area {
+            position: relative;
+            width: 100%;
+            max-width: 430px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 42px;
+            padding: 10px 13px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #198754;
+            box-shadow:
+                0 0 0 2px rgba(25, 135, 84, 0.12);
+        }
+
+        .suggestions {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 46px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow:
+                0 5px 15px rgba(0, 0, 0, 0.12);
+            z-index: 2000;
+            display: none;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .suggestion-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .suggestion-item:hover {
+            background: #f0f8f4;
+        }
+
+
+        /* =====================================================
+           TOOLBAR
+        ===================================================== */
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 14px;
+            background: #f8faf9;
+            border: 1px solid #e1e6e3;
+            border-radius: 8px;
+        }
+
+        .toolbar-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 40px;
+            padding: 9px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            transition:
+                background 0.15s ease,
+                border-color 0.15s ease,
+                transform 0.1s ease;
+        }
+
+        .toolbar-button:active {
+            transform: translateY(1px);
+        }
+
+        .select-toggle-button {
+            background: #eaf7f0;
+            color: #198754;
+            border: 1px solid #198754;
+        }
+
+        .select-toggle-button:hover {
+            background: #d9f1e4;
+        }
+
+        .select-toggle-button.all-selected {
+            background: #198754;
+            color: white;
+            border-color: #198754;
+        }
+
+        .select-toggle-button.all-selected:hover {
+            background: #146c43;
+        }
+
+        .print-button {
+            background: #198754;
+            color: white;
+            border: 1px solid #198754;
+        }
+
+        .print-button:hover {
+            background: #146c43;
+        }
+
+        .save-button {
+            background: #0d6efd;
+            color: white;
+            border: 1px solid #0d6efd;
+        }
+
+        .save-button:hover {
+            background: #0b5ed7;
+        }
+
+        .delete-button {
+            background: white;
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+
+        .delete-button:hover {
+            background: #fff1f2;
+        }
+
+
+        /* =====================================================
+           TABLE
+        ===================================================== */
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #dfe4e1;
+            border-radius: 7px;
+            background: white;
+        }
+
+        .report-table {
+            width: 100%;
+            min-width: 1370px;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .report-table th {
+            background: #198754;
+            color: white;
+            padding: 12px 10px;
+            text-align: left;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        .report-table td {
+            padding: 11px 10px;
+            border-bottom: 1px solid #e7e7e7;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .report-table tbody tr:hover {
+            background: #f8fbf9;
+        }
+
+        .checkbox-column {
+            width: 45px;
+            text-align: center !important;
+        }
+
+        .record-checkbox {
+            width: 17px;
+            height: 17px;
+            cursor: pointer;
+            accent-color: #198754;
+        }
+
+        .classification-badge {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .classification-part-time {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .classification-regular {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .empty-row {
+            text-align: center;
+            color: #777;
+            padding: 35px !important;
+            white-space: normal !important;
+        }
+
+
+        /* =====================================================
+           MODALS
+        ===================================================== */
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.48);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 5000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+
+        /* =====================================================
+           WARNING
+        ===================================================== */
+
+        .warning-modal {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow:
+                0 12px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .warning-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #fff3cd;
+            color: #856404;
+            font-size: 23px;
+            font-weight: bold;
+            margin-bottom: 14px;
+        }
+
+        .warning-modal h3 {
+            font-size: 19px;
+            margin-bottom: 8px;
+        }
+
+        .warning-modal p {
+            color: #666;
+            line-height: 1.55;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .warning-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .ok-button {
+            border: none;
+            background: #198754;
+            color: white;
+            padding: 9px 22px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .ok-button:hover {
+            background: #146c43;
+        }
+
+
+        /* =====================================================
+           LARGE MODAL
+        ===================================================== */
+
+        .large-modal {
+            width: 96vw;
+            max-width: 1500px;
+            height: 92vh;
+            max-height: 920px;
+            background: #f5f7f6;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow:
+                0 15px 45px rgba(0, 0, 0, 0.3);
+        }
+
+        .large-modal-header {
+            flex: 0 0 auto;
+            background: #198754;
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .large-modal-header h2 {
+            font-size: 20px;
+        }
+
+        .close-modal {
+            width: 34px;
+            height: 34px;
+            border: 1px solid rgba(255,255,255,0.7);
+            border-radius: 5px;
+            background: transparent;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .large-modal-body {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            overflow: hidden;
+        }
+
+
+        /* =====================================================
+           SETTINGS
+        ===================================================== */
+
+        .settings-panel {
+            width: 320px;
+            flex: 0 0 320px;
+            background: white;
+            border-right: 1px solid #dfe4e1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .settings-title {
+            color: #198754;
+            font-size: 17px;
+            margin-bottom: 5px;
+        }
+
+        .settings-description {
+            color: #6c757d;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .setting-group {
+            margin-bottom: 17px;
+        }
+
+        .setting-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        .setting-control {
+            width: 100%;
+            height: 39px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 8px 10px;
+            background: white;
+            font-size: 14px;
+        }
+
+        .setting-control:focus {
+            outline: none;
+            border-color: #198754;
+        }
+
+        .printer-status {
+            margin-top: 7px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .printer-status.success {
+            color: #198754;
+        }
+
+        .printer-status.error {
+            color: #dc3545;
+        }
+
+        .printer-note {
+            background: #f0f8f4;
+            border-left: 4px solid #198754;
+            padding: 10px 11px;
+            color: #555;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+
+        /* =====================================================
+           FORMAT
+        ===================================================== */
+
+        .format-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .format-button {
+            width: 100%;
+            min-height: 40px;
+            border-radius: 5px;
+            background: white;
+            border: 1px solid #ced4da;
+            color: #333;
+            text-align: left;
+            padding: 9px 12px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .format-button:hover {
+            background: #f0f8f4;
+            border-color: #198754;
+        }
+
+        .format-button.active {
+            background: #eaf7f0;
+            border-color: #198754;
+            color: #198754;
+        }
+
+        .settings-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 22px;
+        }
+
+        .settings-action {
+            flex: 1;
+            min-height: 40px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .cancel-action {
+            background: #6c757d;
+            border: 1px solid #6c757d;
+            color: white;
+        }
+
+        .cancel-action:hover {
+            background: #565e64;
+        }
+
+        .confirm-action {
+            background: #198754;
+            border: 1px solid #198754;
+            color: white;
+        }
+
+        .confirm-action:hover {
+            background: #146c43;
+        }
+
+        .confirm-action:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+
+        /* =====================================================
+           PREVIEW
+        ===================================================== */
+
+        .preview-area {
+            flex: 1;
+            min-width: 0;
+            overflow: auto;
+            padding: 25px;
+            background: #e9ecef;
+        }
+
+        .preview-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .preview-heading h3 {
+            font-size: 16px;
+        }
+
+        .preview-heading span {
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .paper-preview {
+            background: white;
+            width: 100%;
+            min-width: 1050px;
+            min-height: 500px;
+            padding: 25px;
+            box-shadow:
+                0 2px 8px rgba(0,0,0,0.12);
+            margin: 0 auto;
+            transform-origin: top center;
+            transition:
+                width 0.2s ease,
+                min-height 0.2s ease,
+                padding 0.2s ease;
+        }
+
+        .preview-header {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .preview-office {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .preview-title {
+            font-weight: bold;
+            font-size: 17px;
+            margin-top: 4px;
+        }
+
+        .preview-school-year {
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        .preview-week {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            table-layout: fixed;
+        }
+
+        .preview-table th,
+        .preview-table td {
+            border: 1px solid #555;
+            padding: 6px 5px;
+            vertical-align: middle;
+            word-break: break-word;
+        }
+
+        .preview-table th {
+            background: #f0f0f0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .preview-table th:nth-child(1) {
+            width: 13%;
+        }
+
+        .preview-table th:nth-child(2) {
+            width: 13%;
+        }
+
+        .preview-table th:nth-child(3) {
+            width: 9%;
+        }
+
+        .preview-table th:nth-child(4) {
+            width: 10%;
+        }
+
+        .preview-table th:nth-child(5) {
+            width: 12%;
+        }
+
+        .preview-table th:nth-child(6) {
+            width: 14%;
+        }
+
+        .preview-table th:nth-child(7) {
+            width: 7%;
+        }
+
+        .preview-table th:nth-child(8) {
+            width: 11%;
+        }
+
+        .preview-table th:nth-child(9) {
+            width: 11%;
+        }
+
+        .preview-signature {
+            min-width: 100px;
+            height: 35px;
+        }
+
+        .preview-empty {
+            text-align: center;
+            color: #777;
+            padding: 30px !important;
+        }
+
+
+        /* =====================================================
+           BLACK & WHITE PREVIEW
+        ===================================================== */
+
+        .paper-preview.bw-preview {
+            filter: grayscale(1);
+        }
+
+
+        /* =====================================================
+           DELETE MODAL
+        ===================================================== */
+
+        .delete-modal {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow:
+                0 8px 30px rgba(0,0,0,0.25);
+        }
+
+        .delete-modal h3 {
+            margin-bottom: 10px;
+        }
+
+        .delete-modal p {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-cancel {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 9px 17px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .modal-confirm {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 9px 17px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 800px) {
+
+            .header {
+                padding: 12px 15px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header h1 {
+                font-size: 19px;
+            }
+
+            .container {
+                padding: 20px 12px 60px;
+            }
+
+            .page-card {
+                padding: 18px;
+            }
+
+            .toolbar {
+                align-items: stretch;
+            }
+
+            .toolbar-button {
+                width: 100%;
+            }
+
+            .large-modal {
+                width: 100%;
+                height: 96vh;
+                max-height: none;
+                border-radius: 8px;
+            }
+
+            .large-modal-body {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+
+            .settings-panel {
+                width: 100%;
+                flex: none;
+                border-right: none;
+                border-bottom: 1px solid #dfe4e1;
+                max-height: 52%;
+            }
+
+            .preview-area {
+                min-height: 500px;
+            }
+        }
+
+
+        @media (max-width: 500px) {
+
+            .week-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .week-control {
+                width: 100%;
+            }
+
+            .week-select {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .classification-select {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="header">
+
+    <div class="header-content">
+
+        <h1>
+            CAS_Faculty Attendance Monitoring
+        </h1>
+
+        <a
+            href="{% url 'dashboard' %}"
+            class="back-dashboard"
+        >
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+</header>
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="container">
+
+    <section class="page-card">
+
+        <h2 class="page-title">
+            Weekly Reports
+        </h2>
+
+        <p class="page-description">
+            Review, print, export, or delete monitoring
+            records for the selected monitoring week.
+        </p>
+
+
+        <!-- WEEK + CLASSIFICATION -->
+
+        <div class="week-section">
+
+            <span class="week-label">
+                Monitoring Week:
+            </span>
+
+            <div class="week-control">
+
+                <a
+                    href="?week={{ previous_week|date:'Y-m-d' }}&classification={{ selected_classification }}{% if instructor_search %}&instructor={{ instructor_search|urlencode }}{% endif %}"
+                    class="week-button"
+                >
+                    ‹
+                </a>
+
+                <select
+                    id="weekSelect"
+                    class="week-select"
+                    onchange="changeWeek(this.value)"
+                >
+
+                    {% for week in weeks %}
+
+                        <option
+                            value="{{ week.value }}"
+                            {% if week.value == selected_week %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ week.label }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <a
+                    href="?week={{ next_week|date:'Y-m-d' }}&classification={{ selected_classification }}{% if instructor_search %}&instructor={{ instructor_search|urlencode }}{% endif %}"
+                    class="week-button"
+                >
+                    ›
+                </a>
+
+            </div>
+
+
+            <span
+                class="week-label"
+                style="margin-left: 15px;"
+            >
+                Instructor Classification:
+            </span>
+
+            <select
+                id="classificationSelect"
+                class="week-select classification-select"
+                onchange="changeClassification(this.value)"
+            >
+
+                <option
+                    value="ALL"
+                    {% if selected_classification == "ALL" %}
+                        selected
+                    {% endif %}
+                >
+                    All
+                </option>
+
+                <option
+                    value="PART_TIME"
+                    {% if selected_classification == "PART_TIME" %}
+                        selected
+                    {% endif %}
+                >
+                    Part-Time
+                </option>
+
+                <option
+                    value="REGULAR"
+                    {% if selected_classification == "REGULAR" %}
+                        selected
+                    {% endif %}
+                >
+                    Full-Time (Regular)
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- SEARCH -->
+
+        <div class="search-area">
+
+            <input
+                type="text"
+                id="instructorSearch"
+                class="search-input"
+                placeholder="Search instructor..."
+                value="{{ instructor_search }}"
+                autocomplete="off"
+            >
+
+            <div
+                id="suggestions"
+                class="suggestions"
+            >
+
+                {% for instructor in instructors %}
+
+                    <div
+                        class="suggestion-item"
+                        data-name="{{ instructor.name }}"
+                    >
+                        {{ instructor.name }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+        <!-- TOOLBAR -->
+
+        <div class="toolbar">
+
+            <button
+                type="button"
+                id="selectToggleButton"
+                class="toolbar-button select-toggle-button"
+                onclick="toggleSelectAll()"
+            >
+                ☑ Select All
+            </button>
+
+
+            <button
+                type="button"
+                class="toolbar-button print-button"
+                onclick="openPrintReport()"
+            >
+                🖨 Print Report
+            </button>
+
+
+            <button
+                type="button"
+                class="toolbar-button save-button"
+                onclick="openSavePreview()"
+            >
+                💾 Save As
+            </button>
+
+
+            <button
+                type="button"
+                class="toolbar-button delete-button"
+                onclick="openDeleteModal()"
+            >
+                🗑 Delete Selected
+            </button>
+
+        </div>
+
+
+        <!-- REPORT TABLE -->
+
+        <div class="table-wrapper">
+
+            <table class="report-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th class="checkbox-column">
+                            Select
+                        </th>
+
+                        <th>
+                            Instructor
+                        </th>
+
+                        <th>
+                            Classification
+                        </th>
+
+                        <th>
+                            Subject
+                        </th>
+
+                        <th>
+                            Assigned Room
+                        </th>
+
+                        <th>
+                            Actual Room Used
+                        </th>
+
+                        <th>
+                            Scheduled Class Time
+                        </th>
+
+                        <th>
+                            Date &amp; Time Monitored
+                        </th>
+
+                        <th>
+                            Day
+                        </th>
+
+                        <th>
+                            Remarks
+                        </th>
+
+                        <th>
+                            Signature
+                        </th>
+
+                        <th>
+                            Actions
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for record in records %}
+
+                        <tr>
+
+                            <td class="checkbox-column">
+
+                                <input
+                                    type="checkbox"
+                                    class="record-checkbox"
+                                    value="{{ record.id }}"
+                                >
+
+                            </td>
+
+                            <td>
+                                {{ record.schedule.instructor.name }}
+                            </td>
+
+                            <td>
+
+                                {% if record.schedule.instructor.classification == "PART_TIME" %}
+
+                                    <span class="classification-badge classification-part-time">
+                                        Part-Time
+                                    </span>
+
+                                {% elif record.schedule.instructor.classification == "REGULAR" %}
+
+                                    <span class="classification-badge classification-regular">
+                                        Full-Time (Regular)
+                                    </span>
+
+                                {% else %}
+
+                                    —
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+                                {{ record.schedule.subject }}
+                            </td>
+
+                            <td>
+                                {{ record.schedule.room.room_name }}
+                            </td>
+
+                            <td>
+
+                                {% if record.transfer_room %}
+                                    {{ record.transfer_room }}
+                                {% else %}
+                                    —
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {{ record.schedule.start_time|time:"h:i A" }}
+                                -
+                                {{ record.schedule.end_time|time:"h:i A" }}
+
+                            </td>
+
+                            <td>
+
+                                {% if record.record_datetime %}
+
+                                    {{ record.record_datetime|date:"F d, Y" }}
+                                    -
+                                    {{ record.record_datetime|time:"h:i A" }}
+
+                                {% else %}
+
+                                    —
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+                                {{ record.schedule.get_day_display }}
+                            </td>
+
+                            <td>
+
+                                {% if record.remarks %}
+                                    {{ record.remarks }}
+                                {% endif %}
+
+                                {% if record.remarks == "Not Monitored" and record.other_remarks %}
+                                    - {{ record.other_remarks }}
+                                {% endif %}
+
+                                {% if record.remarks == "Missed" and record.missed_reason %}
+                                    - {{ record.missed_reason }}
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+                                &nbsp;
+                            </td>
+
+                            <td>
+
+                                <a
+                                    href="{% url 'monitoring_update' record.id %}"
+                                    style="
+                                        color:#198754;
+                                        text-decoration:none;
+                                        font-weight:bold;
+                                    "
+                                >
+                                    Edit
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td
+                                colspan="12"
+                                class="empty-row"
+                            >
+                                No monitoring records found
+                                for this week.
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =====================================================
+     NO SELECTION MODAL
+===================================================== -->
+
+<div
+    id="noSelectionModal"
+    class="modal-overlay"
+>
+
+    <div class="warning-modal">
+
+        <div class="warning-icon">
+            !
+        </div>
+
+        <h3 id="warningTitle">
+            Please Select at Least One Report
+        </h3>
+
+        <p id="warningMessage">
+            Please select at least one monitoring report
+            before continuing.
+        </p>
+
+        <div class="warning-actions">
+
+            <button
+                type="button"
+                class="ok-button"
+                onclick="closeNoSelectionModal()"
+            >
+                OK
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     PRINT MODAL
+===================================================== -->
+
+<div
+    id="printModal"
+    class="modal-overlay"
+>
+
+    <div class="large-modal">
+
+        <div class="large-modal-header">
+
+            <h2>
+                🖨 Print Report
+            </h2>
+
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closePrintModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="large-modal-body">
+
+
+            <!-- SETTINGS -->
+
+            <aside class="settings-panel">
+
+                <h3 class="settings-title">
+                    Print Settings
+                </h3>
+
+                <p class="settings-description">
+                    Select the Windows printer and report
+                    settings before printing the selected
+                    monitoring records.
+                </p>
+
+
+                <div class="setting-group">
+
+                    <label for="printer">
+                        Printer
+                    </label>
+
+                    <select
+                        id="printer"
+                        class="setting-control"
+                    >
+
+                        <option value="">
+                            Loading Windows printers...
+                        </option>
+
+                    </select>
+
+                    <div
+                        id="printerStatus"
+                        class="printer-status"
+                    >
+                        Detecting installed Windows printers...
+                    </div>
+
+                </div>
+
+
+                <div class="setting-group">
+
+                    <label for="paperSize">
+                        Paper Size
+                    </label>
+
+                    <select
+                        id="paperSize"
+                        class="setting-control"
+                    >
+
+                        <option value="A4">
+                            A4
+                        </option>
+
+                        <option value="Letter">
+                            Letter
+                        </option>
+
+                        <option value="Legal">
+                            Legal
+                        </option>
+
+                        <option value="Folio">
+                            Folio
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="setting-group">
+
+                    <label for="orientation">
+                        Orientation
+                    </label>
+
+                    <select
+                        id="orientation"
+                        class="setting-control"
+                    >
+
+                        <option value="landscape">
+                            Landscape
+                        </option>
+
+                        <option value="portrait">
+                            Portrait
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="setting-group">
+
+                    <label for="color">
+                        Color
+                    </label>
+
+                    <select
+                        id="color"
+                        class="setting-control"
+                    >
+
+                        <option value="color">
+                            Color
+                        </option>
+
+                        <option value="bw">
+                            Black &amp; White
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="setting-group">
+
+                    <label for="margins">
+                        Margins
+                    </label>
+
+                    <select
+                        id="margins"
+                        class="setting-control"
+                    >
+
+                        <option value="normal">
+                            Normal
+                        </option>
+
+                        <option value="narrow">
+                            Narrow
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="printer-note">
+
+                    <strong>Windows Printer:</strong>
+                    The printer list is requested from the
+                    Django server running on this Windows
+                    computer. Printer names are not hard-coded.
+
+                    <br><br>
+
+                    The selected printer will be sent to the
+                    printing backend when you click
+                    <strong>Print</strong>.
+
+                </div>
+
+
+                <div class="settings-actions">
+
+                    <button
+                        type="button"
+                        class="settings-action cancel-action"
+                        onclick="closePrintModal()"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        id="printConfirmButton"
+                        class="settings-action confirm-action"
+                        onclick="printSelectedReports()"
+                    >
+                        🖨 Print
+                    </button>
+
+                </div>
+
+            </aside>
+
+
+            <!-- PREVIEW -->
+
+            <section class="preview-area">
+
+                <div class="preview-heading">
+
+                    <h3>
+                        Live Report Preview
+                    </h3>
+
+                    <span id="printPreviewCount">
+                        0 selected
+                    </span>
+
+                </div>
+
+
+                <div
+                    id="printPaperPreview"
+                    class="paper-preview"
+                >
+
+                    <div class="preview-header">
+
+                        <div class="preview-office">
+                            OFFICE OF THE DEAN
+                        </div>
+
+                        <div class="preview-title">
+                            MONITORING OF PART-TIME INSTRUCTORS
+                        </div>
+
+                        <div class="preview-school-year">
+                            First Semester, School Year 2026–2027
+                        </div>
+
+                        <div
+                            id="printPreviewWeek"
+                            class="preview-week"
+                        >
+                        </div>
+
+                    </div>
+
+
+                    <table class="preview-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>INSTRUCTOR</th>
+                                <th>SUBJECT</th>
+                                <th>ASSIGNED<br>ROOM</th>
+                                <th>ACTUAL<br>ROOM USED</th>
+                                <th>SCHEDULED<br>CLASS TIME</th>
+                                <th>DATE &amp; TIME<br>MONITORED</th>
+                                <th>DAY</th>
+                                <th>REMARKS</th>
+                                <th>SIGNATURE</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="printPreviewBody">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     SAVE MODAL
+===================================================== -->
+
+<div
+    id="saveModal"
+    class="modal-overlay"
+>
+
+    <div class="large-modal">
+
+        <div class="large-modal-header">
+
+            <h2>
+                💾 Save Report
+            </h2>
+
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeSavePreview()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="large-modal-body">
+
+
+            <aside class="settings-panel">
+
+                <h3 class="settings-title">
+                    Export Settings
+                </h3>
+
+                <p class="settings-description">
+                    Preview the selected monitoring records
+                    before saving them as PDF, DOCX, or Excel.
+                </p>
+
+
+                <div class="setting-group">
+
+                    <label>
+                        Save Format
+                    </label>
+
+                    <div class="format-buttons">
+
+                        <button
+                            type="button"
+                            id="formatPdf"
+                            class="format-button active"
+                            onclick="selectSaveFormat('pdf')"
+                        >
+                            📄 PDF
+                        </button>
+
+                        <button
+                            type="button"
+                            id="formatDocx"
+                            class="format-button"
+                            onclick="selectSaveFormat('docx')"
+                        >
+                            📝 DOCX
+                        </button>
+
+                        <button
+                            type="button"
+                            id="formatExcel"
+                            class="format-button"
+                            onclick="selectSaveFormat('excel')"
+                        >
+                            📊 Excel
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="setting-group">
+
+                    <label for="savePaperSize">
+                        Paper Size
+                    </label>
+
+                    <select
+                        id="savePaperSize"
+                        class="setting-control"
+                    >
+
+                        <option value="A4">
+                            A4
+                        </option>
+
+                        <option value="Letter">
+                            Letter
+                        </option>
+
+                        <option value="Legal">
+                            Legal
+                        </option>
+
+                        <option value="Folio">
+                            Folio
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="setting-group">
+
+                    <label for="saveOrientation">
+                        Orientation
+                    </label>
+
+                    <select
+                        id="saveOrientation"
+                        class="setting-control"
+                    >
+
+                        <option value="landscape">
+                            Landscape
+                        </option>
+
+                        <option value="portrait">
+                            Portrait
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="settings-actions">
+
+                    <button
+                        type="button"
+                        class="settings-action cancel-action"
+                        onclick="closeSavePreview()"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        id="saveConfirmButton"
+                        class="settings-action confirm-action"
+                        onclick="confirmSave()"
+                    >
+                        Save PDF
+                    </button>
+
+                </div>
+
+            </aside>
+
+
+            <section class="preview-area">
+
+                <div class="preview-heading">
+
+                    <h3>
+                        Live Export Preview
+                    </h3>
+
+                    <span id="savePreviewCount">
+                        0 selected
+                    </span>
+
+                </div>
+
+
+                <div
+                    id="savePaperPreview"
+                    class="paper-preview"
+                >
+
+                    <div class="preview-header">
+
+                        <div class="preview-office">
+                            OFFICE OF THE DEAN
+                        </div>
+
+                        <div class="preview-title">
+                            MONITORING OF PART-TIME INSTRUCTORS
+                        </div>
+
+                        <div class="preview-school-year">
+                            First Semester, School Year 2026–2027
+                        </div>
+
+                        <div
+                            id="savePreviewWeek"
+                            class="preview-week"
+                        >
+                        </div>
+
+                    </div>
+
+
+                    <table class="preview-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>INSTRUCTOR</th>
+                                <th>SUBJECT</th>
+                                <th>ASSIGNED<br>ROOM</th>
+                                <th>ACTUAL<br>ROOM USED</th>
+                                <th>SCHEDULED<br>CLASS TIME</th>
+                                <th>DATE &amp; TIME<br>MONITORED</th>
+                                <th>DAY</th>
+                                <th>REMARKS</th>
+                                <th>SIGNATURE</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="savePreviewBody">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     DELETE MODAL
+===================================================== -->
+
+<div
+    id="deleteModal"
+    class="modal-overlay"
+>
+
+    <div class="delete-modal">
+
+        <h3>
+            Delete Selected Reports
+        </h3>
+
+        <p>
+            Are you sure you want to delete the selected
+            monitoring reports? This action cannot be undone.
+        </p>
+
+        <div class="modal-buttons">
+
+            <button
+                type="button"
+                class="modal-cancel"
+                onclick="closeDeleteModal()"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="modal-confirm"
+                onclick="confirmDelete()"
+            >
+                Delete
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     DELETE FORM
+===================================================== -->
+
+<form
+    id="deleteForm"
+    method="POST"
+    action="{% url 'monitoring_bulk_delete' %}"
+    style="display:none;"
+>
+
+    {% csrf_token %}
+
+    <div id="deleteInputs"></div>
+
+</form>
+
+
+<script>
+
+    /* =====================================================
+       GLOBAL SETTINGS
+    ===================================================== */
+
+    let selectedSaveFormat = "pdf";
+
+
+    /* =====================================================
+       WEEK
+    ===================================================== */
+
+    function changeWeek(value) {
+
+        if (!value) {
+            return;
+        }
+
+        const url =
+            new URL(window.location.href);
+
+        url.searchParams.set(
+            "week",
+            value
+        );
+
+
+        const classification =
+            document.getElementById(
+                "classificationSelect"
+            ).value;
+
+
+        url.searchParams.set(
+            "classification",
+            classification
+        );
+
+
+        const instructor =
+            document
+                .getElementById("instructorSearch")
+                .value
+                .trim();
+
+
+        if (instructor) {
+
+            url.searchParams.set(
+                "instructor",
+                instructor
+            );
+
+        } else {
+
+            url.searchParams.delete(
+                "instructor"
+            );
+
+        }
+
+
+        window.location.href =
+            url.toString();
+
+    }
+
+
+    /* =====================================================
+       CLASSIFICATION
+    ===================================================== */
+
+    function changeClassification(value) {
+
+        if (!value) {
+            value = "ALL";
+        }
+
+
+        const url =
+            new URL(window.location.href);
+
+
+        url.searchParams.set(
+            "classification",
+            value
+        );
+
+
+        const week =
+            document.getElementById(
+                "weekSelect"
+            ).value;
+
+
+        if (week) {
+
+            url.searchParams.set(
+                "week",
+                week
+            );
+
+        }
+
+
+        const instructor =
+            document
+                .getElementById("instructorSearch")
+                .value
+                .trim();
+
+
+        if (instructor) {
+
+            url.searchParams.set(
+                "instructor",
+                instructor
+            );
+
+        } else {
+
+            url.searchParams.delete(
+                "instructor"
+            );
+
+        }
+
+
+        window.location.href =
+            url.toString();
+
+    }
+
+
+    /* =====================================================
+       SELECTED RECORDS
+    ===================================================== */
+
+    function getSelectedCheckboxes() {
+
+        return Array.from(
+            document.querySelectorAll(
+                ".record-checkbox:checked"
+            )
+        );
+
+    }
+
+
+    function getSelectedRecords() {
+
+        return getSelectedCheckboxes()
+            .map(
+                checkbox =>
+                    checkbox.value
+            );
+
+    }
+
+
+    /* =====================================================
+       SELECT ALL / DESELECT ALL
+    ===================================================== */
+
+    function toggleSelectAll() {
+
+        const checkboxes =
+            Array.from(
+                document.querySelectorAll(
+                    ".record-checkbox"
+                )
+            );
+
+        if (checkboxes.length === 0) {
+            return;
+        }
+
+        const allSelected =
+            checkboxes.every(
+                checkbox =>
+                    checkbox.checked
+            );
+
+        checkboxes.forEach(
+            checkbox => {
+                checkbox.checked =
+                    !allSelected;
+            }
+        );
+
+        updateSelectButton();
+
+    }
+
+
+    function updateSelectButton() {
+
+        const checkboxes =
+            Array.from(
+                document.querySelectorAll(
+                    ".record-checkbox"
+                )
+            );
+
+        const button =
+            document.getElementById(
+                "selectToggleButton"
+            );
+
+        if (
+            checkboxes.length > 0 &&
+            checkboxes.every(
+                checkbox =>
+                    checkbox.checked
+            )
+        ) {
+
+            button.innerHTML =
+                "☐ Deselect All";
+
+            button.classList.add(
+                "all-selected"
+            );
+
+        } else {
+
+            button.innerHTML =
+                "☑ Select All";
+
+            button.classList.remove(
+                "all-selected"
+            );
+
+        }
+
+    }
+
+
+    document.addEventListener(
+        "change",
+        function(event) {
+
+            if (
+                event.target.classList.contains(
+                    "record-checkbox"
+                )
+            ) {
+
+                updateSelectButton();
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       WARNING
+    ===================================================== */
+
+    function showWarning(
+        title,
+        message
+    ) {
+
+        document.getElementById(
+            "warningTitle"
+        ).textContent =
+            title;
+
+        document.getElementById(
+            "warningMessage"
+        ).textContent =
+            message;
+
+        document.getElementById(
+            "noSelectionModal"
+        ).classList.add(
+            "show"
+        );
+
+    }
+
+
+    function closeNoSelectionModal() {
+
+        document.getElementById(
+            "noSelectionModal"
+        ).classList.remove(
+            "show"
+        );
+
+    }
+
+
+    /* =====================================================
+       PREVIEW ROWS
+    ===================================================== */
+
+    function createPreviewRows(targetId) {
+
+        const target =
+            document.getElementById(targetId);
+
+        target.innerHTML = "";
+
+
+        const selected =
+            getSelectedCheckboxes();
+
+
+        selected.forEach(
+            checkbox => {
+
+                const row =
+                    checkbox.closest("tr");
+
+
+                if (!row) {
+                    return;
+                }
+
+
+                const cells =
+                    row.querySelectorAll("td");
+
+
+                /*
+                 * Main table columns:
+                 *
+                 * 0  = Select
+                 * 1  = Instructor
+                 * 2  = Classification
+                 * 3  = Subject
+                 * 4  = Assigned Room
+                 * 5  = Actual Room Used
+                 * 6  = Scheduled Class Time
+                 * 7  = Date & Time Monitored
+                 * 8  = Day
+                 * 9  = Remarks
+                 * 10 = Signature
+                 * 11 = Actions
+                 */
+
+
+                if (cells.length < 12) {
+                    return;
+                }
+
+
+                const instructor =
+                    cells[1].innerText.trim();
+
+
+                const subject =
+                    cells[3].innerText.trim();
+
+
+                const assignedRoom =
+                    cells[4].innerText.trim();
+
+
+                const actualRoom =
+                    cells[5].innerText.trim();
+
+
+                const scheduledTime =
+                    cells[6].innerText.trim();
+
+
+                const monitoredDateTime =
+                    cells[7].innerText.trim();
+
+
+                const day =
+                    cells[8].innerText.trim();
+
+
+                const remarks =
+                    cells[9].innerText.trim();
+
+
+                /*
+                 * Classification is displayed in the
+                 * main table but is intentionally NOT
+                 * included as a report column because
+                 * the existing report template does not
+                 * contain a Classification column.
+                 */
+
+
+                /*
+                 * Signature is intentionally blank
+                 * because it is for the physical signature.
+                 */
+
+                const signature = "";
+
+
+                const values = [
+
+                    instructor,
+
+                    subject,
+
+                    assignedRoom,
+
+                    actualRoom,
+
+                    scheduledTime,
+
+                    monitoredDateTime,
+
+                    day,
+
+                    remarks,
+
+                    signature
+
+                ];
+
+
+                const previewRow =
+                    document.createElement("tr");
+
+
+                values.forEach(
+                    (value, index) => {
+
+                        const cell =
+                            document.createElement("td");
+
+
+                        cell.textContent =
+                            value || " ";
+
+
+                        /*
+                         * Signature is column 8
+                         * in the 9-column preview.
+                         */
+
+                        if (index === 8) {
+
+                            cell.classList.add(
+                                "preview-signature"
+                            );
+
+                        }
+
+
+                        previewRow.appendChild(
+                            cell
+                        );
+
+                    }
+                );
+
+
+                target.appendChild(
+                    previewRow
+                );
+
+            }
+        );
+
+
+        if (
+            target.children.length === 0
+        ) {
+
+            target.innerHTML = `
+                <tr>
+                    <td
+                        colspan="9"
+                        class="preview-empty"
+                    >
+                        No selected records.
+                    </td>
+                </tr>
+            `;
+
+        }
+
+    }
+
+
+    /* =====================================================
+       WEEK PREVIEW
+    ===================================================== */
+
+    function updatePreviewWeek(elementId) {
+
+        const weekSelect =
+            document.getElementById(
+                "weekSelect"
+            );
+
+
+        const selectedOption =
+            weekSelect.options[
+                weekSelect.selectedIndex
+            ];
+
+
+        const element =
+            document.getElementById(
+                elementId
+            );
+
+
+        if (selectedOption) {
+
+            element.textContent =
+                selectedOption
+                    .textContent
+                    .trim();
+
+        }
+
+    }
+
+
+    /* =====================================================
+       PAPER PREVIEW
+    ===================================================== */
+
+    function getPaperDimensions(
+        paper,
+        orientation
+    ) {
+
+        const dimensions = {
+
+            "A4": {
+                width: 794,
+                height: 1123
+            },
+
+            "Letter": {
+                width: 816,
+                height: 1056
+            },
+
+            "Legal": {
+                width: 816,
+                height: 1344
+            },
+
+            "Folio": {
+                width: 816,
+                height: 1248
+            }
+
+        };
+
+
+        const selected =
+            dimensions[paper] ||
+            dimensions["A4"];
+
+
+        if (
+            orientation === "portrait"
+        ) {
+
+            return {
+                width: selected.width,
+                height: selected.height
+            };
+
+        }
+
+
+        return {
+            width: selected.height,
+            height: selected.width
+        };
+
+    }
+
+
+    function updatePaperPreview(
+        paperId,
+        paperSize,
+        orientation,
+        color,
+        margins
+    ) {
+
+        const paper =
+            document.getElementById(
+                paperId
+            );
+
+
+        if (!paper) {
+            return;
+        }
+
+
+        const dimensions =
+            getPaperDimensions(
+                paperSize,
+                orientation
+            );
+
+
+        paper.style.width =
+            dimensions.width + "px";
+
+
+        paper.style.minWidth =
+            dimensions.width + "px";
+
+
+        paper.style.minHeight =
+            dimensions.height + "px";
+
+
+        if (margins === "narrow") {
+
+            paper.style.padding =
+                "18px";
+
+        } else {
+
+            paper.style.padding =
+                "25px";
+
+        }
+
+
+        if (color === "bw") {
+
+            paper.classList.add(
+                "bw-preview"
+            );
+
+        } else {
+
+            paper.classList.remove(
+                "bw-preview"
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       PRINT PREVIEW SETTINGS
+    ===================================================== */
+
+    function updatePrintPreview() {
+
+        updatePaperPreview(
+            "printPaperPreview",
+            document.getElementById(
+                "paperSize"
+            ).value,
+            document.getElementById(
+                "orientation"
+            ).value,
+            document.getElementById(
+                "color"
+            ).value,
+            document.getElementById(
+                "margins"
+            ).value
+        );
+
+    }
+
+
+    document.getElementById(
+        "paperSize"
+    ).addEventListener(
+        "change",
+        updatePrintPreview
+    );
+
+
+    document.getElementById(
+        "orientation"
+    ).addEventListener(
+        "change",
+        updatePrintPreview
+    );
+
+
+    document.getElementById(
+        "color"
+    ).addEventListener(
+        "change",
+        updatePrintPreview
+    );
+
+
+    document.getElementById(
+        "margins"
+    ).addEventListener(
+        "change",
+        updatePrintPreview
+    );
+
+
+    /* =====================================================
+       SAVE PREVIEW SETTINGS
+    ===================================================== */
+
+    function updateSavePreview() {
+
+        updatePaperPreview(
+            "savePaperPreview",
+            document.getElementById(
+                "savePaperSize"
+            ).value,
+            document.getElementById(
+                "saveOrientation"
+            ).value,
+            "color",
+            "normal"
+        );
+
+    }
+
+
+    document.getElementById(
+        "savePaperSize"
+    ).addEventListener(
+        "change",
+        updateSavePreview
+    );
+
+
+    document.getElementById(
+        "saveOrientation"
+    ).addEventListener(
+        "change",
+        updateSavePreview
+    );
+
+
+    /* =====================================================
+       WINDOWS PRINTERS
+    ===================================================== */
+
+    async function loadWindowsPrinters() {
+
+        const printerSelect =
+            document.getElementById("printer");
+
+
+        const printerStatus =
+            document.getElementById("printerStatus");
+
+
+        printerSelect.innerHTML = `
+            <option value="">
+                Loading Windows printers...
+            </option>
+        `;
+
+
+        printerStatus.textContent =
+            "Detecting installed Windows printers.";
+
+
+        printerStatus.className =
+            "printer-status";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "{% url 'windows_printers' %}",
+                    {
+                        method: "GET",
+
+                        headers: {
+                            "X-Requested-With":
+                                "XMLHttpRequest"
+                        },
+
+                        cache: "no-store"
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Printer list request failed. HTTP " +
+                    response.status
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            console.log(
+                "Windows printer response:",
+                data
+            );
+
+
+            if (data.available === false) {
+
+                throw new Error(
+                    data.message ||
+                    "Windows printer detection is unavailable."
+                );
+
+            }
+
+
+            printerSelect.innerHTML = "";
+
+
+            if (
+                Array.isArray(data.printers) &&
+                data.printers.length > 0
+            ) {
+
+                data.printers.forEach(
+                    printer => {
+
+                        const option =
+                            document.createElement(
+                                "option"
+                            );
+
+
+                        option.value =
+                            printer.name;
+
+
+                        option.textContent =
+                            printer.name +
+                            (
+                                printer.is_default
+                                    ? " (Default)"
+                                    : ""
+                            );
+
+
+                        printerSelect.appendChild(
+                            option
+                        );
+
+                    }
+                );
+
+
+                if (
+                    data.default_printer
+                ) {
+
+                    printerSelect.value =
+                        data.default_printer;
+
+                }
+
+
+                printerStatus.textContent =
+                    data.printers.length +
+                    " Windows printer(s) detected.";
+
+
+                printerStatus.className =
+                    "printer-status success";
+
+
+            } else {
+
+                printerSelect.innerHTML = `
+                    <option value="">
+                        No Windows printers found
+                    </option>
+                `;
+
+
+                printerStatus.textContent =
+                    "No installed Windows printers were detected.";
+
+
+                printerStatus.className =
+                    "printer-status error";
+
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "Printer detection error:",
+                error
+            );
+
+
+            printerSelect.innerHTML = `
+                <option value="">
+                    Unable to load Windows printers
+                </option>
+            `;
+
+
+            printerStatus.textContent =
+                error.message ||
+                "Could not load the Windows printer list.";
+
+
+            printerStatus.className =
+                "printer-status error";
+
+        }
+
+    }
+
+
+    /* =====================================================
+       PRINT
+    ===================================================== */
+
+    function openPrintReport() {
+
+        const selected =
+            getSelectedRecords();
+
+
+        if (
+            selected.length === 0
+        ) {
+
+            showWarning(
+                "Please Select at Least One Report",
+                "Please select at least one monitoring report before printing."
+            );
+
+
+            return;
+
+        }
+
+
+        createPreviewRows(
+            "printPreviewBody"
+        );
+
+
+        document.getElementById(
+            "printPreviewCount"
+        ).textContent =
+            selected.length +
+            (
+                selected.length === 1
+                    ? " selected"
+                    : " selected"
+            );
+
+
+        updatePreviewWeek(
+            "printPreviewWeek"
+        );
+
+
+        updatePrintPreview();
+
+
+        document.getElementById(
+            "printModal"
+        ).classList.add(
+            "show"
+        );
+
+
+        loadWindowsPrinters();
+
+    }
+
+
+    function closePrintModal() {
+
+        document.getElementById(
+            "printModal"
+        ).classList.remove(
+            "show"
+        );
+
+    }
+
+
+    async function printSelectedReports() {
+
+        const selected =
+            getSelectedRecords();
+
+
+        if (
+            selected.length === 0
+        ) {
+
+            closePrintModal();
+
+
+            showWarning(
+                "Please Select at Least One Report",
+                "Please select at least one monitoring report before printing."
+            );
+
+
+            return;
+
+        }
+
+
+        const printer =
+            document.getElementById(
+                "printer"
+            ).value;
+
+
+        if (!printer) {
+
+            showWarning(
+                "No Printer Selected",
+                "Please select a Windows printer before printing."
+            );
+
+
+            return;
+
+        }
+
+
+        const button =
+            document.getElementById(
+                "printConfirmButton"
+            );
+
+
+        button.disabled = true;
+
+
+        button.textContent =
+            "Printing...";
+
+
+        const params =
+            new URLSearchParams();
+
+
+        params.set(
+            "records",
+            selected.join(",")
+        );
+
+
+        params.set(
+            "week",
+            document.getElementById(
+                "weekSelect"
+            ).value
+        );
+
+
+        /* ---------------------------------------------
+           CLASSIFICATION
+        --------------------------------------------- */
+
+        params.set(
+            "classification",
+            document.getElementById(
+                "classificationSelect"
+            ).value
+        );
+
+
+        params.set(
+            "paper_size",
+            document.getElementById(
+                "paperSize"
+            ).value
+        );
+
+
+        params.set(
+            "orientation",
+            document.getElementById(
+                "orientation"
+            ).value
+        );
+
+
+        params.set(
+            "color",
+            document.getElementById(
+                "color"
+            ).value
+        );
+
+
+        params.set(
+            "margins",
+            document.getElementById(
+                "margins"
+            ).value
+        );
+
+
+        params.set(
+            "printer",
+            printer
+        );
+
+
+        const instructor =
+            document.getElementById(
+                "instructorSearch"
+            ).value.trim();
+
+
+        if (instructor) {
+
+            params.set(
+                "instructor",
+                instructor
+            );
+
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "{% url 'report_print' %}?" +
+                    params.toString(),
+                    {
+                        method: "GET",
+
+                        headers: {
+                            "X-Requested-With":
+                                "XMLHttpRequest"
+                        }
+                    }
+                );
+
+
+            const contentType =
+                response.headers.get(
+                    "content-type"
+                ) || "";
+
+
+            if (
+                contentType.includes(
+                    "application/json"
+                )
+            ) {
+
+                const data =
+                    await response.json();
+
+
+                if (
+                    data.success
+                ) {
+
+                    closePrintModal();
+
+
+                    showWarning(
+                        "Report Sent to Printer",
+                        data.message ||
+                        "The report was successfully sent to the selected Windows printer."
+                    );
+
+
+                } else {
+
+                    throw new Error(
+                        data.message ||
+                        "Printing failed."
+                    );
+
+                }
+
+
+            } else {
+
+                const blob =
+                    await response.blob();
+
+
+                const blobUrl =
+                    URL.createObjectURL(
+                        blob
+                    );
+
+
+                window.open(
+                    blobUrl,
+                    "_blank"
+                );
+
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "Printing error:",
+                error
+            );
+
+
+            showWarning(
+                "Printing Failed",
+                error.message ||
+                "The report could not be sent to the selected printer."
+            );
+
+
+        } finally {
+
+            button.disabled = false;
+
+
+            button.textContent =
+                "🖨 Print";
+
+        }
+
+    }
+
+
+    /* =====================================================
+       SAVE PREVIEW
+    ===================================================== */
+
+    function openSavePreview() {
+
+        const selected =
+            getSelectedRecords();
+
+
+        if (
+            selected.length === 0
+        ) {
+
+            showWarning(
+                "Please Select at Least One Report",
+                "Please select at least one monitoring report before saving."
+            );
+
+
+            return;
+
+        }
+
+
+        selectedSaveFormat =
+            "pdf";
+
+
+        updateSaveFormatButtons();
+
+
+        createPreviewRows(
+            "savePreviewBody"
+        );
+
+
+        document.getElementById(
+            "savePreviewCount"
+        ).textContent =
+            selected.length +
+            (
+                selected.length === 1
+                    ? " selected"
+                    : " selected"
+            );
+
+
+        updatePreviewWeek(
+            "savePreviewWeek"
+        );
+
+
+        updateSavePreview();
+
+
+        document.getElementById(
+            "saveModal"
+        ).classList.add(
+            "show"
+        );
+
+    }
+
+
+    function closeSavePreview() {
+
+        document.getElementById(
+            "saveModal"
+        ).classList.remove(
+            "show"
+        );
+
+    }
+
+
+    /* =====================================================
+       SAVE FORMAT
+    ===================================================== */
+
+    function selectSaveFormat(format) {
+
+        selectedSaveFormat =
+            format;
+
+
+        updateSaveFormatButtons();
+
+    }
+
+
+    function updateSaveFormatButtons() {
+
+        document
+            .querySelectorAll(
+                ".format-button"
+            )
+            .forEach(
+                button => {
+
+                    button.classList.remove(
+                        "active"
+                    );
+
+                }
+            );
+
+
+        const selectedButton =
+            document.getElementById(
+                "format" +
+                selectedSaveFormat
+                    .charAt(0)
+                    .toUpperCase() +
+                selectedSaveFormat
+                    .slice(1)
+            );
+
+
+        if (selectedButton) {
+
+            selectedButton.classList.add(
+                "active"
+            );
+
+        }
+
+
+        const confirmButton =
+            document.getElementById(
+                "saveConfirmButton"
+            );
+
+
+        if (
+            selectedSaveFormat === "pdf"
+        ) {
+
+            confirmButton.textContent =
+                "Save PDF";
+
+        }
+
+        else if (
+            selectedSaveFormat === "docx"
+        ) {
+
+            confirmButton.textContent =
+                "Save DOCX";
+
+        }
+
+        else {
+
+            confirmButton.textContent =
+                "Save Excel";
+
+        }
+
+    }
+
+
+    /* =====================================================
+       CONFIRM SAVE
+    ===================================================== */
+
+    function confirmSave() {
+
+        const selected =
+            getSelectedRecords();
+
+
+        if (
+            selected.length === 0
+        ) {
+
+            closeSavePreview();
+
+
+            showWarning(
+                "Please Select at Least One Report",
+                "Please select at least one monitoring report before saving."
+            );
+
+
+            return;
+
+        }
+
+
+        const params =
+            new URLSearchParams();
+
+
+        params.set(
+            "records",
+            selected.join(",")
+        );
+
+
+        params.set(
+            "week",
+            document.getElementById(
+                "weekSelect"
+            ).value
+        );
+
+
+        /* ---------------------------------------------
+           CLASSIFICATION
+        --------------------------------------------- */
+
+        params.set(
+            "classification",
+            document.getElementById(
+                "classificationSelect"
+            ).value
+        );
+
+
+        params.set(
+            "paper_size",
+            document.getElementById(
+                "savePaperSize"
+            ).value
+        );
+
+
+        params.set(
+            "orientation",
+            document.getElementById(
+                "saveOrientation"
+            ).value
+        );
+
+
+        const instructor =
+            document.getElementById(
+                "instructorSearch"
+            ).value.trim();
+
+
+        if (instructor) {
+
+            params.set(
+                "instructor",
+                instructor
+            );
+
+        }
+
+
+        let url;
+
+
+        if (
+            selectedSaveFormat === "pdf"
+        ) {
+
+            url =
+                "{% url 'report_pdf' %}";
+
+        }
+
+        else if (
+            selectedSaveFormat === "docx"
+        ) {
+
+            url =
+                "{% url 'report_docx' %}";
+
+        }
+
+        else {
+
+            url =
+                "{% url 'report_excel' %}";
+
+        }
+
+
+        closeSavePreview();
+
+
+        window.open(
+            url +
+            "?" +
+            params.toString(),
+            "_blank"
+        );
+
+    }
+
+
+    /* =====================================================
+       DELETE
+    ===================================================== */
+
+    function openDeleteModal() {
+
+        const selected =
+            getSelectedRecords();
+
+
+        if (
+            selected.length === 0
+        ) {
+
+            showWarning(
+                "Please Select One Report to Delete",
+                "Please select at least one monitoring report before deleting."
+            );
+
+
+            return;
+
+        }
+
+
+        document.getElementById(
+            "deleteModal"
+        ).classList.add(
+            "show"
+        );
+
+    }
+
+
+    function closeDeleteModal() {
+
+        document.getElementById(
+            "deleteModal"
+        ).classList.remove(
+            "show"
+        );
+
+    }
+
+
+    function confirmDelete() {
+
+        const selected =
+            getSelectedRecords();
+
+
+        if (
+            selected.length === 0
+        ) {
+
+            closeDeleteModal();
+
+
+            showWarning(
+                "Please Select One Report to Delete",
+                "Please select at least one monitoring report before deleting."
+            );
+
+
+            return;
+
+        }
+
+
+        const container =
+            document.getElementById(
+                "deleteInputs"
+            );
+
+
+        container.innerHTML = "";
+
+
+        selected.forEach(
+            id => {
+
+                const input =
+                    document.createElement(
+                        "input"
+                    );
+
+
+                input.type =
+                    "hidden";
+
+
+                input.name =
+                    "selected_records";
+
+
+                input.value =
+                    id;
+
+
+                container.appendChild(
+                    input
+                );
+
+            }
+        );
+
+
+        document.getElementById(
+            "deleteForm"
+        ).submit();
+
+    }
+
+
+    /* =====================================================
+       SEARCH
+    ===================================================== */
+
+    const searchInput =
+        document.getElementById(
+            "instructorSearch"
+        );
+
+
+    const suggestions =
+        document.getElementById(
+            "suggestions"
+        );
+
+
+    if (searchInput) {
+
+        searchInput.addEventListener(
+            "input",
+            function() {
+
+                const value =
+                    this.value
+                        .trim()
+                        .toLowerCase();
+
+
+                const items =
+                    suggestions.querySelectorAll(
+                        ".suggestion-item"
+                    );
+
+
+                if (!value) {
+
+                    suggestions.style.display =
+                        "none";
+
+
+                    return;
+
+                }
+
+
+                let visible =
+                    false;
+
+
+                items.forEach(
+                    item => {
+
+                        const name =
+                            item.dataset.name
+                                .toLowerCase();
+
+
+                        if (
+                            name.includes(value)
+                        ) {
+
+                            item.style.display =
+                                "block";
+
+
+                            visible = true;
+
+                        }
+
+                        else {
+
+                            item.style.display =
+                                "none";
+
+                        }
+
+                    }
+                );
+
+
+                suggestions.style.display =
+                    visible
+                        ? "block"
+                        : "none";
+
+            }
+        );
+
+
+        searchInput.addEventListener(
+            "keydown",
+            function(event) {
+
+                if (
+                    event.key === "Enter"
+                ) {
+
+                    event.preventDefault();
+
+
+                    applyInstructorSearch(
+                        this.value.trim()
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    document
+        .querySelectorAll(
+            ".suggestion-item"
+        )
+        .forEach(
+            item => {
+
+                item.addEventListener(
+                    "click",
+                    function() {
+
+                        searchInput.value =
+                            this.dataset.name;
+
+
+                        suggestions.style.display =
+                            "none";
+
+
+                        applyInstructorSearch(
+                            this.dataset.name
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    function applyInstructorSearch(
+        instructor
+    ) {
+
+        const url =
+            new URL(
+                window.location.href
+            );
+
+
+        const week =
+            document.getElementById(
+                "weekSelect"
+            ).value;
+
+
+        const classification =
+            document.getElementById(
+                "classificationSelect"
+            ).value;
+
+
+        if (week) {
+
+            url.searchParams.set(
+                "week",
+                week
+            );
+
+        }
+
+
+        url.searchParams.set(
+            "classification",
+            classification
+        );
+
+
+        if (instructor) {
+
+            url.searchParams.set(
+                "instructor",
+                instructor
+            );
+
+        } else {
+
+            url.searchParams.delete(
+                "instructor"
+            );
+
+        }
+
+
+        window.location.href =
+            url.toString();
+
+    }
+
+
+    /* =====================================================
+       OUTSIDE MODAL CLICK
+    ===================================================== */
+
+    document.getElementById(
+        "noSelectionModal"
+    ).addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target === this
+            ) {
+
+                closeNoSelectionModal();
+
+            }
+
+        }
+    );
+
+
+    document.getElementById(
+        "printModal"
+    ).addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target === this
+            ) {
+
+                closePrintModal();
+
+            }
+
+        }
+    );
+
+
+    document.getElementById(
+        "saveModal"
+    ).addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target === this
+            ) {
+
+                closeSavePreview();
+
+            }
+
+        }
+    );
+
+
+    document.getElementById(
+        "deleteModal"
+    ).addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target === this
+            ) {
+
+                closeDeleteModal();
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       ESC
+    ===================================================== */
+
+    document.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Escape"
+            ) {
+
+                closeNoSelectionModal();
+
+                closePrintModal();
+
+                closeSavePreview();
+
+                closeDeleteModal();
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       INITIAL
+    ===================================================== */
+
+    updateSelectButton();
+
+</script>
+
+
+</body>
+
+</html>

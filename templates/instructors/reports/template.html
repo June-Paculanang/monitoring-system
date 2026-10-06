@@ -1,0 +1,1935 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    {% load static %}
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Report Templates - Teacher Class Monitoring</title>
+
+
+    <style>
+
+        /* =========================================
+           GLOBAL
+        ========================================= */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #333;
+
+            min-height: 100vh;
+
+            overflow-x: hidden;
+        }
+
+
+        /* =========================================
+           MOBILE SIDEBAR OVERLAY
+        ========================================= */
+
+        .sidebar-overlay {
+            display: none;
+
+            position: fixed;
+
+            inset: 0;
+
+            background: rgba(0, 0, 0, 0.45);
+
+            z-index: 999;
+        }
+
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+
+        /* =========================================
+           SIDEBAR
+        ========================================= */
+
+        .sidebar {
+            position: fixed;
+
+            left: 0;
+            top: 0;
+
+            width: 240px;
+            height: 100vh;
+
+            background: #198754;
+
+            color: white;
+
+            padding: 25px 15px;
+
+            overflow-y: auto;
+
+            z-index: 1000;
+
+            transition: transform 0.25s ease;
+
+            scrollbar-width: thin;
+        }
+
+
+        .sidebar-title {
+            text-align: center;
+
+            font-size: 20px;
+
+            font-weight: bold;
+
+            margin-bottom: 35px;
+        }
+
+
+        .sidebar a {
+            display: block;
+
+            color: white;
+
+            text-decoration: none;
+
+            padding: 12px 15px;
+
+            border-radius: 7px;
+
+            margin-bottom: 6px;
+
+            font-size: 14px;
+
+            transition: background 0.2s ease;
+        }
+
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+
+        .sidebar .active {
+            background: rgba(255, 255, 255, 0.20);
+        }
+
+
+        /* =========================================
+           MAIN
+        ========================================= */
+
+        .main {
+            margin-left: 240px;
+
+            min-height: 100vh;
+
+            width: calc(100% - 240px);
+
+            display: flex;
+
+            flex-direction: column;
+        }
+
+
+        /* =========================================
+           TOP BAR
+        ========================================= */
+
+        .topbar {
+            background: white;
+
+            min-height: 70px;
+
+            padding: 15px 30px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 15px;
+
+            box-shadow:
+                0 2px 5px rgba(0, 0, 0, 0.08);
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 100;
+        }
+
+
+        .topbar-left {
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            min-width: 0;
+        }
+
+
+        .topbar h1 {
+            font-size: 22px;
+
+            color: #333;
+
+            white-space: nowrap;
+        }
+
+
+        /* =========================================
+           MOBILE MENU BUTTON
+        ========================================= */
+
+        .menu-button {
+            display: none;
+
+            width: 42px;
+            height: 42px;
+
+            border: none;
+
+            border-radius: 7px;
+
+            background: #198754;
+
+            color: white;
+
+            font-size: 22px;
+
+            cursor: pointer;
+
+            flex-shrink: 0;
+        }
+
+
+        .menu-button:hover {
+            background: #146c43;
+        }
+
+
+        /* =========================================
+           LOGOUT
+        ========================================= */
+
+        .logout {
+            background: #dc3545;
+
+            color: white;
+
+            border: none;
+
+            padding: 9px 15px;
+
+            border-radius: 6px;
+
+            font-size: 13px;
+
+            white-space: nowrap;
+
+            flex-shrink: 0;
+
+            cursor: pointer;
+        }
+
+
+        .logout:hover {
+            background: #bb2d3b;
+        }
+
+
+        /* =========================================
+           CONTENT
+        ========================================= */
+
+        .content {
+            width: 100%;
+
+            max-width: 1500px;
+
+            margin: 0 auto;
+
+            padding: 30px;
+
+            flex: 1;
+        }
+
+
+        /* =========================================
+           PAGE HEADER
+        ========================================= */
+
+        .page-header {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 20px;
+
+            margin-bottom: 25px;
+        }
+
+
+        .page-header h2 {
+            font-size: 25px;
+
+            margin-bottom: 7px;
+        }
+
+
+        .page-header p {
+            color: #777;
+
+            font-size: 14px;
+
+            line-height: 1.5;
+        }
+
+
+        /* =========================================
+           CARD
+        ========================================= */
+
+        .card {
+            background: white;
+
+            padding: 25px;
+
+            border-radius: 10px;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.08);
+
+            min-width: 0;
+        }
+
+
+        /* =========================================
+           BUTTONS
+        ========================================= */
+
+        .btn {
+            display: inline-block;
+
+            padding: 9px 14px;
+
+            border-radius: 6px;
+
+            text-decoration: none;
+
+            border: none;
+
+            cursor: pointer;
+
+            font-size: 14px;
+
+            font-family: Arial, sans-serif;
+
+            transition:
+                background 0.2s ease,
+                transform 0.1s ease;
+        }
+
+
+        .btn:hover {
+            opacity: 0.92;
+        }
+
+
+        .btn-success {
+            background: #198754;
+
+            color: white;
+        }
+
+
+        .btn-success:hover {
+            background: #146c43;
+        }
+
+
+        .btn-primary {
+            background: #0d6efd;
+
+            color: white;
+        }
+
+
+        .btn-danger {
+            background: #dc3545;
+
+            color: white;
+        }
+
+
+        .btn-secondary {
+            background: #6c757d;
+
+            color: white;
+        }
+
+
+        /* =========================================
+           TABLE TOP
+        ========================================= */
+
+        .table-top {
+            width: 100%;
+
+            display: flex;
+
+            justify-content: flex-end;
+
+            margin-bottom: 10px;
+        }
+
+
+        .select-column-action {
+            display: flex;
+
+            justify-content: flex-end;
+
+            width: auto;
+        }
+
+
+        /* =========================================
+           RECTANGULAR SELECT ALL BUTTON
+        ========================================= */
+
+        .select-all-button {
+            min-width: 145px;
+
+            padding: 9px 16px;
+
+            text-align: center;
+
+            white-space: nowrap;
+
+            font-weight: bold;
+        }
+
+
+        /* =========================================
+           TABLE
+        ========================================= */
+
+        .table-responsive {
+            width: 100%;
+
+            overflow-x: auto;
+
+            -webkit-overflow-scrolling: touch;
+        }
+
+
+        table {
+            width: 100%;
+
+            min-width: 900px;
+
+            border-collapse: collapse;
+        }
+
+
+        th,
+        td {
+            padding: 12px;
+
+            border: 1px solid #dee2e6;
+
+            text-align: left;
+
+            vertical-align: middle;
+        }
+
+
+        th {
+            background: #198754;
+
+            color: white;
+
+            font-weight: bold;
+
+            font-size: 13px;
+
+            white-space: nowrap;
+        }
+
+
+        td {
+            font-size: 13px;
+
+            background: white;
+        }
+
+
+        tbody tr:hover td {
+            background: #f8f9fa;
+        }
+
+
+        /* =========================================
+           SELECT COLUMN
+        ========================================= */
+
+        .checkbox-cell {
+            text-align: center !important;
+
+            width: 80px;
+        }
+
+
+        input[type="checkbox"] {
+            width: 17px;
+
+            height: 17px;
+
+            cursor: pointer;
+
+            accent-color: #198754;
+        }
+
+
+        /* =========================================
+           STATUS
+        ========================================= */
+
+        .status {
+            color: white;
+
+            padding: 5px 9px;
+
+            border-radius: 5px;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            display: inline-block;
+        }
+
+
+        .active-status {
+            background: #198754;
+        }
+
+
+        .inactive-status {
+            background: #6c757d;
+        }
+
+
+        /* =========================================
+           DELETE SELECTED
+        ========================================= */
+
+        .delete-selected-area {
+            margin-top: 20px;
+        }
+
+
+        /* =========================================
+           EMPTY
+        ========================================= */
+
+        .empty {
+            text-align: center;
+
+            color: #888;
+
+            padding: 50px 20px;
+        }
+
+
+        .empty h3 {
+            margin-bottom: 10px;
+
+            color: #555;
+        }
+
+
+        .empty p {
+            margin-bottom: 20px;
+        }
+
+
+        /* =========================================
+           MODAL
+        ========================================= */
+
+        .modal-overlay {
+            display: none;
+
+            position: fixed;
+
+            inset: 0;
+
+            background: rgba(0, 0, 0, 0.45);
+
+            z-index: 2000;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 20px;
+        }
+
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+
+        .modal {
+            width: 100%;
+
+            max-width: 430px;
+
+            background: white;
+
+            border-radius: 10px;
+
+            padding: 25px;
+
+            box-shadow:
+                0 8px 30px rgba(0, 0, 0, 0.20);
+
+            text-align: center;
+        }
+
+
+        .modal h3 {
+            margin: 0 0 12px 0;
+
+            color: #333;
+
+            font-size: 20px;
+        }
+
+
+        .modal p {
+            margin: 0 0 22px 0;
+
+            color: #666;
+
+            line-height: 1.5;
+
+            font-size: 14px;
+        }
+
+
+        .modal-buttons {
+            display: flex;
+
+            justify-content: center;
+
+            gap: 10px;
+        }
+
+
+        /* =========================================
+           MEDIUM SCREENS
+        ========================================= */
+
+        @media (max-width: 1100px) {
+
+            .content {
+                padding: 25px;
+            }
+
+        }
+
+
+        /* =========================================
+           TABLET
+        ========================================= */
+
+        @media (max-width: 900px) {
+
+            .sidebar {
+                width: 220px;
+            }
+
+
+            .main {
+                margin-left: 220px;
+
+                width: calc(100% - 220px);
+            }
+
+
+            .content {
+                padding: 22px;
+            }
+
+        }
+
+
+        /* =========================================
+           SMALL TABLET / LARGE PHONE
+        ========================================= */
+
+        @media (max-width: 768px) {
+
+            body {
+                overflow-x: hidden;
+            }
+
+
+            /* SIDEBAR */
+
+            .sidebar {
+                width: 260px;
+
+                transform: translateX(-100%);
+
+                box-shadow:
+                    4px 0 15px rgba(0, 0, 0, 0.15);
+            }
+
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+
+            /* MAIN */
+
+            .main {
+                margin-left: 0;
+
+                width: 100%;
+
+                min-height: 100vh;
+            }
+
+
+            /* TOPBAR */
+
+            .topbar {
+                min-height: 64px;
+
+                padding: 11px 18px;
+            }
+
+
+            .menu-button {
+                display: block;
+            }
+
+
+            .topbar h1 {
+                font-size: 20px;
+
+                overflow: hidden;
+
+                text-overflow: ellipsis;
+            }
+
+
+            /* CONTENT */
+
+            .content {
+                padding: 20px;
+            }
+
+
+            .page-header {
+                flex-direction: column;
+
+                align-items: flex-start;
+            }
+
+
+            .page-header .btn {
+                width: 100%;
+
+                text-align: center;
+            }
+
+        }
+
+
+        /* =========================================
+           MOBILE
+        ========================================= */
+
+        @media (max-width: 600px) {
+
+            .topbar {
+                padding: 10px 14px;
+
+                min-height: 60px;
+            }
+
+
+            .topbar-left {
+                gap: 8px;
+            }
+
+
+            .menu-button {
+                width: 38px;
+
+                height: 38px;
+
+                font-size: 20px;
+            }
+
+
+            .topbar h1 {
+                font-size: 18px;
+            }
+
+
+            .logout {
+                padding: 8px 11px;
+
+                font-size: 12px;
+            }
+
+
+            .content {
+                padding: 15px;
+            }
+
+
+            .page-header h2 {
+                font-size: 21px;
+            }
+
+
+            .page-header p {
+                font-size: 13px;
+            }
+
+
+            .card {
+                padding: 18px;
+            }
+
+
+            /* TABLE */
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+
+
+            table {
+                min-width: 900px;
+            }
+
+
+            th {
+                padding: 10px;
+
+                font-size: 12px;
+            }
+
+
+            td {
+                padding: 10px;
+
+                font-size: 12px;
+            }
+
+
+            .delete-selected-area {
+                margin-top: 15px;
+            }
+
+
+            .select-all-button {
+                min-width: 140px;
+
+                padding: 9px 13px;
+
+                font-size: 13px;
+            }
+
+        }
+
+
+        /* =========================================
+           SMALL PHONE
+        ========================================= */
+
+        @media (max-width: 400px) {
+
+            .topbar {
+                gap: 8px;
+            }
+
+
+            .topbar h1 {
+                font-size: 16px;
+            }
+
+
+            .logout {
+                padding: 7px 9px;
+
+                font-size: 11px;
+            }
+
+
+            .content {
+                padding: 12px;
+            }
+
+
+            .page-header h2 {
+                font-size: 19px;
+            }
+
+
+            .page-header p {
+                font-size: 12px;
+            }
+
+
+            .card {
+                padding: 15px;
+            }
+
+
+            .select-all-button {
+                min-width: 130px;
+
+                font-size: 12px;
+            }
+
+        }
+
+
+        /* =========================================
+           REDUCE MOTION
+        ========================================= */
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+
+                transition: none !important;
+
+                animation: none !important;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     MOBILE SIDEBAR OVERLAY
+========================================= -->
+
+<div
+    class="sidebar-overlay"
+    id="sidebarOverlay"
+    onclick="closeSidebar()"
+></div>
+
+
+<!-- =========================================
+     SIDEBAR
+========================================= -->
+
+<div
+    class="sidebar"
+    id="sidebar"
+>
+
+
+    <div class="sidebar-title">
+        Teacher Monitoring
+    </div>
+
+
+    <a href="{% url 'dashboard' %}">
+        🏠 Dashboard
+    </a>
+
+
+    <a href="{% url 'instructor_list' %}">
+        👨‍🏫 Instructors
+    </a>
+
+
+    <a href="{% url 'subject_list' %}">
+        📚 Subjects
+    </a>
+
+
+    <a href="{% url 'room_list' %}">
+        🚪 Rooms
+    </a>
+
+
+    <a href="{% url 'schedule_list' %}">
+        📅 Schedules
+    </a>
+
+
+    <a href="{% url 'monitoring_list' %}">
+        👁️ Monitoring
+    </a>
+
+
+    <a href="{% url 'reports' %}">
+        📊 Reports
+    </a>
+
+
+    <a href="{% url 'admin_accounts' %}">
+        👤 Administrator Accounts
+    </a>
+
+
+    <!-- ACTIVE REPORT TEMPLATES -->
+
+    <a
+        href="{% url 'report_template_list' %}"
+        class="active"
+    >
+        📄 Report Templates
+    </a>
+
+
+</div>
+
+
+<!-- =========================================
+     MAIN
+========================================= -->
+
+<div class="main">
+
+
+    <!-- =====================================
+         TOP BAR
+    ===================================== -->
+
+    <div class="topbar">
+
+
+        <div class="topbar-left">
+
+
+            <button
+                type="button"
+                class="menu-button"
+                id="menuButton"
+                onclick="toggleSidebar()"
+                aria-label="Open navigation menu"
+                aria-expanded="false"
+            >
+                ☰
+            </button>
+
+
+            <h1>
+                Report Templates
+            </h1>
+
+
+        </div>
+
+
+        <form
+            method="post"
+            action="{% url 'logout' %}"
+            style="display: inline;"
+        >
+
+            {% csrf_token %}
+
+            <button
+                type="submit"
+                class="logout"
+            >
+                Logout
+            </button>
+
+        </form>
+
+
+    </div>
+
+
+    <!-- =====================================
+         CONTENT
+    ===================================== -->
+
+    <div class="content">
+
+
+        <!-- =================================
+             PAGE HEADER
+        ================================= -->
+
+        <div class="page-header">
+
+
+            <div>
+
+                <h2>
+                    Report Templates
+                </h2>
+
+                <p>
+                    Manage the official report layouts used by the system.
+                </p>
+
+            </div>
+
+
+            <a
+                href="{% url 'report_template_create' %}"
+                class="btn btn-success"
+            >
+                + Upload New Template
+            </a>
+
+
+        </div>
+
+
+        <!-- =================================
+             CONTENT CARD
+        ================================= -->
+
+        <div class="card">
+
+
+            {% if templates %}
+
+
+                <form
+                    method="POST"
+                    action="{% url 'report_template_bulk_delete' %}"
+                    id="bulkDeleteForm"
+                >
+
+                    {% csrf_token %}
+
+
+                    <!-- =================================
+                         SELECT ALL BUTTON
+                    ================================== -->
+
+                    <div class="table-top">
+
+                        <div class="select-column-action">
+
+                            <button
+                                type="button"
+                                id="selectAllButton"
+                                class="btn btn-secondary select-all-button"
+                                onclick="toggleSelectAll()"
+                                title="Select All"
+                            >
+                                ☑ Select All
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================
+                         TABLE
+                    ================================== -->
+
+                    <div class="table-responsive">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        Template Name
+                                    </th>
+
+
+                                    <th>
+                                        School Year
+                                    </th>
+
+
+                                    <th>
+                                        File
+                                    </th>
+
+
+                                    <th>
+                                        Status
+                                    </th>
+
+
+                                    <th>
+                                        Uploaded
+                                    </th>
+
+
+                                    <th>
+                                        Actions
+                                    </th>
+
+
+                                    <th class="checkbox-cell">
+                                        Select
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+
+                            {% for template in templates %}
+
+                                <tr>
+
+
+                                    <td>
+                                        {{ template.name }}
+                                    </td>
+
+
+                                    <td>
+                                        {{ template.school_year }}
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if template.file %}
+
+                                            {{ template.file.name }}
+
+                                        {% else %}
+
+                                            —
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if template.is_active %}
+
+                                            <span class="status active-status">
+                                                ACTIVE
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="status inactive-status">
+                                                INACTIVE
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+                                        {{ template.uploaded_at|date:"M d, Y h:i A" }}
+                                    </td>
+
+
+                                    <!-- ACTIONS -->
+
+                                    <td>
+
+                                        <a
+                                            href="{% url 'report_template_update' template.pk %}"
+                                            class="btn btn-primary"
+                                            style="margin-right: 6px;"
+                                        >
+                                            Edit
+                                        </a>
+
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-danger"
+                                            onclick="openDeleteModal('{{ template.pk }}', '{{ template.name|escapejs }}')"
+                                        >
+                                            Delete
+                                        </button>
+
+                                    </td>
+
+
+                                    <!-- SELECT CHECKBOX -->
+
+                                    <td class="checkbox-cell">
+
+                                        <input
+                                            type="checkbox"
+                                            name="selected_templates"
+                                            value="{{ template.pk }}"
+                                            class="template-checkbox"
+                                            onchange="updateSelectAllButton()"
+                                        >
+
+                                    </td>
+
+
+                                </tr>
+
+                            {% endfor %}
+
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+
+                    <!-- =================================
+                         DELETE SELECTED
+                    ================================== -->
+
+                    <div class="delete-selected-area">
+
+                        <button
+                            type="button"
+                            class="btn btn-danger"
+                            onclick="openBulkDeleteModal()"
+                        >
+                            🗑 Delete Selected
+                        </button>
+
+                    </div>
+
+
+                </form>
+
+
+            {% else %}
+
+
+                <div class="empty">
+
+
+                    <h3>
+                        No Report Templates Yet
+                    </h3>
+
+
+                    <p>
+                        Upload the official report layout to get started.
+                    </p>
+
+
+                    <a
+                        href="{% url 'report_template_create' %}"
+                        class="btn btn-success"
+                    >
+                        + Upload New Template
+                    </a>
+
+
+                </div>
+
+
+            {% endif %}
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+<!-- =========================================
+     INDIVIDUAL DELETE MODAL
+========================================= -->
+
+<div
+    class="modal-overlay"
+    id="deleteModal"
+>
+
+    <div class="modal">
+
+
+        <h3>
+            Delete Report Template
+        </h3>
+
+
+        <p id="deleteMessage">
+            Are you sure you want to delete this report template?
+        </p>
+
+
+        <div class="modal-buttons">
+
+
+            <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="closeDeleteModal()"
+            >
+                Cancel
+            </button>
+
+
+            <form
+                method="POST"
+                id="singleDeleteForm"
+                style="display: inline;"
+            >
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="btn btn-danger"
+                >
+                    Delete
+                </button>
+
+            </form>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<!-- =========================================
+     BULK DELETE MODAL
+========================================= -->
+
+<div
+    class="modal-overlay"
+    id="bulkDeleteModal"
+>
+
+    <div class="modal">
+
+
+        <h3>
+            Delete Selected Templates
+        </h3>
+
+
+        <p>
+            Are you sure you want to delete the selected report templates?
+        </p>
+
+
+        <div class="modal-buttons">
+
+
+            <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="closeBulkDeleteModal()"
+            >
+                Cancel
+            </button>
+
+
+            <button
+                type="button"
+                class="btn btn-danger"
+                onclick="submitBulkDelete()"
+            >
+                Delete
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<!-- =========================================
+     JAVASCRIPT
+========================================= -->
+
+<script>
+
+
+    /* =========================================
+       MOBILE SIDEBAR
+    ========================================= */
+
+    const sidebar =
+        document.getElementById("sidebar");
+
+    const overlay =
+        document.getElementById("sidebarOverlay");
+
+    const menuButton =
+        document.getElementById("menuButton");
+
+
+    function toggleSidebar() {
+
+        sidebar.classList.toggle("open");
+
+        overlay.classList.toggle("show");
+
+
+        const isOpen =
+            sidebar.classList.contains("open");
+
+
+        menuButton.setAttribute(
+            "aria-expanded",
+            isOpen
+        );
+
+    }
+
+
+    function closeSidebar() {
+
+        sidebar.classList.remove("open");
+
+        overlay.classList.remove("show");
+
+
+        menuButton.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+
+    }
+
+
+    /* =========================================
+       CLOSE SIDEBAR AFTER PAGE SELECTION
+    ========================================= */
+
+    document
+        .querySelectorAll(".sidebar a")
+        .forEach(function(link) {
+
+            link.addEventListener(
+                "click",
+                function() {
+
+                    if (
+                        window.innerWidth <= 768
+                    ) {
+
+                        closeSidebar();
+
+                    }
+
+                }
+            );
+
+        });
+
+
+    /* =========================================
+       CLOSE SIDEBAR ON DESKTOP RESIZE
+    ========================================= */
+
+    window.addEventListener(
+        "resize",
+        function() {
+
+            if (
+                window.innerWidth > 768
+            ) {
+
+                closeSidebar();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================
+       ESC CLOSES SIDEBAR
+    ========================================= */
+
+    document.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Escape"
+            ) {
+
+                closeSidebar();
+
+                closeDeleteModal();
+
+                closeBulkDeleteModal();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================
+       SELECT ALL / DESELECT ALL
+    ========================================= */
+
+    function toggleSelectAll() {
+
+        const checkboxes =
+            document.querySelectorAll(
+                ".template-checkbox"
+            );
+
+
+        const button =
+            document.getElementById(
+                "selectAllButton"
+            );
+
+
+        /*
+         * Check if every template
+         * is currently selected.
+         */
+
+        const allSelected =
+            checkboxes.length > 0 &&
+            Array.from(checkboxes).every(
+                function(checkbox) {
+
+                    return checkbox.checked;
+
+                }
+            );
+
+
+        /*
+         * If everything is already selected,
+         * clicking the button deselects everything.
+         */
+
+        if (allSelected) {
+
+            checkboxes.forEach(
+                function(checkbox) {
+
+                    checkbox.checked = false;
+
+                }
+            );
+
+
+            button.textContent =
+                "☑ Select All";
+
+            button.title =
+                "Select All";
+
+        }
+
+
+        /*
+         * Otherwise select everything.
+         */
+
+        else {
+
+            checkboxes.forEach(
+                function(checkbox) {
+
+                    checkbox.checked = true;
+
+                }
+            );
+
+
+            button.textContent =
+                "☐ Deselect All";
+
+            button.title =
+                "Deselect All";
+
+        }
+
+    }
+
+
+    /* =========================================
+       UPDATE SELECT ALL BUTTON
+       WHEN INDIVIDUAL CHECKBOXES CHANGE
+    ========================================= */
+
+    function updateSelectAllButton() {
+
+        const checkboxes =
+            document.querySelectorAll(
+                ".template-checkbox"
+            );
+
+
+        const button =
+            document.getElementById(
+                "selectAllButton"
+            );
+
+
+        const allSelected =
+            checkboxes.length > 0 &&
+            Array.from(checkboxes).every(
+                function(checkbox) {
+
+                    return checkbox.checked;
+
+                }
+            );
+
+
+        if (allSelected) {
+
+            button.textContent =
+                "☐ Deselect All";
+
+            button.title =
+                "Deselect All";
+
+        }
+
+        else {
+
+            button.textContent =
+                "☑ Select All";
+
+            button.title =
+                "Select All";
+
+        }
+
+    }
+
+
+    /* =========================================
+       INDIVIDUAL DELETE MODAL
+    ========================================= */
+
+    function openDeleteModal(id, name) {
+
+        const modal =
+            document.getElementById(
+                "deleteModal"
+            );
+
+
+        const form =
+            document.getElementById(
+                "singleDeleteForm"
+            );
+
+
+        const message =
+            document.getElementById(
+                "deleteMessage"
+            );
+
+
+        form.action =
+            "{% url 'report_template_delete' 0 %}"
+                .replace(
+                    "/0/",
+                    "/" + id + "/"
+                );
+
+
+        message.textContent =
+            'Are you sure you want to delete "' +
+            name +
+            '"?';
+
+
+        modal.classList.add("show");
+
+    }
+
+
+    function closeDeleteModal() {
+
+        document
+            .getElementById("deleteModal")
+            .classList.remove("show");
+
+    }
+
+
+    /* =========================================
+       BULK DELETE MODAL
+    ========================================= */
+
+    function openBulkDeleteModal() {
+
+        const checkboxes =
+            document.querySelectorAll(
+                ".template-checkbox"
+            );
+
+
+        const selected =
+            Array.from(checkboxes).filter(
+                function(checkbox) {
+
+                    return checkbox.checked;
+
+                }
+            );
+
+
+        /*
+         * Do not show confirmation if
+         * nothing was selected.
+         */
+
+        if (
+            selected.length === 0
+        ) {
+
+            alert(
+                "Please select at least one report template."
+            );
+
+            return;
+
+        }
+
+
+        document
+            .getElementById("bulkDeleteModal")
+            .classList.add("show");
+
+    }
+
+
+    function closeBulkDeleteModal() {
+
+        document
+            .getElementById("bulkDeleteModal")
+            .classList.remove("show");
+
+    }
+
+
+    function submitBulkDelete() {
+
+        document
+            .getElementById("bulkDeleteForm")
+            .submit();
+
+    }
+
+
+    /* =========================================
+       CLOSE MODALS WHEN CLICKING OUTSIDE
+    ========================================= */
+
+    document.addEventListener(
+        "click",
+        function(event) {
+
+            const deleteModal =
+                document.getElementById(
+                    "deleteModal"
+                );
+
+
+            const bulkModal =
+                document.getElementById(
+                    "bulkDeleteModal"
+                );
+
+
+            if (
+                event.target === deleteModal
+            ) {
+
+                closeDeleteModal();
+
+            }
+
+
+            if (
+                event.target === bulkModal
+            ) {
+
+                closeBulkDeleteModal();
+
+            }
+
+        }
+    );
+
+
+</script>
+
+
+</body>
+
+</html>

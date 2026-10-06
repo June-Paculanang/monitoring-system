@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Delete Subject | Teacher Monitoring System
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #f4f6f8;
+            font-family: Arial, sans-serif;
+        }
+
+
+        .header {
+            background: #198754;
+            color: white;
+            padding: 15px 25px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+
+        .header h1 {
+            font-size: 22px;
+            margin: 0;
+        }
+
+
+        .back {
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 60px auto;
+            padding: 20px;
+        }
+
+
+        .box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow:
+                0 4px 15px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+
+        h2 {
+            margin-top: 0;
+        }
+
+
+        p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+
+        .subject-name {
+            color: #198754;
+            font-weight: bold;
+        }
+
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+
+        button,
+        a {
+            padding: 11px 18px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+
+        .delete-btn:hover {
+            background: #bb2d3b;
+        }
+
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+
+        .cancel-btn:hover {
+            background: #5c636a;
+        }
+
+
+        @media (max-width: 600px) {
+
+            .header {
+                padding: 14px 16px;
+            }
+
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+
+            .container {
+                margin: 30px auto;
+            }
+
+
+            .buttons {
+                flex-direction: column;
+            }
+
+
+            button,
+            a {
+                width: 100%;
+                text-align: center;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header class="header">
+
+    <div class="header-content">
+
+        <h1>
+            Teacher Monitoring System
+        </h1>
+
+
+        <a
+            href="{% url 'subject_list' %}"
+            class="back"
+        >
+            ← Back to Subjects
+        </a>
+
+    </div>
+
+</header>
+
+
+<div class="container">
+
+    <div class="box">
+
+        <h2>
+            Delete Subject?
+        </h2>
+
+
+        <p>
+
+            Are you sure you want to delete:
+
+            <br><br>
+
+            <span class="subject-name">
+
+                {{ object.subject_code }}
+                -
+                {{ object.subject_name }}
+
+            </span>
+
+            ?
+
+            <br><br>
+
+            This action cannot be undone.
+
+        </p>
+
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+
+            <div class="buttons">
+
+                <button
+                    type="submit"
+                    class="delete-btn"
+                >
+                    Delete Subject
+                </button>
+
+
+                <a
+                    href="{% url 'subject_list' %}"
+                    class="cancel-btn"
+                >
+                    Cancel
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+</body>
+
+</html>

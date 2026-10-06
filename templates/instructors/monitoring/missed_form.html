@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mark Class as Missed</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #333;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: #198754;
+            color: white;
+            padding: 14px 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #dc3545;
+        }
+
+        .schedule-info {
+            background: #f8f9fa;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+
+        .schedule-info p {
+            margin: 6px 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #198754;
+            box-shadow: 0 0 0 2px rgba(25, 135, 84, 0.15);
+        }
+
+        .error {
+            color: #dc3545;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        .btn {
+            border: none;
+            padding: 10px 18px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #5c636a;
+        }
+
+        .btn-missed {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-missed:hover {
+            background: #bb2d3b;
+        }
+
+        .required-note {
+            font-size: 13px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .page {
+                margin: 20px auto;
+                padding: 0 12px 30px;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">
+    Teacher Monitoring System
+</div>
+
+<div class="page">
+
+    <div class="card">
+
+        <h2>Mark Class as MISSED</h2>
+
+        <div class="schedule-info">
+
+            <p>
+                <strong>Instructor:</strong>
+                {{ schedule.instructor.name }}
+            </p>
+
+            <p>
+                <strong>Subject:</strong>
+                {{ schedule.subject }}
+            </p>
+
+            <p>
+                <strong>Day:</strong>
+                {{ schedule.get_day_display }}
+            </p>
+
+            <p>
+                <strong>Class Time:</strong>
+                {{ schedule.start_time|time:"h:i A" }}
+                -
+                {{ schedule.end_time|time:"h:i A" }}
+            </p>
+
+            <p>
+                <strong>Room:</strong>
+                {{ schedule.room.room_name }}
+            </p>
+
+        </div>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <div class="form-group">
+
+                {{ form.missed_reason.label_tag }}
+
+                {{ form.missed_reason }}
+
+                {% if form.missed_reason.errors %}
+                    {% for error in form.missed_reason.errors %}
+                        <div class="error">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="required-note">
+                    Please explain why the monitoring was missed.
+                </div>
+
+            </div>
+
+            <div class="buttons">
+
+                <a
+                    href="{% url 'instructor_schedule' schedule.instructor.id %}"
+                    class="btn btn-cancel"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn btn-missed"
+                >
+                    Save as MISSED
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

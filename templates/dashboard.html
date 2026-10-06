@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    {% load static %}
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Dashboard - Teacher Monitoring</title>
+
+
+    <style>
+
+        /* =========================================
+           GLOBAL
+        ========================================= */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #333;
+
+            min-height: 100vh;
+
+            overflow-x: hidden;
+        }
+
+
+        /* =========================================
+           MOBILE MENU OVERLAY
+        ========================================= */
+
+        .sidebar-overlay {
+            display: none;
+
+            position: fixed;
+
+            inset: 0;
+
+            background: rgba(0, 0, 0, 0.45);
+
+            z-index: 999;
+        }
+
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+
+        /* =========================================
+           SIDEBAR
+        ========================================= */
+
+        .sidebar {
+            position: fixed;
+
+            left: 0;
+            top: 0;
+
+            width: 240px;
+            height: 100vh;
+
+            background: #198754;
+
+            color: white;
+
+            padding: 25px 15px;
+
+            overflow-y: auto;
+
+            z-index: 1000;
+
+            transition: transform 0.25s ease;
+
+            scrollbar-width: thin;
+        }
+
+
+        .sidebar-title {
+            text-align: center;
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            margin-bottom: 35px;
+        }
+
+
+        .sidebar a {
+            display: block;
+
+            color: white;
+
+            text-decoration: none;
+
+            padding: 12px 15px;
+
+            border-radius: 7px;
+
+            margin-bottom: 6px;
+
+            font-size: 14px;
+
+            transition: background 0.2s ease;
+        }
+
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+
+        .sidebar .active {
+            background: rgba(255, 255, 255, 0.20);
+        }
+
+
+        /* =========================================
+           MAIN
+        ========================================= */
+
+        .main {
+            margin-left: 240px;
+
+            min-height: 100vh;
+
+            width: calc(100% - 240px);
+
+            display: flex;
+
+            flex-direction: column;
+        }
+
+
+        /* =========================================
+           TOP BAR
+        ========================================= */
+
+        .topbar {
+            background: white;
+
+            min-height: 70px;
+
+            padding: 15px 30px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 15px;
+
+            box-shadow:
+                0 2px 5px rgba(0, 0, 0, 0.08);
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 100;
+        }
+
+
+        .topbar-left {
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            min-width: 0;
+        }
+
+
+        .topbar h1 {
+            font-size: 22px;
+
+            color: #333;
+
+            white-space: nowrap;
+        }
+
+
+        /* =========================================
+           MOBILE MENU BUTTON
+        ========================================= */
+
+        .menu-button {
+            display: none;
+
+            width: 42px;
+            height: 42px;
+
+            border: none;
+
+            border-radius: 7px;
+
+            background: #198754;
+
+            color: white;
+
+            font-size: 22px;
+
+            cursor: pointer;
+
+            flex-shrink: 0;
+        }
+
+
+        .menu-button:hover {
+            background: #146c43;
+        }
+
+
+        /* =========================================
+           LOGOUT
+        ========================================= */
+
+        .logout {
+            background: #dc3545;
+
+            color: white;
+
+            text-decoration: none;
+
+            padding: 9px 15px;
+
+            border-radius: 6px;
+
+            font-size: 13px;
+
+            white-space: nowrap;
+
+            flex-shrink: 0;
+        }
+
+
+        .logout:hover {
+            background: #bb2d3b;
+        }
+
+
+        /* =========================================
+           CONTENT
+        ========================================= */
+
+        .content {
+            width: 100%;
+
+            max-width: 1500px;
+
+            margin: 0 auto;
+
+            padding: 30px;
+
+            flex: 1;
+        }
+
+
+        /* =========================================
+           WELCOME
+        ========================================= */
+
+        .welcome {
+            margin-bottom: 25px;
+        }
+
+
+        .welcome h2 {
+            font-size: 25px;
+
+            margin-bottom: 7px;
+        }
+
+
+        .welcome p {
+            color: #777;
+
+            font-size: 14px;
+
+            line-height: 1.5;
+        }
+
+
+        /* =========================================
+           STAT CARDS
+        ========================================= */
+
+        .cards {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(180px, 1fr)
+                );
+
+            gap: 18px;
+
+            margin-bottom: 30px;
+        }
+
+
+        .card {
+            background: white;
+
+            padding: 22px;
+
+            border-radius: 10px;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.08);
+
+            min-width: 0;
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+
+        .card:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 5px 14px rgba(0, 0, 0, 0.10);
+        }
+
+
+        .card-title {
+            color: #777;
+
+            font-size: 14px;
+
+            margin-bottom: 12px;
+        }
+
+
+        .card-number {
+            font-size: 30px;
+
+            font-weight: bold;
+
+            color: #198754;
+        }
+
+
+        /* =========================================
+           SECTION TITLE
+        ========================================= */
+
+        .section-title {
+            font-size: 20px;
+
+            margin-bottom: 15px;
+        }
+
+
+        /* =========================================
+           QUICK ACTIONS
+        ========================================= */
+
+        .quick-actions {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(180px, 1fr)
+                );
+
+            gap: 15px;
+
+            margin-bottom: 30px;
+        }
+
+
+        .action {
+            background: white;
+
+            padding: 20px;
+
+            border-radius: 10px;
+
+            text-decoration: none;
+
+            color: #333;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.08);
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+
+            min-width: 0;
+        }
+
+
+        .action:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 5px 14px rgba(0, 0, 0, 0.10);
+        }
+
+
+        .action-icon {
+            font-size: 25px;
+
+            margin-bottom: 10px;
+        }
+
+
+        .action-title {
+            font-weight: bold;
+
+            margin-bottom: 5px;
+
+            font-size: 15px;
+        }
+
+
+        .action-description {
+            color: #777;
+
+            font-size: 13px;
+
+            line-height: 1.4;
+        }
+
+
+        /* =========================================
+           RECENT RECORDS
+        ========================================= */
+
+        .table-wrapper {
+            width: 100%;
+
+            background: white;
+
+            border-radius: 10px;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.08);
+
+            overflow: hidden;
+        }
+
+
+        .table-scroll {
+            width: 100%;
+
+            overflow-x: auto;
+
+            overflow-y: auto;
+
+            max-width: 100%;
+
+            -webkit-overflow-scrolling: touch;
+        }
+
+
+        table {
+            width: 100%;
+
+            min-width: 700px;
+
+            border-collapse: collapse;
+        }
+
+
+        th {
+            text-align: left;
+
+            padding: 12px;
+
+            background: #198754;
+
+            color: white;
+
+            font-size: 13px;
+
+            white-space: nowrap;
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 5;
+        }
+
+
+        td {
+            padding: 12px;
+
+            border-bottom: 1px solid #eee;
+
+            font-size: 13px;
+
+            vertical-align: middle;
+        }
+
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+
+        .empty {
+            text-align: center;
+
+            color: #888;
+
+            padding: 30px;
+        }
+
+
+        /* =========================================
+           MEDIUM SCREENS
+        ========================================= */
+
+        @media (max-width: 1100px) {
+
+            .content {
+                padding: 25px;
+            }
+
+
+            .cards {
+                grid-template-columns:
+                    repeat(
+                        3,
+                        minmax(0, 1fr)
+                    );
+            }
+
+
+            .quick-actions {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+            }
+
+        }
+
+
+        /* =========================================
+           TABLET
+        ========================================= */
+
+        @media (max-width: 900px) {
+
+            .sidebar {
+                width: 220px;
+            }
+
+
+            .main {
+                margin-left: 220px;
+
+                width: calc(100% - 220px);
+            }
+
+
+            .content {
+                padding: 22px;
+            }
+
+
+            .cards {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+            }
+
+        }
+
+
+        /* =========================================
+           SMALL TABLET / LARGE PHONE
+        ========================================= */
+
+        @media (max-width: 768px) {
+
+            body {
+                overflow-x: hidden;
+            }
+
+
+            /* SIDEBAR */
+
+            .sidebar {
+                width: 260px;
+
+                transform: translateX(-100%);
+
+                box-shadow:
+                    4px 0 15px rgba(0, 0, 0, 0.15);
+            }
+
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+
+            /* MAIN */
+
+            .main {
+                margin-left: 0;
+
+                width: 100%;
+
+                min-height: 100vh;
+            }
+
+
+            /* TOPBAR */
+
+            .topbar {
+                min-height: 64px;
+
+                padding: 11px 18px;
+            }
+
+
+            .menu-button {
+                display: block;
+            }
+
+
+            .topbar h1 {
+                font-size: 20px;
+
+                overflow: hidden;
+
+                text-overflow: ellipsis;
+            }
+
+
+            /* CONTENT */
+
+            .content {
+                padding: 20px;
+            }
+
+
+            .cards {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+
+                gap: 15px;
+            }
+
+
+            .quick-actions {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+            }
+
+        }
+
+
+        /* =========================================
+           MOBILE
+        ========================================= */
+
+        @media (max-width: 600px) {
+
+            .topbar {
+                padding: 10px 14px;
+
+                min-height: 60px;
+            }
+
+
+            .topbar-left {
+                gap: 8px;
+            }
+
+
+            .menu-button {
+                width: 38px;
+
+                height: 38px;
+
+                font-size: 20px;
+            }
+
+
+            .topbar h1 {
+                font-size: 18px;
+            }
+
+
+            .logout {
+                padding: 8px 11px;
+
+                font-size: 12px;
+            }
+
+
+            .content {
+                padding: 15px;
+            }
+
+
+            .welcome {
+                margin-bottom: 20px;
+            }
+
+
+            .welcome h2 {
+                font-size: 21px;
+            }
+
+
+            .welcome p {
+                font-size: 13px;
+            }
+
+
+            /* CARDS */
+
+            .cards {
+                grid-template-columns: 1fr;
+
+                gap: 12px;
+
+                margin-bottom: 25px;
+            }
+
+
+            .card {
+                padding: 18px;
+            }
+
+
+            .card-title {
+                font-size: 13px;
+            }
+
+
+            .card-number {
+                font-size: 27px;
+            }
+
+
+            /* QUICK ACTIONS */
+
+            .section-title {
+                font-size: 18px;
+            }
+
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+
+                gap: 12px;
+
+                margin-bottom: 25px;
+            }
+
+
+            .action {
+                padding: 17px;
+            }
+
+
+            /* TABLE */
+
+            .table-wrapper {
+                border-radius: 8px;
+            }
+
+
+            .table-scroll {
+                overflow-x: auto;
+            }
+
+
+            table {
+                min-width: 700px;
+            }
+
+
+            th {
+                padding: 10px;
+
+                font-size: 12px;
+            }
+
+
+            td {
+                padding: 10px;
+
+                font-size: 12px;
+            }
+
+        }
+
+
+        /* =========================================
+           SMALL PHONE
+        ========================================= */
+
+        @media (max-width: 400px) {
+
+            .topbar {
+                gap: 8px;
+            }
+
+
+            .topbar h1 {
+                font-size: 16px;
+            }
+
+
+            .logout {
+                padding: 7px 9px;
+
+                font-size: 11px;
+            }
+
+
+            .content {
+                padding: 12px;
+            }
+
+
+            .welcome h2 {
+                font-size: 19px;
+            }
+
+
+            .welcome p {
+                font-size: 12px;
+            }
+
+
+            .card {
+                padding: 15px;
+            }
+
+
+            .card-number {
+                font-size: 25px;
+            }
+
+
+            .action {
+                padding: 15px;
+            }
+
+
+            .action-icon {
+                font-size: 22px;
+            }
+
+
+            .action-title {
+                font-size: 14px;
+            }
+
+
+            .action-description {
+                font-size: 12px;
+            }
+
+        }
+
+
+        /* =========================================
+           REDUCE MOTION
+        ========================================= */
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+
+                transition: none !important;
+
+                animation: none !important;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     MOBILE SIDEBAR OVERLAY
+========================================= -->
+
+<div
+    class="sidebar-overlay"
+    id="sidebarOverlay"
+    onclick="closeSidebar()"
+></div>
+
+
+<!-- =========================================
+     SIDEBAR
+========================================= -->
+
+<div
+    class="sidebar"
+    id="sidebar"
+>
+
+
+    <div class="sidebar-title">
+        CAS_Faculty Attendance Monitoring
+    </div>
+
+
+    <a
+        href="{% url 'dashboard' %}"
+        class="active"
+    >
+        🏠 Dashboard
+    </a>
+
+    <a href="{% url 'monitoring_list' %}">
+        👁️ Monitoring
+    </a>
+
+    <a href="{% url 'instructor_list' %}">
+        👨‍🏫 Instructors
+    </a>
+
+    <a href="{% url 'subject_list' %}">
+        📚 Subjects
+    </a>
+
+    <a href="{% url 'room_list' %}">
+        🚪 Rooms
+    </a>
+
+    <a href="{% url 'schedule_list' %}">
+        📅 Schedules
+    </a>
+
+    <a href="{% url 'reports' %}">
+        📊 Reports
+    </a>
+
+    <a href="{% url 'admin_accounts' %}">
+        👤 Administrator Accounts
+    </a>
+
+
+    <div
+        style="
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 6px;
+        "
+    >
+
+        <a
+            href="{% url 'report_template_list' %}"
+            style="
+                flex: 1;
+                margin-bottom: 0;
+            "
+        >
+            📄 Report Templates
+        </a>
+
+    </div>
+
+
+</div>
+
+
+<!-- =========================================
+     MAIN
+========================================= -->
+
+<div class="main">
+
+
+    <!-- =====================================
+         TOP BAR
+    ===================================== -->
+
+    <div class="topbar">
+
+
+        <div class="topbar-left">
+
+
+            <button
+                type="button"
+                class="menu-button"
+                id="menuButton"
+                onclick="toggleSidebar()"
+                aria-label="Open navigation menu"
+                aria-expanded="false"
+            >
+                ☰
+            </button>
+
+
+            <h1>
+                Dashboard
+            </h1>
+
+
+        </div>
+
+<form
+    method="post"
+    action="{% url 'logout' %}"
+    style="display: inline;"
+>
+    {% csrf_token %}
+
+    <button
+        type="submit"
+        class="logout"
+    >
+        Logout
+    </button>
+</form>
+
+
+    </div>
+
+
+    <!-- =====================================
+         CONTENT
+    ===================================== -->
+
+    <div class="content">
+
+
+        <!-- =================================
+             WELCOME
+        ================================= -->
+
+        <div class="welcome">
+
+            <h2>
+                Welcome, Administrator!
+            </h2>
+
+            <p>
+                Manage instructors, schedules,
+                monitoring records, and reports.
+            </p>
+
+        </div>
+
+
+        <!-- =================================
+             STAT CARDS
+        ================================= -->
+
+        <div class="cards">
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    Total Instructors
+                </div>
+
+                <div class="card-number">
+                    {{ instructor_count }}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    Total Subjects
+                </div>
+
+                <div class="card-number">
+                    {{ subject_count }}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    Total Rooms
+                </div>
+
+                <div class="card-number">
+                    {{ room_count }}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    Total Schedules
+                </div>
+
+                <div class="card-number">
+                    {{ schedule_count }}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    Monitoring Records
+                </div>
+
+                <div class="card-number">
+                    {{ monitoring_count }}
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =================================
+             QUICK ACTIONS
+        ================================= -->
+
+        <h2 class="section-title">
+            Quick Actions
+        </h2>
+
+
+        <div class="quick-actions">
+
+
+            <a
+                href="{% url 'instructor_create' %}"
+                class="action"
+            >
+
+                <div class="action-icon">
+                    ➕
+                </div>
+
+                <div class="action-title">
+                    Add Instructor
+                </div>
+
+                <div class="action-description">
+                    Add a new instructor.
+                </div>
+
+            </a>
+
+
+            <a
+                href="{% url 'schedule_create' %}"
+                class="action"
+            >
+
+                <div class="action-icon">
+                    📅
+                </div>
+
+                <div class="action-title">
+                    Add Schedule
+                </div>
+
+                <div class="action-description">
+                    Create a class schedule.
+                </div>
+
+            </a>
+
+
+            <a
+                href="{% url 'monitoring_list' %}"
+                class="action"
+            >
+
+                <div class="action-icon">
+                    👁️
+                </div>
+
+                <div class="action-title">
+                    Record Monitoring
+                </div>
+
+                <div class="action-description">
+                    Record a class monitoring visit.
+                </div>
+
+            </a>
+
+
+            <a
+                href="{% url 'reports' %}"
+                class="action"
+            >
+
+                <div class="action-icon">
+                    📊
+                </div>
+
+                <div class="action-title">
+                    View Reports
+                </div>
+
+                <div class="action-description">
+                    Search and view monitoring reports.
+                </div>
+
+            </a>
+
+
+        </div>
+
+
+        <!-- =================================
+             RECENT RECORDS
+        ================================= -->
+
+        <h2 class="section-title">
+            Recent Monitoring Records
+        </h2>
+
+
+        <div class="table-wrapper">
+
+
+            <div class="table-scroll">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Instructor
+                            </th>
+
+                            <th>
+                                Subject
+                            </th>
+
+                            <th>
+                                Room
+                            </th>
+
+                            <th>
+                                Day
+                            </th>
+
+                            <th>
+                                Date & Time
+                            </th>
+
+                            <th>
+                                Remarks
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+
+                    {% for record in recent_records %}
+
+                        <tr>
+
+                            <td>
+                                {{ record.schedule.instructor.name }}
+                            </td>
+
+                            <td>
+                                {{ record.schedule.subject }}
+                            </td>
+
+                            <td>
+                                {{ record.schedule.room }}
+                            </td>
+
+                            <td>
+                                {{ record.schedule.get_day_display }}
+                            </td>
+
+                            <td>
+                                {{ record.record_datetime|date:"M d, Y h:i A" }}
+                            </td>
+
+                            <td>
+                                {{ record.remarks|default:"-" }}
+                            </td>
+
+                        </tr>
+
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td
+                                colspan="6"
+                                class="empty"
+                            >
+                                No monitoring records yet.
+                            </td>
+
+                        </tr>
+
+
+                    {% endfor %}
+
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+<!-- =========================================
+     MOBILE SIDEBAR JAVASCRIPT
+========================================= -->
+
+<script>
+
+    const sidebar =
+        document.getElementById("sidebar");
+
+    const overlay =
+        document.getElementById("sidebarOverlay");
+
+    const menuButton =
+        document.getElementById("menuButton");
+
+
+    function toggleSidebar() {
+
+        sidebar.classList.toggle("open");
+
+        overlay.classList.toggle("show");
+
+        const isOpen =
+            sidebar.classList.contains("open");
+
+        menuButton.setAttribute(
+            "aria-expanded",
+            isOpen
+        );
+
+    }
+
+
+    function closeSidebar() {
+
+        sidebar.classList.remove("open");
+
+        overlay.classList.remove("show");
+
+        menuButton.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+
+    }
+
+
+    /* Close mobile menu after selecting a page */
+
+    document
+        .querySelectorAll(".sidebar a")
+        .forEach(function(link) {
+
+            link.addEventListener(
+                "click",
+                function() {
+
+                    if (
+                        window.innerWidth <= 768
+                    ) {
+
+                        closeSidebar();
+
+                    }
+
+                }
+            );
+
+        });
+
+
+    /* Close sidebar if screen becomes desktop */
+
+    window.addEventListener(
+        "resize",
+        function() {
+
+            if (
+                window.innerWidth > 768
+            ) {
+
+                closeSidebar();
+
+            }
+
+        }
+    );
+
+
+    /* ESC closes mobile navigation */
+
+    document.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (event.key === "Escape") {
+
+                closeSidebar();
+
+            }
+
+        }
+    );
+
+</script>
+
+
+</body>
+
+</html>

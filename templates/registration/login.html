@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Administrator Login</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f7;
+
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+
+            background: white;
+
+            padding: 40px;
+
+            border-radius: 12px;
+
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-circle {
+            width: 75px;
+            height: 75px;
+
+            margin: auto;
+
+            border-radius: 50%;
+
+            background: #198754;
+
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #222;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+
+            font-size: 14px;
+            font-weight: bold;
+
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+
+            padding: 12px;
+
+            border: 1px solid #ccc;
+
+            border-radius: 7px;
+
+            font-size: 15px;
+
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #198754;
+        }
+
+        .login-button {
+            width: 100%;
+
+            padding: 13px;
+
+            border: none;
+
+            border-radius: 7px;
+
+            background: #198754;
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .login-button:hover {
+            opacity: 0.9;
+        }
+
+        .error {
+            background: #f8d7da;
+
+            color: #842029;
+
+            padding: 10px;
+
+            border-radius: 6px;
+
+            margin-bottom: 20px;
+
+            font-size: 14px;
+
+            text-align: center;
+        }
+
+        .footer {
+            text-align: center;
+
+            margin-top: 25px;
+
+            font-size: 12px;
+
+            color: #888;
+        }
+
+        @media (max-width: 500px) {
+
+            .login-container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 21px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <div class="logo">
+        <div class="logo-circle">
+            TC
+        </div>
+    </div>
+
+    <h1>Teacher Class Monitoring</h1>
+
+    <p class="subtitle">
+        Administrator Login
+    </p>
+
+
+    {% if form.errors %}
+
+        <div class="error">
+            Username or password is incorrect.
+            Please try again.
+        </div>
+
+    {% endif %}
+
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        <div class="form-group">
+
+            <label for="id_username">
+                Username
+            </label>
+
+            <input
+                type="text"
+                name="username"
+                id="id_username"
+                placeholder="Enter username"
+                required
+                autofocus
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="id_password">
+                Password
+            </label>
+
+            <input
+                type="password"
+                name="password"
+                id="id_password"
+                placeholder="Enter password"
+                required
+            >
+
+        </div>
+
+
+        <button
+            type="submit"
+            class="login-button"
+        >
+            LOGIN
+        </button>
+
+    </form>
+
+
+    <div class="footer">
+        Teacher Class Monitoring System
+    </div>
+
+</div>
+
+</body>
+</html>

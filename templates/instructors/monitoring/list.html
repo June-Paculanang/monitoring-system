@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Daily Class Monitoring | CAS_Faculty Attendance Monitoring
+    </title>
+
+
+    <style>
+
+        /* ==========================================
+           GLOBAL
+        ========================================== */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+
+        body {
+            background: #f5f7f6;
+            color: #333;
+
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+
+        /* ==========================================
+           HEADER
+        ========================================== */
+
+        .header {
+
+            width: 100%;
+
+            background: #198754;
+
+            color: white;
+
+            padding: 16px 25px;
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 1000;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+
+        .header-content {
+
+            width: 100%;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 15px;
+        }
+
+
+        .header h1 {
+
+            font-size: 24px;
+
+            line-height: 1.3;
+        }
+
+
+        .dashboard-link {
+
+            color: white;
+
+            text-decoration: none;
+
+            font-weight: bold;
+
+            font-size: 14px;
+
+            border: 1px solid
+                rgba(255, 255, 255, 0.7);
+
+            border-radius: 5px;
+
+            padding: 8px 12px;
+
+            white-space: nowrap;
+        }
+
+
+        .dashboard-link:hover {
+
+            background:
+                rgba(255, 255, 255, 0.15);
+        }
+
+
+        /* ==========================================
+           MAIN CONTAINER
+        ========================================== */
+
+        .container {
+
+            width: 100%;
+
+            max-width: 1400px;
+
+            margin: 0 auto;
+
+            padding: 30px 20px 60px;
+        }
+
+
+        /* ==========================================
+           PAGE HEADER
+        ========================================== */
+
+        .top-section {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 15px;
+
+            margin-bottom: 20px;
+
+            flex-wrap: wrap;
+        }
+
+
+        .top-section h2 {
+
+            font-size: 24px;
+
+            color: #333;
+        }
+
+
+        .back-dashboard {
+
+            display: inline-block;
+
+            color: #198754;
+
+            text-decoration: none;
+
+            font-weight: bold;
+
+            font-size: 14px;
+        }
+
+
+        .back-dashboard:hover {
+
+            text-decoration: underline;
+        }
+
+
+        /* ==========================================
+           MONITORING DATE CARD
+        ========================================== */
+
+        .monitoring-card {
+
+            background: white;
+
+            padding: 20px;
+
+            border-radius: 8px;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.08);
+
+            margin-bottom: 20px;
+        }
+
+
+        .monitoring-title {
+
+            color: #198754;
+
+            font-size: 20px;
+
+            font-weight: bold;
+
+            margin-bottom: 6px;
+        }
+
+
+        .monitoring-description {
+
+            color: #6c757d;
+
+            font-size: 14px;
+
+            line-height: 1.5;
+
+            margin-bottom: 18px;
+        }
+
+
+        /* ==========================================
+           DATE FORM
+        ========================================== */
+
+        .date-form {
+
+            display: flex;
+
+            align-items: end;
+
+            gap: 10px;
+
+            flex-wrap: wrap;
+        }
+
+
+        .date-group {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 6px;
+        }
+
+
+        .date-group label {
+
+            font-size: 13px;
+
+            font-weight: bold;
+        }
+
+
+        .date-input {
+
+            padding: 10px;
+
+            border: 1px solid #ccc;
+
+            border-radius: 5px;
+
+            font-size: 14px;
+
+            min-width: 180px;
+        }
+
+
+        .date-input:focus {
+
+            outline: none;
+
+            border-color: #198754;
+
+            box-shadow:
+                0 0 0 2px rgba(
+                    25,
+                    135,
+                    84,
+                    0.12
+                );
+        }
+
+
+        .date-button {
+
+            background: #198754;
+
+            color: white;
+
+            border: none;
+
+            padding: 10px 18px;
+
+            border-radius: 5px;
+
+            cursor: pointer;
+
+            font-weight: bold;
+
+            font-size: 14px;
+        }
+
+
+        .date-button:hover {
+
+            background: #146c43;
+        }
+
+
+        /* ==========================================
+           SELECTED DATE INFORMATION
+        ========================================== */
+
+        .selected-date-info {
+
+            margin-top: 15px;
+
+            padding: 11px 13px;
+
+            background: #f0f8f4;
+
+            border-left: 4px solid #198754;
+
+            font-size: 14px;
+
+            line-height: 1.5;
+        }
+
+
+        .selected-date-info strong {
+
+            color: #198754;
+        }
+
+
+        /* ==========================================
+           CURRENT TIME BADGE
+        ========================================== */
+
+        .current-time {
+
+            display: inline-block;
+
+            margin-left: 8px;
+
+            padding: 4px 8px;
+
+            background: #198754;
+
+            color: white;
+
+            border-radius: 4px;
+
+            font-size: 12px;
+
+            font-weight: bold;
+        }
+
+
+        /* ==========================================
+           MESSAGES
+        ========================================== */
+
+        .messages {
+
+            margin-bottom: 15px;
+        }
+
+
+        .message {
+
+            background: #d1e7dd;
+
+            color: #0f5132;
+
+            padding: 12px;
+
+            border-radius: 5px;
+
+            margin-bottom: 8px;
+
+            font-size: 14px;
+        }
+
+
+        /* ==========================================
+           MONITORING SECTION
+        ========================================== */
+
+        .monitoring-section {
+
+            background: white;
+
+            border-radius: 8px;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.08);
+
+            margin-bottom: 20px;
+
+            overflow: hidden;
+        }
+
+
+        /* ==========================================
+           SECTION HEADER
+        ========================================== */
+
+        .section-header {
+
+            padding: 15px 18px;
+
+            background: #198754;
+
+            color: white;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 10px;
+
+            flex-wrap: wrap;
+        }
+
+
+        .section-header h3 {
+
+            font-size: 17px;
+        }
+
+
+        .section-count {
+
+            font-size: 13px;
+
+            background:
+                rgba(255, 255, 255, 0.18);
+
+            padding: 5px 9px;
+
+            border-radius: 20px;
+        }
+
+
+        /* ==========================================
+           TABLE WRAPPER
+        ========================================== */
+
+        .schedule-table-wrapper {
+
+            width: 100%;
+
+            overflow-x: auto;
+        }
+
+
+        /* ==========================================
+           DAILY MONITORING TABLE
+        ========================================== */
+
+        .schedule-table {
+
+            width: 100%;
+
+            min-width: 850px;
+
+            border-collapse: collapse;
+        }
+
+
+        .schedule-table th {
+
+            background: #f0f8f4;
+
+            color: #198754;
+
+            padding: 12px;
+
+            text-align: left;
+
+            font-size: 13px;
+
+            white-space: nowrap;
+
+            border-bottom: 1px solid #ddd;
+        }
+
+
+        .schedule-table td {
+
+            padding: 12px;
+
+            border-bottom: 1px solid #eee;
+
+            font-size: 13px;
+
+            white-space: nowrap;
+        }
+
+
+        .schedule-table tbody tr:hover {
+
+            background: #f8f9fa;
+        }
+
+
+        /* ==========================================
+           INSTRUCTOR NAME
+        ========================================== */
+
+        .instructor-name {
+
+            font-weight: bold;
+        }
+
+
+        /* ==========================================
+           SUBJECT
+        ========================================== */
+
+        .subject-code {
+
+            font-weight: bold;
+
+            color: #333;
+        }
+
+
+        .subject-name {
+
+            color: #555;
+        }
+
+
+        /* ==========================================
+           MONITOR BUTTON
+        ========================================== */
+
+        .monitor-button {
+
+            display: inline-block;
+
+            background: #198754;
+
+            color: white;
+
+            text-decoration: none;
+
+            padding: 8px 13px;
+
+            border-radius: 5px;
+
+            font-weight: bold;
+
+            font-size: 12px;
+
+            transition:
+                background 0.2s ease;
+        }
+
+
+        .monitor-button:hover {
+
+            background: #146c43;
+        }
+
+
+        /* ==========================================
+           EMPTY STATE
+        ========================================== */
+
+        .empty-monitoring {
+
+            padding: 30px !important;
+
+            text-align: center;
+
+            color: #6c757d;
+
+            font-size: 14px;
+
+            white-space: normal !important;
+        }
+
+
+        /* ==========================================
+           UPCOMING TABLE
+        ========================================== */
+
+        .upcoming-section {
+
+            margin-top: 20px;
+        }
+
+
+        /* ==========================================
+           FOOTER/BACK
+        ========================================== */
+
+        .bottom-links {
+
+            margin-top: 25px;
+
+            display: flex;
+
+            gap: 20px;
+
+            flex-wrap: wrap;
+        }
+
+
+        .bottom-link {
+
+            color: #198754;
+
+            text-decoration: none;
+
+            font-weight: bold;
+
+            font-size: 14px;
+        }
+
+
+        .bottom-link:hover {
+
+            text-decoration: underline;
+        }
+
+
+        /* ==========================================
+           TABLET
+        ========================================== */
+
+        @media (max-width: 700px) {
+
+            .header {
+
+                padding: 13px 15px;
+            }
+
+
+            .header-content {
+
+                flex-direction: column;
+
+                align-items: flex-start;
+            }
+
+
+            .header h1 {
+
+                font-size: 20px;
+            }
+
+
+            .container {
+
+                padding: 20px 12px 50px;
+            }
+
+
+            .top-section {
+
+                align-items: flex-start;
+            }
+
+
+            .top-section h2 {
+
+                font-size: 21px;
+            }
+
+
+            .date-form {
+
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+
+
+            .date-group {
+
+                width: 100%;
+            }
+
+
+            .date-input,
+            .date-button {
+
+                width: 100%;
+            }
+
+
+            .selected-date-info {
+
+                line-height: 1.8;
+            }
+
+
+            .current-time {
+
+                margin-left: 0;
+
+                margin-top: 5px;
+            }
+
+
+            .schedule-table {
+
+                min-width: 850px;
+            }
+
+        }
+
+
+        /* ==========================================
+           SMALL PHONE
+        ========================================== */
+
+        @media (max-width: 400px) {
+
+            .container {
+
+                padding-left: 8px;
+
+                padding-right: 8px;
+
+                padding-bottom: 50px;
+            }
+
+
+            .monitoring-card {
+
+                padding: 16px;
+            }
+
+
+            .monitoring-title {
+
+                font-size: 18px;
+            }
+
+
+            .monitoring-description {
+
+                font-size: 13px;
+            }
+
+
+            .section-header h3 {
+
+                font-size: 15px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ==========================================
+     HEADER
+========================================== -->
+
+<header class="header">
+
+    <div class="header-content">
+
+        <h1>
+            CAS_Faculty Attendance Monitoring
+        </h1>
+
+
+        <a
+            href="{% url 'dashboard' %}"
+            class="dashboard-link"
+        >
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+</header>
+
+
+<!-- ==========================================
+     MAIN CONTENT
+========================================== -->
+
+<main class="container">
+
+
+    <!-- ==========================================
+         PAGE HEADER
+    ========================================== -->
+
+    <div class="top-section">
+
+        <h2>
+            Daily Class Monitoring
+        </h2>
+
+
+    </div>
+
+
+    <!-- ==========================================
+         DATE SELECTION
+    ========================================== -->
+
+    <section class="monitoring-card">
+
+        <div class="monitoring-title">
+            Daily Class Monitoring
+        </div>
+
+
+        <div class="monitoring-description">
+
+            The system automatically uses today's date
+            and Philippine time. You can also select
+            another date to view its scheduled classes.
+
+        </div>
+
+
+        <form
+            method="GET"
+            class="date-form"
+        >
+
+            <div class="date-group">
+
+                <label for="monitoring-date">
+
+                    Class Date
+
+                </label>
+
+
+                <input
+                    type="date"
+                    id="monitoring-date"
+                    name="date"
+                    class="date-input"
+                    value="{{ monitoring_date|date:'Y-m-d' }}"
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="date-button"
+            >
+                Search Date
+            </button>
+
+        </form>
+
+
+        <!-- ======================================
+             SELECTED DATE
+        ======================================= -->
+
+        <div class="selected-date-info">
+
+            <strong>
+                Selected Date:
+            </strong>
+
+            {{ selected_date|date:"F d, Y" }}
+
+            -
+
+            <strong>
+                {{ selected_day_name }}
+            </strong>
+
+
+            {% if is_today %}
+
+                <span>
+                    &nbsp; | &nbsp;
+                    Current Philippine Time:
+                </span>
+
+
+                <span class="current-time">
+
+                    {{ current_time|time:"h:i A" }}
+
+                </span>
+
+            {% endif %}
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         MESSAGES
+    ========================================== -->
+
+    {% if messages %}
+
+        <div class="messages">
+
+            {% for message in messages %}
+
+                <div class="message">
+
+                    {{ message }}
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ==========================================
+         CURRENTLY TEACHING / NEEDS MONITORING
+    ========================================== -->
+
+    <section class="monitoring-section">
+
+
+        <div class="section-header">
+
+            <h3>
+
+                {% if is_today %}
+
+                    Currently Teaching / Needs Monitoring
+
+                {% else %}
+
+                    Scheduled Classes
+
+                {% endif %}
+
+            </h3>
+
+
+            <span class="section-count">
+
+                {{ active_schedules|length }}
+
+                class{{ active_schedules|length|pluralize }}
+
+            </span>
+
+        </div>
+
+
+        <div class="schedule-table-wrapper">
+
+            <table class="schedule-table">
+
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            #
+                        </th>
+
+                        <th>
+                            Instructor
+                        </th>
+
+                        <th>
+                            Subject
+                        </th>
+
+                        <th>
+                            Assigned Room
+                        </th>
+
+                        <th>
+                            Scheduled Class Time
+                        </th>
+
+                        <th>
+                            Day
+                        </th>
+
+                        <th>
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+
+                    {% for schedule in active_schedules %}
+
+                        <tr>
+
+
+                            <!-- NUMBER -->
+
+                            <td>
+
+                                {{ forloop.counter }}
+
+                            </td>
+
+
+                            <!-- INSTRUCTOR -->
+
+                            <td>
+
+                                <strong class="instructor-name">
+
+                                    {{ schedule.instructor.name }}
+
+                                </strong>
+
+                            </td>
+
+
+                            <!-- SUBJECT -->
+
+                            <td>
+
+                                <span class="subject-code">
+
+                                    {{ schedule.subject.subject_code }}
+
+                                </span>
+
+                                -
+
+                                <span class="subject-name">
+
+                                    {{ schedule.subject.subject_name }}
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- ASSIGNED ROOM -->
+
+                            <td>
+
+                                {{ schedule.room.room_name }}
+
+                            </td>
+
+
+                            <!-- SCHEDULED CLASS TIME -->
+
+                            <td>
+
+                                {{ schedule.start_time|time:"h:i A" }}
+
+                                -
+
+                                {{ schedule.end_time|time:"h:i A" }}
+
+                            </td>
+
+
+                            <!-- DAY -->
+
+                            <td>
+
+                                {{ schedule.get_day_display }}
+
+                            </td>
+
+
+                            <!-- ACTION -->
+
+                            <td>
+
+                                <a
+                                    href="{% url 'monitoring_create' schedule.id %}?date={{ selected_date|date:'Y-m-d' }}"
+                                    class="monitor-button"
+                                >
+                                    MONITOR
+                                </a>
+
+                            </td>
+
+
+                        </tr>
+
+
+                    {% empty %}
+
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="empty-monitoring"
+                            >
+
+                                {% if is_today %}
+
+                                    No instructor currently has
+                                    an unmonitored class at this time.
+
+                                {% else %}
+
+                                    No schedules found for this date.
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+
+                    {% endfor %}
+
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         UPCOMING CLASSES
+    ========================================== -->
+
+    {% if is_today %}
+
+        <section
+            class="monitoring-section upcoming-section"
+        >
+
+
+            <div class="section-header">
+
+                <h3>
+                    Upcoming Classes
+                </h3>
+
+
+                <span class="section-count">
+
+                    {{ upcoming_schedules|length }}
+
+                    class{{ upcoming_schedules|length|pluralize }}
+
+                </span>
+
+            </div>
+
+
+            <div class="schedule-table-wrapper">
+
+
+                <table class="schedule-table">
+
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                #
+                            </th>
+
+                            <th>
+                                Instructor
+                            </th>
+
+                            <th>
+                                Subject
+                            </th>
+
+                            <th>
+                                Assigned Room
+                            </th>
+
+                            <th>
+                                Scheduled Class Time
+                            </th>
+
+                            <th>
+                                Day
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+
+                        {% for schedule in upcoming_schedules %}
+
+                            <tr>
+
+
+                                <!-- NUMBER -->
+
+                                <td>
+
+                                    {{ forloop.counter }}
+
+                                </td>
+
+
+                                <!-- INSTRUCTOR -->
+
+                                <td>
+
+                                    <strong class="instructor-name">
+
+                                        {{ schedule.instructor.name }}
+
+                                    </strong>
+
+                                </td>
+
+
+                                <!-- SUBJECT -->
+
+                                <td>
+
+                                    <span class="subject-code">
+
+                                        {{ schedule.subject.subject_code }}
+
+                                    </span>
+
+                                    -
+
+                                    <span class="subject-name">
+
+                                        {{ schedule.subject.subject_name }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- ASSIGNED ROOM -->
+
+                                <td>
+
+                                    {{ schedule.room.room_name }}
+
+                                </td>
+
+
+                                <!-- SCHEDULED CLASS TIME -->
+
+                                <td>
+
+                                    {{ schedule.start_time|time:"h:i A" }}
+
+                                    -
+
+                                    {{ schedule.end_time|time:"h:i A" }}
+
+                                </td>
+
+
+                                <!-- DAY -->
+
+                                <td>
+
+                                    {{ schedule.get_day_display }}
+
+                                </td>
+
+
+                            </tr>
+
+
+                        {% empty %}
+
+
+                            <tr>
+
+                                <td
+                                    colspan="6"
+                                    class="empty-monitoring"
+                                >
+
+                                    No more upcoming classes
+                                    for today.
+
+                                </td>
+
+                            </tr>
+
+
+                        {% endfor %}
+
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    {% endif %}
+
+
+    <!-- ==========================================
+         BOTTOM LINKS
+    ========================================== -->
+
+    <div class="bottom-links">
+        <a
+            href="{% url 'monitoring_list' %}"
+            class="bottom-link"
+        >
+            🔄 Refresh Monitoring
+        </a>
+
+    </div>
+
+
+</main>
+
+
+</body>
+
+</html>

@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Admin Accounts | Teacher Class Monitoring System
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+
+            background: #f5f7f6;
+
+            color: #333;
+        }
+
+        .header {
+            width: 100%;
+
+            background: #198754;
+
+            color: white;
+
+            padding: 14px 25px;
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 1000;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-content {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 15px;
+        }
+
+        .header h1 {
+            font-size: 23px;
+        }
+
+        .back-button {
+            color: white;
+
+            text-decoration: none;
+
+            font-weight: bold;
+
+            font-size: 14px;
+
+            padding: 8px 12px;
+
+            border: 1px solid rgba(255,255,255,0.7);
+
+            border-radius: 5px;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .container {
+            width: 100%;
+
+            max-width: 1000px;
+
+            margin: 0 auto;
+
+            padding: 35px 20px 60px;
+        }
+
+        .card {
+            background: white;
+
+            border-radius: 10px;
+
+            padding: 30px;
+
+            box-shadow:
+                0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .title-row {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 15px;
+
+            margin-bottom: 25px;
+        }
+
+        .title-row h2 {
+            color: #198754;
+
+            font-size: 24px;
+        }
+
+        .add-button {
+            display: inline-block;
+
+            background: #198754;
+
+            color: white;
+
+            text-decoration: none;
+
+            padding: 10px 15px;
+
+            border-radius: 5px;
+
+            font-size: 14px;
+
+            font-weight: bold;
+        }
+
+        .add-button:hover {
+            background: #146c43;
+        }
+
+        .description {
+            color: #6c757d;
+
+            font-size: 14px;
+
+            line-height: 1.6;
+
+            margin-bottom: 25px;
+        }
+
+        .messages {
+            margin-bottom: 20px;
+        }
+
+        .message {
+            background: #d1e7dd;
+
+            color: #0f5132;
+
+            padding: 10px 12px;
+
+            border-radius: 5px;
+
+            margin-bottom: 8px;
+
+            font-size: 14px;
+        }
+
+        .table-wrapper {
+            width: 100%;
+
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+
+            min-width: 600px;
+        }
+
+        th {
+            background: #198754;
+
+            color: white;
+
+            padding: 12px;
+
+            text-align: left;
+
+            font-size: 14px;
+        }
+
+        td {
+            padding: 12px;
+
+            border-bottom: 1px solid #e5e5e5;
+
+            font-size: 14px;
+        }
+
+        tr:hover td {
+            background: #f8faf9;
+        }
+
+        .status {
+            display: inline-block;
+
+            padding: 5px 9px;
+
+            border-radius: 20px;
+
+            background: #d1e7dd;
+
+            color: #0f5132;
+
+            font-size: 12px;
+
+            font-weight: bold;
+        }
+
+        .empty {
+            text-align: center;
+
+            padding: 30px;
+
+            color: #6c757d;
+
+            font-size: 14px;
+        }
+
+        .actions {
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 6px;
+
+            align-items: center;
+        }
+
+        .inline-form {
+            display: inline;
+        }
+
+        .action-button {
+            display: inline-block;
+
+            border: none;
+
+            border-radius: 5px;
+
+            padding: 7px 10px;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            text-decoration: none;
+
+            cursor: pointer;
+        }
+
+        .password-button {
+            background: #198754;
+
+            color: white;
+        }
+
+        .password-button:hover {
+            background: #146c43;
+        }
+
+        .deactivate-button {
+            background: #ffc107;
+
+            color: #212529;
+        }
+
+        .deactivate-button:hover {
+            background: #e0a800;
+        }
+
+        .delete-button {
+            background: #dc3545;
+
+            color: white;
+        }
+
+        .delete-button:hover {
+            background: #bb2d3b;
+        }
+
+        .main-admin-badge {
+            display: inline-block;
+
+            margin-left: 7px;
+
+            padding: 4px 7px;
+
+            border-radius: 12px;
+
+            background: #198754;
+
+            color: white;
+
+            font-size: 10px;
+
+            font-weight: bold;
+        }
+
+        .main-admin-label {
+            color: #198754;
+
+            font-size: 12px;
+
+            font-weight: bold;
+        }
+
+        .active-status {
+            background: #d1e7dd;
+
+            color: #0f5132;
+        }
+
+        .inactive-status {
+            background: #f8d7da;
+
+            color: #842029;
+        }
+
+        @media (max-width: 600px) {
+
+            .header {
+                padding: 12px 15px;
+            }
+
+            .header-content {
+                flex-direction: column;
+
+                align-items: flex-start;
+            }
+
+            .header h1 {
+                font-size: 19px;
+            }
+
+            .container {
+                padding: 20px 12px 50px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .title-row {
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+
+            .title-row h2 {
+                font-size: 21px;
+            }
+
+            .add-button {
+                text-align: center;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="header-content">
+
+        <h1>
+            CAS_Faculty Attendance Monitoring
+        </h1>
+
+        <a
+            href="{% url 'dashboard' %}"
+            class="back-button"
+        >
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+</header>
+
+
+<main class="container">
+
+    <div class="card">
+
+        <div class="title-row">
+
+            <h2>
+                Administrator Accounts
+            </h2>
+
+            <a
+                href="{% url 'admin_account_create' %}"
+                class="add-button"
+            >
+                + Add Administrator
+            </a>
+
+        </div>
+
+
+        <p class="description">
+
+            Manage the administrator accounts that are
+            authorized to access the Teacher Class Monitoring
+            System.
+
+        </p>
+
+
+        {% if messages %}
+
+            <div class="messages">
+
+                {% for message in messages %}
+
+                    <div class="message">
+                        {{ message }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+
+        {% if admins %}
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                #
+                            </th>
+
+                            <th>
+                                Username
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Staff Access
+                            </th>
+
+                            <th>
+                                Actions
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    {% for admin in admins %}
+
+                        <tr>
+
+                            <td>
+                                {{ forloop.counter }}
+                            </td>
+
+                            <td>
+
+                                <strong>
+                                    {{ admin.username }}
+                                </strong>
+
+                                {% if admin.is_superuser %}
+
+                                    <span class="main-admin-badge">
+                                        Main Admin
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if admin.is_active %}
+
+                                    <span class="status active-status">
+                                        Active
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="status inactive-status">
+                                        Deactivated
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if admin.is_staff %}
+                                    Enabled
+                                {% else %}
+                                    Disabled
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if not admin.is_superuser %}
+
+                                    <div class="actions">
+
+                                        <a
+                                            href="{% url 'admin_account_password' admin.id %}"
+                                            class="action-button password-button"
+                                        >
+                                            🔑 Password
+                                        </a>
+
+
+                                        {% if admin.is_active %}
+
+                                            <form
+                                                method="POST"
+                                                action="{% url 'admin_account_deactivate' admin.id %}"
+                                                class="inline-form"
+                                            >
+
+                                                {% csrf_token %}
+
+                                                <button
+                                                    type="submit"
+                                                    class="action-button deactivate-button"
+                                                    onclick="return confirm(
+                                                        'Are you sure you want to deactivate {{ admin.username }}?'
+                                                    );"
+                                                >
+                                                    Deactivate
+                                                </button>
+
+                                            </form>
+
+                                        {% endif %}
+
+
+                                        <form
+                                            method="POST"
+                                            action="{% url 'admin_account_delete' admin.id %}"
+                                            class="inline-form"
+                                        >
+
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="action-button delete-button"
+                                                onclick="return confirm(
+                                                    'Are you sure you want to permanently delete {{ admin.username }}? This cannot be undone.'
+                                                );"
+                                            >
+                                                Delete
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                {% else %}
+
+                                    <span class="main-admin-label">
+                                        Protected
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td
+                                colspan="5"
+                                class="empty"
+                            >
+                                No administrator accounts found.
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="empty">
+
+                No administrator accounts found.
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</main>
+
+</body>
+
+</html>

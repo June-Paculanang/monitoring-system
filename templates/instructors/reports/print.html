@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Monitoring Report
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            background: white;
+            color: #222;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+
+
+        /* =========================================
+           REPORT HEADER
+        ========================================= */
+
+        .report-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .report-header h1 {
+            margin: 0 0 5px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .report-header h2 {
+            margin: 0 0 5px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .report-header p {
+            margin: 4px 0;
+            font-size: 13px;
+        }
+
+
+        /* =========================================
+           REPORT INFORMATION
+        ========================================= */
+
+        .report-info {
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+
+        .report-info strong {
+            font-weight: bold;
+        }
+
+
+        /* =========================================
+           TABLE
+        ========================================= */
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .report-table th,
+        .report-table td {
+            border: 1px solid #333;
+            padding: 7px 5px;
+            text-align: left;
+            vertical-align: middle;
+            word-wrap: break-word;
+        }
+
+        .report-table th {
+            background: #198754;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .report-table td {
+            min-height: 30px;
+        }
+
+
+        /* =========================================
+           COLUMN WIDTHS
+        ========================================= */
+
+        .col-instructor {
+            width: 14%;
+        }
+
+        .col-subject {
+            width: 15%;
+        }
+
+        .col-assigned-room {
+            width: 10%;
+        }
+
+        .col-actual-room {
+            width: 10%;
+        }
+
+        .col-class-time {
+            width: 11%;
+        }
+
+        .col-monitor-time {
+            width: 14%;
+        }
+
+        .col-day {
+            width: 7%;
+        }
+
+        .col-remarks {
+            width: 11%;
+        }
+
+        .col-signature {
+            width: 8%;
+        }
+
+
+        /* =========================================
+           EMPTY REPORT
+        ========================================= */
+
+        .no-records {
+            text-align: center;
+            padding: 20px;
+            color: #555;
+        }
+
+
+        /* =========================================
+           FOOTER
+        ========================================= */
+
+        .report-footer {
+            margin-top: 35px;
+            font-size: 12px;
+        }
+
+        .signature-line {
+            margin-top: 45px;
+            width: 250px;
+            border-top: 1px solid #222;
+            padding-top: 5px;
+        }
+
+
+        /* =========================================
+           PRINT SETTINGS
+        ========================================= */
+
+        @page {
+            size: landscape;
+            margin: 10mm;
+        }
+
+        @media print {
+
+            body {
+                padding: 0;
+                font-size: 10px;
+            }
+
+            .report-header {
+                margin-bottom: 15px;
+            }
+
+            .report-header h1 {
+                font-size: 17px;
+            }
+
+            .report-header h2 {
+                font-size: 14px;
+            }
+
+            .report-header p {
+                font-size: 11px;
+            }
+
+            .report-table {
+                font-size: 9px;
+            }
+
+            .report-table th,
+            .report-table td {
+                padding: 5px 4px;
+            }
+
+            .report-footer {
+                margin-top: 20px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     REPORT HEADER
+========================================= -->
+
+<div class="report-header">
+
+    <h1>
+        OFFICE OF THE DEAN
+    </h1>
+
+    <h2>
+        CAS_Faculty Attendance Monitoring
+    </h2>
+
+    <p>
+        First Semester, School Year 2026–2027
+    </p>
+
+</div>
+
+
+<!-- =========================================
+     SELECTED WEEK
+========================================= -->
+
+<div class="report-info">
+
+    <strong>
+        Selected Monitoring Week:
+    </strong>
+
+    {{ week_start|date:"F d, Y" }}
+
+    -
+
+    {{ week_end|date:"F d, Y" }}
+
+</div>
+
+
+<!-- =========================================
+     REPORT TABLE
+========================================= -->
+
+<table class="report-table">
+
+    <thead>
+
+        <tr>
+
+            <th class="col-instructor">
+                Instructor
+            </th>
+
+            <th class="col-subject">
+                Subject
+            </th>
+
+            <th class="col-assigned-room">
+                Assigned Room
+            </th>
+
+            <th class="col-actual-room">
+                Actual Room Used
+            </th>
+
+            <th class="col-class-time">
+                Scheduled Class Time
+            </th>
+
+            <th class="col-monitor-time">
+                Date &amp; Time Monitored
+            </th>
+
+            <th class="col-day">
+                Day
+            </th>
+
+            <th class="col-remarks">
+                Remarks
+            </th>
+
+            <th class="col-signature">
+                Signature
+            </th>
+
+
+        </tr>
+
+    </thead>
+
+
+    <tbody>
+
+        {% for record in records %}
+
+            <tr>
+
+                <!-- INSTRUCTOR -->
+
+                <td>
+                    {{ record.schedule.instructor.name }}
+                </td>
+
+
+                <!-- SUBJECT -->
+
+                <td>
+
+                    {{ record.schedule.subject.subject_code }}
+
+                    {% if record.schedule.subject.subject_name %}
+                        -
+                        {{ record.schedule.subject.subject_name }}
+                    {% endif %}
+
+                </td>
+
+
+                <!-- ASSIGNED ROOM -->
+
+                <td>
+                    {{ record.schedule.room.room_name }}
+                </td>
+
+
+                <!-- ACTUAL ROOM -->
+
+                <td>
+
+                    {% if record.transfer_room %}
+                        {{ record.transfer_room }}
+                    {% else %}
+                        {{ record.schedule.room.room_name }}
+                    {% endif %}
+
+                </td>
+
+
+                <!-- SCHEDULED CLASS TIME -->
+
+                <td>
+
+                    {{ record.schedule.start_time|time:"h:i A" }}
+
+                    -
+
+                    {{ record.schedule.end_time|time:"h:i A" }}
+
+                </td>
+
+
+                <!-- DATE & TIME MONITORED -->
+
+                <td>
+
+                    {% if record.record_datetime %}
+
+                        {{ record.record_datetime|date:"M d, Y" }}
+
+                        <br>
+
+                        {{ record.record_datetime|time:"h:i A" }}
+
+                    {% endif %}
+
+                </td>
+
+
+                <!-- DAY -->
+
+                <td>
+
+                    {% if record.schedule.day == "M" %}
+                        Monday
+
+                    {% elif record.schedule.day == "T" %}
+                        Tuesday
+
+                    {% elif record.schedule.day == "W" %}
+                        Wednesday
+
+                    {% elif record.schedule.day == "TH" %}
+                        Thursday
+
+                    {% elif record.schedule.day == "F" %}
+                        Friday
+
+                    {% elif record.schedule.day == "S" %}
+                        Saturday
+
+                    {% else %}
+                        {{ record.schedule.day }}
+                    {% endif %}
+
+                </td>
+
+
+                <!-- REMARKS -->
+
+                <td>
+
+                    {% if record.remarks %}
+                        {{ record.remarks }}
+                    {% else %}
+                        Not Monitored
+                    {% endif %}
+
+                    {% if record.other_remarks %}
+
+                        <br>
+
+                        {{ record.other_remarks }}
+
+                    {% endif %}
+
+                    {% if record.missed_reason %}
+
+                        <br>
+
+                        {{ record.missed_reason }}
+
+                    {% endif %}
+
+                </td>
+
+
+                <!-- SIGNATURE -->
+
+                <td>
+                    &nbsp;
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td
+                    colspan="9"
+                    class="no-records"
+                >
+                    No monitoring records found
+                    for the selected week.
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+
+<!-- =========================================
+     REPORT FOOTER
+========================================= -->
+
+<div class="report-footer">
+
+    <p>
+        Prepared for:
+    </p>
+
+    <div class="signature-line">
+        Dean / Authorized Personnel
+    </div>
+
+</div>
+
+
+</body>
+
+</html>

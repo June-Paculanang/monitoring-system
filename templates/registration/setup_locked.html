@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Setup Locked | Teacher Class Monitoring System
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            background: #f5f7f6;
+
+            padding: 20px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 450px;
+
+            background: white;
+
+            padding: 35px;
+
+            border-radius: 10px;
+
+            text-align: center;
+
+            box-shadow:
+                0 3px 15px rgba(0, 0, 0, 0.10);
+        }
+
+        .icon {
+            font-size: 45px;
+
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #198754;
+
+            font-size: 24px;
+
+            margin-bottom: 12px;
+        }
+
+        p {
+            color: #6c757d;
+
+            font-size: 14px;
+
+            line-height: 1.6;
+
+            margin-bottom: 25px;
+        }
+
+        .button {
+            display: inline-block;
+
+            padding: 11px 20px;
+
+            background: #198754;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 5px;
+
+            font-size: 14px;
+
+            font-weight: bold;
+        }
+
+        .button:hover {
+            background: #146c43;
+        }
+
+        @media (max-width: 500px) {
+
+            .card {
+                padding: 25px 20px;
+            }
+
+            h1 {
+                font-size: 21px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="card">
+
+        <div class="icon">
+            🔒
+        </div>
+
+        <h1>
+            System Already Initialized
+        </h1>
+
+        <p>
+            The System Administrator account has already
+            been created.
+
+            <br><br>
+
+            New administrator accounts can only be created
+            by an authorized System Administrator.
+        </p>
+
+        <a
+            href="{% url 'login' %}"
+            class="button"
+        >
+            Go to Login
+        </a>
+
+    </div>
+
+</body>
+
+</html>

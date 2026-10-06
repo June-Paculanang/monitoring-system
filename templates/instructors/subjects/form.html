@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {{ title }} | Teacher Monitoring System
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #333;
+            min-height: 100vh;
+        }
+
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .header {
+            background: #198754;
+            color: white;
+            padding: 15px 25px;
+
+            position: sticky;
+            top: 0;
+
+            z-index: 1000;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+
+        .header-title {
+            font-size: 23px;
+            font-weight: bold;
+        }
+
+
+        .header-links {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+
+        .header-link {
+            color: white;
+            text-decoration: none;
+
+            padding: 8px 10px;
+
+            border-radius: 5px;
+
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+
+        .header-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+
+        /* =========================
+           PAGE
+        ========================= */
+
+        .page {
+            width: 100%;
+            padding: 30px 20px 40px;
+        }
+
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+
+            margin: 0 auto;
+
+            background: white;
+
+            padding: 30px;
+
+            border-radius: 10px;
+
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+
+        h1 {
+            margin: 0 0 25px;
+
+            color: #198754;
+
+            font-size: 26px;
+        }
+
+
+        /* =========================
+           MESSAGES
+        ========================= */
+
+        .floating-message {
+            position: fixed;
+
+            top: 75px;
+            right: 25px;
+
+            z-index: 3000;
+
+            min-width: 280px;
+            max-width: 450px;
+
+            padding: 14px 18px;
+
+            border-radius: 7px;
+
+            box-shadow:
+                0 4px 15px rgba(0, 0, 0, 0.18);
+
+            transition:
+                opacity 0.4s ease;
+        }
+
+
+        .message-success {
+            background: #d1e7dd;
+            color: #0f5132;
+
+            border-left:
+                5px solid #198754;
+        }
+
+
+        .message-error {
+            background: #f8d7da;
+            color: #842029;
+
+            border-left:
+                5px solid #dc3545;
+        }
+
+
+        .message-warning {
+            background: #fff3cd;
+            color: #664d03;
+
+            border-left:
+                5px solid #ffc107;
+        }
+
+
+        /* =========================
+           HELP BOX
+        ========================= */
+
+        .help-box {
+            background: #eaf7ee;
+
+            border-left:
+                4px solid #198754;
+
+            padding: 13px 15px;
+
+            border-radius: 5px;
+
+            margin-bottom: 20px;
+
+            line-height: 1.5;
+        }
+
+
+        .help-box strong {
+            color: #146c43;
+        }
+
+
+        /* =========================
+           TEXTAREA
+        ========================= */
+
+        textarea {
+            width: 100%;
+
+            min-height: 220px;
+
+            resize: vertical;
+
+            padding: 12px;
+
+            border:
+                1px solid #ccc;
+
+            border-radius: 6px;
+
+            font-family: Arial, sans-serif;
+
+            font-size: 14px;
+        }
+
+
+        textarea:focus {
+            outline: none;
+
+            border-color: #198754;
+
+            box-shadow:
+                0 0 0 2px
+                rgba(25, 135, 84, 0.10);
+        }
+
+
+        /* =========================
+           EXAMPLE BOX
+        ========================= */
+
+        .example-box {
+            background: #f8f9fa;
+
+            border:
+                1px solid #e1e1e1;
+
+            padding: 12px 15px;
+
+            border-radius: 6px;
+
+            margin-top: 10px;
+
+            font-size: 13px;
+
+            line-height: 1.6;
+        }
+
+
+        .example-box code {
+            color: #198754;
+
+            font-weight: bold;
+        }
+
+
+        /* =========================
+           INDIVIDUAL EDIT
+        ========================= */
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+
+        label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            font-weight: bold;
+        }
+
+
+        .form-control {
+            width: 100%;
+
+            padding: 11px;
+
+            border:
+                1px solid #ccc;
+
+            border-radius: 6px;
+
+            font-size: 15px;
+        }
+
+
+        .form-control:focus {
+            outline: none;
+
+            border-color: #198754;
+        }
+
+
+        .error {
+            color: #dc3545;
+
+            font-size: 13px;
+
+            margin-top: 5px;
+        }
+
+
+        /* =========================
+           BUTTONS
+        ========================= */
+
+        .buttons {
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 25px;
+        }
+
+
+        .save-btn {
+            border: none;
+
+            background: #198754;
+
+            color: white;
+
+            padding: 11px 20px;
+
+            border-radius: 6px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+
+        .save-btn:hover {
+            background: #146c43;
+        }
+
+
+        .cancel-btn {
+            background: #6c757d;
+
+            color: white;
+
+            text-decoration: none;
+
+            padding: 11px 20px;
+
+            border-radius: 6px;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+        }
+
+
+        .cancel-btn:hover {
+            background: #5c636a;
+        }
+
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 700px) {
+
+            .header {
+                padding: 14px 16px;
+            }
+
+
+            .header-content {
+                flex-direction: column;
+
+                align-items: flex-start;
+            }
+
+
+            .header-title {
+                font-size: 20px;
+            }
+
+
+            .page {
+                padding:
+                    20px 15px 30px;
+            }
+
+
+            .container {
+                padding: 20px;
+            }
+
+
+            .buttons {
+                flex-direction: column;
+            }
+
+
+            .save-btn,
+            .cancel-btn {
+                width: 100%;
+
+                text-align: center;
+            }
+
+
+            .floating-message {
+                left: 15px;
+                right: 15px;
+
+                top: 110px;
+
+                min-width: auto;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<header class="header">
+
+    <div class="header-content">
+
+        <div class="header-title">
+            Teacher Monitoring System
+        </div>
+
+
+        <div class="header-links">
+
+            <a
+                href="{% url 'dashboard' %}"
+                class="header-link"
+            >
+                ← Back to Dashboard
+            </a>
+
+
+            <a
+                href="{% url 'subject_list' %}"
+                class="header-link"
+            >
+                ← Back to Subjects
+            </a>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- =========================
+     PAGE
+========================= -->
+
+<div class="page">
+
+    <div class="container">
+
+        <h1>
+            {{ title }}
+        </h1>
+
+
+        <!-- =========================
+             MESSAGES
+        ========================= -->
+
+        {% if messages %}
+
+            {% for message in messages %}
+
+                <div
+                    class="
+                        floating-message
+                        {% if message.tags == 'error' %}
+                            message-error
+                        {% elif message.tags == 'warning' %}
+                            message-warning
+                        {% else %}
+                            message-success
+                        {% endif %}
+                    "
+                >
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+
+        {% if is_multiple %}
+
+
+            <!-- =========================
+                 ADD MULTIPLE SUBJECTS
+            ========================= -->
+
+            <div class="help-box">
+
+                <strong>
+                    Add Multiple Subjects
+                </strong>
+
+                <br>
+
+                Enter one subject per line.
+
+                <br>
+
+                <strong>
+                    Subject name is optional.
+                </strong>
+
+            </div>
+
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+
+                <div class="form-group">
+
+                    <label for="subjects">
+                        Subjects
+                    </label>
+
+
+                    <textarea
+                        id="subjects"
+                        name="subjects"
+                        placeholder="Examples:
+
+GE 5
+GE 6 - Ethics
+ENG 127 - Purposive Communication
+IT 101
+
+You can also separate subjects with commas."
+                        required
+                    ></textarea>
+
+
+                    <div class="example-box">
+
+                        <strong>
+                            Examples:
+                        </strong>
+
+                        <br>
+
+                        <code>
+                            GE 5
+                        </code>
+
+                        <br>
+
+                        <code>
+                            GE 6 - Ethics
+                        </code>
+
+                        <br>
+
+                        <code>
+                            ENG 127 - Purposive Communication
+                        </code>
+
+                        <br>
+
+                        <code>
+                            IT 101
+                        </code>
+
+                        <br><br>
+
+                        Subject name is optional.
+
+                        <br>
+
+                        Existing subject codes will be skipped automatically.
+
+                        <br>
+
+                        Duplicate subject codes will not overwrite
+                        existing data.
+
+                    </div>
+
+                </div>
+
+
+                <div class="buttons">
+
+                    <button
+                        type="submit"
+                        class="save-btn"
+                    >
+                        Save Subjects
+                    </button>
+
+
+                    <a
+                        href="{% url 'subject_list' %}"
+                        class="cancel-btn"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+
+        {% else %}
+
+
+            <!-- =========================
+                 EDIT SUBJECT
+            ========================= -->
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+
+                <div class="form-group">
+
+                    <label
+                        for="{{ form.subject_code.id_for_label }}"
+                    >
+                        Subject Code
+                    </label>
+
+
+                    {{ form.subject_code }}
+
+
+                    {% if form.subject_code.errors %}
+
+                        <div class="error">
+                            {{ form.subject_code.errors }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label
+                        for="{{ form.subject_name.id_for_label }}"
+                    >
+                        Subject Name (Optional)
+                    </label>
+
+
+                    {{ form.subject_name }}
+
+
+                    {% if form.subject_name.errors %}
+
+                        <div class="error">
+                            {{ form.subject_name.errors }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="buttons">
+
+                    <button
+                        type="submit"
+                        class="save-btn"
+                    >
+                        Update Subject
+                    </button>
+
+
+                    <a
+                        href="{% url 'subject_list' %}"
+                        class="cancel-btn"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     AUTO-HIDE MESSAGES
+========================= -->
+
+<script>
+
+    setTimeout(
+        function () {
+
+            document
+                .querySelectorAll(
+                    ".floating-message"
+                )
+                .forEach(
+                    function (message) {
+
+                        message.style.opacity =
+                            "0";
+
+
+                        setTimeout(
+                            function () {
+
+                                message.remove();
+
+                            },
+                            400
+                        );
+
+                    }
+                );
+
+        },
+        4000
+    );
+
+</script>
+
+
+</body>
+
+</html>

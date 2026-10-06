@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {{ instructor.name }} | Weekly Schedule
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            background: #f5f7f6;
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+
+        /* =========================================
+           HEADER
+        ========================================= */
+
+        .top-header {
+            width: 100%;
+            background: #198754;
+            color: white;
+
+            padding: 15px 25px;
+
+            position: sticky;
+            top: 0;
+
+            z-index: 1000;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-content {
+            width: 100%;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 20px;
+        }
+
+        .header-title {
+            min-width: 0;
+        }
+
+        .header-title h1 {
+            font-size: 22px;
+            line-height: 1.3;
+        }
+
+        .header-title p {
+            margin-top: 4px;
+
+            font-size: 13px;
+
+            opacity: 0.9;
+        }
+
+        .header-links {
+            display: flex;
+            align-items: center;
+
+            gap: 10px;
+
+            flex-shrink: 0;
+        }
+
+        .header-links a {
+            color: #198754;
+            background: white;
+
+            text-decoration: none;
+
+            padding: 8px 13px;
+
+            border-radius: 5px;
+
+            font-size: 12px;
+            font-weight: bold;
+
+            white-space: nowrap;
+        }
+
+        .header-links a:hover {
+            background: #e9ecef;
+        }
+
+
+        /* =========================================
+           MAIN CONTAINER
+        ========================================= */
+
+        .page-container {
+            width: 100%;
+
+            padding: 30px 25px 60px;
+        }
+
+        .content-card {
+            width: 100%;
+
+            background: white;
+
+            border-radius: 10px;
+
+            padding: 25px;
+
+            box-shadow:
+                0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+
+        /* =========================================
+           PAGE HEADING
+        ========================================= */
+
+        .page-heading {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-bottom: 25px;
+
+            flex-wrap: wrap;
+        }
+
+        .page-heading h2 {
+            color: #198754;
+
+            font-size: 24px;
+
+            margin-bottom: 5px;
+        }
+
+        .page-heading p {
+            color: #6c757d;
+
+            font-size: 14px;
+        }
+
+
+        /* =========================================
+           ADD SCHEDULE BUTTON
+        ========================================= */
+
+        .add-button {
+            display: inline-block;
+
+            background: #198754;
+            color: white;
+
+            text-decoration: none;
+
+            padding: 10px 16px;
+
+            border-radius: 5px;
+
+            font-size: 13px;
+            font-weight: bold;
+
+            white-space: nowrap;
+        }
+
+        .add-button:hover {
+            background: #146c43;
+        }
+
+
+        /* =========================================
+           MESSAGES
+        ========================================= */
+
+        .messages-container {
+            width: 100%;
+
+            margin-bottom: 20px;
+        }
+
+        .message {
+            padding: 11px 15px;
+
+            margin-bottom: 8px;
+
+            border-radius: 5px;
+
+            font-size: 13px;
+
+            transition:
+                opacity 0.5s ease,
+                transform 0.5s ease;
+        }
+
+        .message.success {
+            background: #d1e7dd;
+            color: #0f5132;
+
+            border: 1px solid #badbcc;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #842029;
+
+            border: 1px solid #f5c2c7;
+        }
+
+        .message.warning {
+            background: #fff3cd;
+            color: #664d03;
+
+            border: 1px solid #ffecb5;
+        }
+
+        .message.info {
+            background: #cff4fc;
+            color: #055160;
+
+            border: 1px solid #b6effb;
+        }
+
+
+        /* =========================================
+           WEEKLY SCHEDULE
+        ========================================= */
+
+        .schedule-section {
+            width: 100%;
+
+            margin-bottom: 25px;
+        }
+
+        .day-heading {
+            display: flex;
+
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 10px;
+
+            background: #f0f8f4;
+
+            border-left: 5px solid #198754;
+
+            padding: 12px 15px;
+
+            border-radius: 5px 5px 0 0;
+        }
+
+        .day-heading h3 {
+            color: #198754;
+
+            font-size: 16px;
+
+            font-weight: bold;
+        }
+
+        .day-heading span {
+            color: #6c757d;
+
+            font-size: 12px;
+        }
+
+
+        /* =========================================
+           TABLE
+        ========================================= */
+
+        .table-wrapper {
+            width: 100%;
+
+            overflow-x: auto;
+
+            border: 1px solid #dee2e6;
+            border-top: none;
+
+            border-radius: 0 0 6px 6px;
+        }
+
+        table {
+            width: 100%;
+
+            min-width: 750px;
+
+            border-collapse: collapse;
+        }
+
+        thead th {
+            background: #198754;
+
+            color: white;
+
+            padding: 11px 10px;
+
+            font-size: 12px;
+
+            text-align: center;
+
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 11px 10px;
+
+            font-size: 12px;
+
+            text-align: center;
+
+            border-bottom: 1px solid #dee2e6;
+            border-right: 1px solid #e9ecef;
+
+            white-space: nowrap;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+
+        /* =========================================
+           SUBJECT
+        ========================================= */
+
+        .subject-cell {
+            color: #198754;
+
+            font-weight: bold;
+        }
+
+
+        /* =========================================
+           TIME
+        ========================================= */
+
+        .time-cell {
+            font-weight: bold;
+
+            color: #333;
+        }
+
+
+        /* =========================================
+           ROOM
+        ========================================= */
+
+        .room-cell {
+            font-weight: 500;
+        }
+
+
+        /* =========================================
+           ACTIONS
+        ========================================= */
+
+        .actions {
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 6px;
+        }
+
+        .action-button {
+            display: inline-block;
+
+            padding: 7px 11px;
+
+            border-radius: 4px;
+
+            text-decoration: none;
+
+            font-size: 11px;
+
+            font-weight: bold;
+
+            white-space: nowrap;
+        }
+
+
+        /* EDIT */
+
+        .edit-button {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .edit-button:hover {
+            background: #0b5ed7;
+        }
+
+
+        /* DELETE */
+
+        .delete-button {
+            background: #dc3545;
+            color: white;
+        }
+
+        .delete-button:hover {
+            background: #bb2d3b;
+        }
+
+
+        /* =========================================
+           EMPTY
+        ========================================= */
+
+        .empty-row {
+            padding: 25px !important;
+
+            text-align: center;
+
+            color: #777;
+
+            font-size: 13px;
+        }
+
+
+        /* =========================================
+           NO SCHEDULES
+        ========================================= */
+
+        .no-schedules {
+            background: #f8f9fa;
+
+            border: 1px solid #dee2e6;
+
+            border-radius: 6px;
+
+            padding: 30px;
+
+            text-align: center;
+
+            color: #6c757d;
+
+            font-size: 14px;
+        }
+
+
+        /* =========================================
+           FOOTER
+        ========================================= */
+
+        .page-footer {
+            width: 100%;
+
+            text-align: center;
+
+            color: #777;
+
+            font-size: 11px;
+
+            padding: 20px 10px 30px;
+        }
+
+
+        /* =========================================
+           MOBILE
+        ========================================= */
+
+        @media (max-width: 768px) {
+
+            .top-header {
+                padding: 12px 15px;
+            }
+
+            .header-content {
+                flex-direction: column;
+
+                align-items: stretch;
+
+                gap: 10px;
+            }
+
+            .header-title {
+                text-align: center;
+            }
+
+            .header-title h1 {
+                font-size: 18px;
+            }
+
+            .header-title p {
+                font-size: 11px;
+            }
+
+            .header-links {
+                justify-content: center;
+
+                flex-wrap: wrap;
+            }
+
+            .header-links a {
+                font-size: 11px;
+
+                padding: 7px 10px;
+            }
+
+            .page-container {
+                padding: 15px 12px 50px;
+            }
+
+            .content-card {
+                padding: 15px;
+            }
+
+            .page-heading {
+                align-items: flex-start;
+
+                flex-direction: column;
+            }
+
+            .page-heading h2 {
+                font-size: 20px;
+            }
+
+            .add-button {
+                width: 100%;
+
+                text-align: center;
+            }
+
+            .day-heading {
+                align-items: flex-start;
+
+                flex-direction: column;
+            }
+
+            .day-heading h3 {
+                font-size: 14px;
+            }
+
+            table {
+                min-width: 700px;
+            }
+
+            thead th {
+                font-size: 10px;
+
+                padding: 9px 8px;
+            }
+
+            tbody td {
+                font-size: 10px;
+
+                padding: 9px 8px;
+            }
+
+            .action-button {
+                font-size: 10px;
+
+                padding: 6px 9px;
+            }
+        }
+
+
+        /* =========================================
+           SMALL PHONES
+        ========================================= */
+
+        @media (max-width: 480px) {
+
+            .page-container {
+                padding: 10px 8px 40px;
+            }
+
+            .content-card {
+                padding: 10px;
+            }
+
+            .header-links {
+                width: 100%;
+            }
+
+            .header-links a {
+                flex: 1;
+
+                text-align: center;
+            }
+
+            .day-heading {
+                padding: 10px 12px;
+            }
+
+            .table-wrapper {
+                border-radius: 0 0 5px 5px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     HEADER
+========================================= -->
+
+<header class="top-header">
+
+    <div class="header-content">
+
+        <div class="header-title">
+
+            <h1>
+                Teacher Class Monitoring System
+            </h1>
+
+            <p>
+                Instructor Weekly Schedule
+            </p>
+
+        </div>
+
+
+        <div class="header-links">
+
+            <a href="{% url 'schedule_list' %}">
+                ← Back to Schedules
+            </a>
+
+            <a href="{% url 'dashboard' %}">
+                Dashboard
+            </a>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- =========================================
+     MAIN
+========================================= -->
+
+<main class="page-container">
+
+    <div class="content-card">
+
+
+        <!-- =====================================
+             MESSAGES
+        ====================================== -->
+
+        {% if messages %}
+
+            <div class="messages-container">
+
+                {% for message in messages %}
+
+                    <div class="message {{ message.tags }}">
+
+                        {{ message }}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+
+        <!-- =====================================
+             PAGE HEADING
+        ====================================== -->
+
+        <div class="page-heading">
+
+            <div>
+
+                <h2>
+                    {{ instructor.name }}
+                </h2>
+
+                <p>
+                    Complete weekly class schedule
+                </p>
+
+            </div>
+
+
+            <a
+                href="{% url 'schedule_create' %}?instructor={{ instructor.id }}"
+                class="add-button"
+            >
+                + Add Schedule
+            </a>
+
+        </div>
+
+
+        <!-- =====================================
+             WEEKLY SCHEDULE
+        ====================================== -->
+
+        {% for day in weekly_schedule %}
+
+            <section class="schedule-section">
+
+                <div class="day-heading">
+
+                    <h3>
+                        {{ day.name|upper }}
+                    </h3>
+
+                    <span>
+                        {{ day.schedules|length }} schedule{{ day.schedules|length|pluralize }}
+                    </span>
+
+                </div>
+
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Subject
+                                </th>
+
+                                <th>
+                                    Time
+                                </th>
+
+                                <th>
+                                    Room
+                                </th>
+
+                                <th>
+                                    Actions
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for schedule in day.schedules %}
+
+                                <tr>
+
+                                    <td class="subject-cell">
+
+                                        {{ schedule.subject }}
+
+                                    </td>
+
+
+                                    <td class="time-cell">
+
+                                        {{ schedule.start_time|time:"h:i A" }}
+
+                                        -
+
+                                        {{ schedule.end_time|time:"h:i A" }}
+
+                                    </td>
+
+
+                                    <td class="room-cell">
+
+                                        {{ schedule.room }}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <div class="actions">
+
+                                            <a
+                                                href="{% url 'schedule_update' schedule.pk %}"
+                                                class="action-button edit-button"
+                                            >
+                                                Edit
+                                            </a>
+
+
+                                            <a
+                                                href="{% url 'schedule_delete' schedule.pk %}"
+                                                class="action-button delete-button"
+                                            >
+                                                Delete
+                                            </a>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            {% empty %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="4"
+                                        class="empty-row"
+                                    >
+                                        No schedule for this day.
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        {% empty %}
+
+            <div class="no-schedules">
+
+                This instructor currently has no schedules.
+
+            </div>
+
+        {% endfor %}
+
+
+    </div>
+
+</main>
+
+
+<!-- =========================================
+     FOOTER
+========================================= -->
+
+<footer class="page-footer">
+
+    Teacher Class Monitoring System
+
+</footer>
+
+
+<!-- =========================================
+     AUTO-HIDE MESSAGES
+========================================= -->
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const messages =
+                document.querySelectorAll(".message");
+
+            messages.forEach(
+                function (message) {
+
+                    setTimeout(
+                        function () {
+
+                            message.style.opacity = "0";
+
+                            message.style.transform =
+                                "translateY(-5px)";
+
+                            setTimeout(
+                                function () {
+
+                                    message.remove();
+
+                                },
+                                500
+                            );
+
+                        },
+                        4000
+                    );
+
+                }
+            );
+
+        }
+    );
+
+</script>
+
+
+</body>
+
+</html>

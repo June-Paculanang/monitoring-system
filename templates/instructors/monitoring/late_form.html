@@ -1,0 +1,992 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Monitor Late - Teacher Monitoring System
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+
+        body {
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #f5f7f6;
+
+            color: #333;
+
+            min-height: 100vh;
+
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+
+        /* ==============================
+           HEADER
+        ============================== */
+
+        .header {
+            width: 100%;
+
+            background: #198754;
+
+            color: white;
+
+            padding: 18px 30px;
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 1000;
+
+            box-shadow:
+                0 2px 6px
+                rgba(0, 0, 0, 0.12);
+        }
+
+
+        .header-content {
+            width: 100%;
+
+            max-width: 900px;
+
+            margin: 0 auto;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+        }
+
+
+        .header h1 {
+            margin: 0;
+
+            font-size: 23px;
+
+            font-weight: 600;
+        }
+
+
+        .back-dashboard {
+            color: white;
+
+            text-decoration: none;
+
+            background:
+                rgba(255, 255, 255, 0.15);
+
+            padding: 8px 13px;
+
+            border-radius: 5px;
+
+            font-size: 13px;
+
+            white-space: nowrap;
+        }
+
+
+        .back-dashboard:hover {
+            background:
+                rgba(255, 255, 255, 0.25);
+        }
+
+
+        /* ==============================
+           CONTAINER
+        ============================== */
+
+        .container {
+            width: 100%;
+
+            max-width: 900px;
+
+            margin: 0 auto;
+
+            padding: 30px 20px 50px;
+        }
+
+
+        /* ==============================
+           CARD
+        ============================== */
+
+        .card {
+            width: 100%;
+
+            background: white;
+
+            border-radius: 8px;
+
+            padding: 28px;
+
+            box-shadow:
+                0 2px 8px
+                rgba(0, 0, 0, 0.08);
+        }
+
+
+        .card h2 {
+            margin-top: 0;
+
+            margin-bottom: 20px;
+
+            color: #198754;
+
+            font-size: 23px;
+        }
+
+
+        /* ==============================
+           NOTE
+        ============================== */
+
+        .late-note {
+            background: #fff8e1;
+
+            border-left:
+                4px solid #ffc107;
+
+            padding: 13px 15px;
+
+            margin-bottom: 25px;
+
+            font-size: 14px;
+
+            line-height: 1.5;
+        }
+
+
+        /* ==============================
+           SCHEDULE INFORMATION
+        ============================== */
+
+        .schedule-info {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 15px;
+
+            margin-bottom: 25px;
+
+            padding: 18px;
+
+            background: #f8f9fa;
+
+            border-radius: 6px;
+        }
+
+
+        .info-item {
+            min-width: 0;
+        }
+
+
+        .info-item strong {
+            display: block;
+
+            color: #198754;
+
+            font-size: 12px;
+
+            margin-bottom: 4px;
+
+            text-transform: uppercase;
+        }
+
+
+        .info-item span {
+            font-size: 14px;
+
+            overflow-wrap: anywhere;
+        }
+
+
+        /* ==============================
+           FORM
+        ============================== */
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+
+        .form-group label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-weight: 600;
+
+            font-size: 14px;
+        }
+
+
+        .form-control,
+        .form-select,
+        select,
+        input[type="date"],
+        input[type="time"],
+        input[type="text"],
+        textarea {
+            width: 100%;
+
+            padding: 11px 12px;
+
+            border:
+                1px solid #ccc;
+
+            border-radius: 5px;
+
+            font-size: 14px;
+
+            background: white;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+        }
+
+
+        .form-control:focus,
+        .form-select:focus,
+        select:focus,
+        input:focus,
+        textarea:focus {
+            outline: none;
+
+            border-color: #198754;
+
+            box-shadow:
+                0 0 0 2px
+                rgba(25, 135, 84, 0.12);
+        }
+
+
+        textarea {
+            resize: vertical;
+        }
+
+
+        /* ==============================
+           OTHER REMARKS
+        ============================== */
+
+        #otherRemarksContainer {
+            display: none;
+
+            margin-top: -5px;
+
+            margin-bottom: 18px;
+
+            padding: 12px;
+
+            background: #f8f9fa;
+
+            border-left:
+                3px solid #198754;
+
+            border-radius: 5px;
+        }
+
+
+        #otherRemarksContainer textarea {
+            min-height: 90px;
+
+            resize: vertical;
+        }
+
+
+        /* ==============================
+           DATE / TIME
+        ============================== */
+
+        .datetime-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 15px;
+        }
+
+
+        /* ==============================
+           ERRORS
+        ============================== */
+
+        .error {
+            color: #dc3545;
+
+            font-size: 12px;
+
+            margin-top: 5px;
+
+            line-height: 1.4;
+        }
+
+
+        .field-error {
+            border-color: #dc3545 !important;
+        }
+
+
+        /* ==============================
+           BUTTONS
+        ============================== */
+
+        .buttons {
+            display: flex;
+
+            justify-content: flex-end;
+
+            align-items: center;
+
+            gap: 10px;
+
+            margin-top: 25px;
+        }
+
+
+        .save-button,
+        .cancel-button {
+            border: none;
+
+            padding: 11px 18px;
+
+            border-radius: 5px;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            text-decoration: none;
+
+            text-align: center;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+        }
+
+
+        .save-button {
+            background: #198754;
+
+            color: white;
+        }
+
+
+        .save-button:hover {
+            background: #157347;
+        }
+
+
+        .cancel-button {
+            background: #6c757d;
+
+            color: white;
+        }
+
+
+        .cancel-button:hover {
+            background: #5c636a;
+        }
+
+
+        /* ==============================
+           MOBILE
+        ============================== */
+
+        @media (max-width: 650px) {
+
+            .header {
+                padding: 16px;
+            }
+
+
+            .header-content {
+                flex-direction: column;
+
+                align-items: flex-start;
+            }
+
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+
+            .back-dashboard {
+                align-self: flex-end;
+            }
+
+
+            .container {
+                padding:
+                    20px
+                    12px
+                    40px;
+            }
+
+
+            .card {
+                padding: 20px 16px;
+            }
+
+
+            .card h2 {
+                font-size: 21px;
+            }
+
+
+            .schedule-info {
+                grid-template-columns: 1fr;
+
+                gap: 12px;
+
+                padding: 15px;
+            }
+
+
+            .datetime-grid {
+                grid-template-columns: 1fr;
+
+                gap: 0;
+            }
+
+
+            .buttons {
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+
+
+            .save-button,
+            .cancel-button {
+                width: 100%;
+            }
+
+        }
+
+
+        /* ==============================
+           VERY SMALL DEVICES
+        ============================== */
+
+        @media (max-width: 400px) {
+
+            .container {
+                padding-left: 8px;
+
+                padding-right: 8px;
+            }
+
+
+            .card {
+                padding: 16px 12px;
+            }
+
+
+            .header h1 {
+                font-size: 18px;
+            }
+
+
+            .late-note {
+                font-size: 13px;
+
+                padding: 11px 12px;
+            }
+
+
+            .info-item span {
+                font-size: 13px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ==============================
+     HEADER
+============================== -->
+
+<header class="header">
+
+    <div class="header-content">
+
+        <h1>
+            Teacher Monitoring System
+        </h1>
+
+
+        <a
+            href="{% url 'dashboard' %}"
+            class="back-dashboard"
+        >
+            ← Dashboard
+        </a>
+
+    </div>
+
+</header>
+
+
+
+<!-- ==============================
+     MAIN
+============================== -->
+
+<main class="container">
+
+    <div class="card">
+
+
+        <h2>
+            Monitor Late
+        </h2>
+
+
+        <!-- ==============================
+             NOTE
+        ============================== -->
+
+        <div class="late-note">
+
+            <strong>Late Monitoring:</strong>
+
+            Use this option if the instructor was
+            already monitored but the monitoring
+            record was not entered at the actual
+            monitoring time.
+
+            Select the actual date and time when
+            the monitoring happened.
+
+        </div>
+
+
+
+        <!-- ==============================
+             SCHEDULE INFORMATION
+        ============================== -->
+
+        <div class="schedule-info">
+
+
+            <div class="info-item">
+
+                <strong>
+                    Name
+                </strong>
+
+                <span>
+                    {{ schedule.instructor.name }}
+                </span>
+
+            </div>
+
+
+            <div class="info-item">
+
+                <strong>
+                    Subject
+                </strong>
+
+                <span>
+                    {{ schedule.subject }}
+                </span>
+
+            </div>
+
+
+            <div class="info-item">
+
+                <strong>
+                    Original Time
+                </strong>
+
+                <span>
+
+                    {{ schedule.start_time|time:"h:i A" }}
+
+                    -
+
+                    {{ schedule.end_time|time:"h:i A" }}
+
+                </span>
+
+            </div>
+
+
+            <div class="info-item">
+
+                <strong>
+                    Day
+                </strong>
+
+                <span>
+                    {{ schedule.get_day_display }}
+                </span>
+
+            </div>
+
+
+            <div class="info-item">
+
+                <strong>
+                    Original Room
+                </strong>
+
+                <span>
+                    {{ schedule.room.room_name }}
+                </span>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- ==============================
+             FORM
+        ============================== -->
+
+        <form
+            method="post"
+            autocomplete="off"
+        >
+
+            {% csrf_token %}
+
+
+
+            <!-- ==============================
+                 DATE + TIME
+            ============================== -->
+
+            <div class="datetime-grid">
+
+
+                <div class="form-group">
+
+                    {{ form.monitoring_date.label_tag }}
+
+                    {{ form.monitoring_date }}
+
+                    {% for error in form.monitoring_date.errors %}
+
+                        <div class="error">
+                            {{ error }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+
+                <div class="form-group">
+
+                    {{ form.monitoring_time.label_tag }}
+
+                    {{ form.monitoring_time }}
+
+                    {% for error in form.monitoring_time.errors %}
+
+                        <div class="error">
+                            {{ error }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- ==============================
+                 TRANSFER ROOM
+            ============================== -->
+
+            <div class="form-group">
+
+                {{ form.transfer_room.label_tag }}
+
+                {{ form.transfer_room }}
+
+                {% for error in form.transfer_room.errors %}
+
+                    <div class="error">
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+
+
+            <!-- ==============================
+                 SIGNATURE
+            ============================== -->
+
+            <div class="form-group">
+
+                {{ form.signature.label_tag }}
+
+                {{ form.signature }}
+
+                {% for error in form.signature.errors %}
+
+                    <div class="error">
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+
+
+            <!-- ==============================
+                 REMARKS
+            ============================== -->
+
+            <div class="form-group">
+
+                {{ form.remarks.label_tag }}
+
+                {{ form.remarks }}
+
+                {% for error in form.remarks.errors %}
+
+                    <div class="error">
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+
+
+            <!-- ==============================
+                 OTHER REMARKS
+            ============================== -->
+
+            <div
+                class="form-group"
+                id="otherRemarksContainer"
+            >
+
+                {{ form.other_remarks.label_tag }}
+
+                {{ form.other_remarks }}
+
+                {% for error in form.other_remarks.errors %}
+
+                    <div class="error">
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+
+
+            <!-- ==============================
+                 BUTTONS
+            ============================== -->
+
+            <div class="buttons">
+
+
+                <a
+                    href="{% url 'monitoring_list' %}"
+                    class="cancel-button"
+                >
+                    Cancel
+                </a>
+
+
+                <button
+                    type="submit"
+                    class="save-button"
+                >
+                    Save Late Monitoring
+                </button>
+
+
+            </div>
+
+
+        </form>
+
+    </div>
+
+</main>
+
+
+
+<!-- ==============================
+     OTHER REMARKS JAVASCRIPT
+============================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        /*
+            Django may generate either:
+
+            id="remarks-select"
+
+            or
+
+            id="id_remarks"
+
+            depending on the form widget.
+
+            This supports BOTH.
+        */
+
+        const remarksSelect =
+            document.getElementById("remarks-select")
+            ||
+            document.getElementById("id_remarks");
+
+
+        const otherRemarksContainer =
+            document.getElementById(
+                "otherRemarksContainer"
+            );
+
+
+        const otherRemarksField =
+            document.getElementById(
+                "id_other_remarks"
+            )
+            ||
+            document.getElementById(
+                "other-remarks"
+            );
+
+
+        function toggleOtherRemarks() {
+
+            if (
+                !remarksSelect ||
+                !otherRemarksContainer
+            ) {
+                return;
+            }
+
+
+            if (
+                remarksSelect.value === "Other"
+            ) {
+
+                otherRemarksContainer.style.display =
+                    "block";
+
+            }
+
+            else {
+
+                otherRemarksContainer.style.display =
+                    "none";
+
+            }
+
+        }
+
+
+        /*
+            When the user changes the
+            Remarks dropdown.
+        */
+
+        if (remarksSelect) {
+
+            remarksSelect.addEventListener(
+                "change",
+                toggleOtherRemarks
+            );
+
+
+            /*
+                Run immediately so that
+                "Other" also works when
+                the page reloads with
+                validation errors.
+            */
+
+            toggleOtherRemarks();
+
+        }
+
+
+    }
+
+);
+
+</script>
+
+
+</body>
+
+</html>

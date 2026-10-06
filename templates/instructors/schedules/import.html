@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Import Schedules | Teacher Class Monitoring</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+
+        body {
+            background: #f5f7f6;
+            color: #333;
+            min-height: 100vh;
+        }
+
+
+        /* =========================================
+           HEADER
+        ========================================= */
+
+        .header {
+            background: #198754;
+            color: white;
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+        }
+
+
+        .header-content {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+
+        .header-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+
+        .header-link {
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 8px 10px;
+            border-radius: 5px;
+        }
+
+
+        .header-link:hover {
+            background: rgba(255, 255, 255, .15);
+        }
+
+
+        /* =========================================
+           CONTAINER
+        ========================================= */
+
+        .container {
+            width: 100%;
+            padding: 30px;
+        }
+
+
+        .page-title {
+            margin-bottom: 20px;
+        }
+
+
+        .page-title h2 {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+
+        .page-title p {
+            color: #666;
+            font-size: 14px;
+        }
+
+
+        /* =========================================
+           CARD
+        ========================================= */
+
+        .card {
+            background: white;
+            border-radius: 9px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+        }
+
+
+        /* =========================================
+           UPLOAD AREA
+        ========================================= */
+
+        .upload-area {
+            border: 2px dashed #198754;
+            border-radius: 8px;
+            padding: 35px 20px;
+            text-align: center;
+            background: #f8fffb;
+        }
+
+
+        .upload-area h3 {
+            color: #198754;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+
+        .upload-area p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+
+        .file-input {
+            width: 100%;
+            max-width: 700px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: white;
+        }
+
+
+        .file-help {
+            margin-top: 10px;
+            color: #6c757d;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+
+        /* =========================================
+           BUTTONS
+        ========================================= */
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+
+        .button {
+            border: none;
+            padding: 11px 18px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+
+        .primary {
+            background: #198754;
+            color: white;
+        }
+
+
+        .primary:hover {
+            background: #146c43;
+        }
+
+
+        .secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+
+        .secondary:hover {
+            background: #565e64;
+        }
+
+
+        /* =========================================
+           WARNING / INFO
+        ========================================= */
+
+        .warning-box {
+            background: #fff3cd;
+            color: #664d03;
+            border-left: 5px solid #ffc107;
+            padding: 14px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+
+        .info-box {
+            background: #d1e7dd;
+            color: #0f5132;
+            border-left: 5px solid #198754;
+            padding: 14px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+
+        .supported-box {
+            background: #f8f9fa;
+            border: 1px solid #e5e5e5;
+            border-radius: 7px;
+            padding: 15px;
+            margin-top: 18px;
+            text-align: left;
+        }
+
+
+        .supported-box strong {
+            color: #198754;
+        }
+
+
+        .supported-list {
+            margin-top: 8px;
+            color: #555;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+
+        /* =========================================
+           TABLE
+        ========================================= */
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+        }
+
+
+        table {
+            width: 100%;
+            min-width: 1150px;
+            border-collapse: collapse;
+        }
+
+
+        th {
+            background: #198754;
+            color: white;
+            padding: 11px 10px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+
+        tr:hover td {
+            background: #f8f9fa;
+        }
+
+
+        .editable {
+            width: 100%;
+            min-width: 130px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+        }
+
+
+        .editable:focus {
+            outline: none;
+            border-color: #198754;
+            box-shadow: 0 0 0 2px rgba(25, 135, 84, .12);
+        }
+
+
+        .row-number {
+            text-align: center;
+            font-weight: bold;
+            color: #666;
+        }
+
+
+        .source-file {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 4px;
+            white-space: nowrap;
+        }
+
+
+        .error-row td {
+            background: #fff0f0;
+        }
+
+
+        .error-text {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+
+        /* =========================================
+           MESSAGES
+        ========================================= */
+
+        .message {
+            padding: 13px 16px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+
+        .message-error {
+            background: #f8d7da;
+            color: #842029;
+            border-left: 5px solid #dc3545;
+        }
+
+
+        .message-warning {
+            background: #fff3cd;
+            color: #664d03;
+            border-left: 5px solid #ffc107;
+        }
+
+
+        .file-errors {
+            margin-top: 10px;
+        }
+
+
+        .file-errors ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+
+
+        .preview-count {
+            color: #555;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+
+        /* =========================================
+           CONFIRMATION MODAL
+           ONLY NEW DESIGN
+        ========================================= */
+
+        .confirm-overlay {
+            display: none;
+
+            position: fixed;
+
+            inset: 0;
+
+            width: 100%;
+            height: 100%;
+
+            background: rgba(0, 0, 0, 0.45);
+
+            z-index: 9999;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+        }
+
+
+        .confirm-overlay.show {
+            display: flex;
+        }
+
+
+        .confirm-box {
+            width: 100%;
+            max-width: 430px;
+
+            background: white;
+
+            border-radius: 10px;
+
+            padding: 28px;
+
+            text-align: center;
+
+            box-shadow:
+                0 10px 35px rgba(0, 0, 0, 0.25);
+
+            animation: confirmAppear 0.15s ease-out;
+        }
+
+
+        @keyframes confirmAppear {
+
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+        }
+
+
+        .confirm-icon {
+            width: 48px;
+            height: 48px;
+
+            margin: 0 auto 15px;
+
+            border-radius: 50%;
+
+            background: #e8f5ee;
+
+            color: #198754;
+
+            font-size: 27px;
+
+            font-weight: bold;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        .confirm-box h3 {
+            font-size: 21px;
+
+            color: #333;
+
+            margin-bottom: 10px;
+        }
+
+
+        .confirm-box p {
+            font-size: 14px;
+
+            color: #555;
+
+            line-height: 1.6;
+
+            margin-bottom: 8px;
+        }
+
+
+        .confirm-note {
+            display: block;
+
+            font-size: 13px;
+
+            color: #777;
+
+            line-height: 1.5;
+
+            margin-bottom: 24px;
+        }
+
+
+        .confirm-buttons {
+            display: flex;
+
+            justify-content: center;
+
+            gap: 10px;
+        }
+
+
+        .confirm-button {
+            border: none;
+
+            border-radius: 6px;
+
+            padding: 10px 18px;
+
+            font-size: 14px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+
+        .confirm-cancel {
+            background: #6c757d;
+
+            color: white;
+        }
+
+
+        .confirm-cancel:hover {
+            background: #565e64;
+        }
+
+
+        .confirm-import {
+            background: #198754;
+
+            color: white;
+        }
+
+
+        .confirm-import:hover {
+            background: #146c43;
+        }
+
+
+        /* =========================================
+           MOBILE
+        ========================================= */
+
+        @media (max-width: 700px) {
+
+            .header {
+                padding: 14px 16px;
+            }
+
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+
+            .header-title {
+                font-size: 20px;
+            }
+
+
+            .container {
+                padding: 20px 15px;
+            }
+
+
+            .card {
+                padding: 18px;
+            }
+
+
+            .button {
+                width: 100%;
+                text-align: center;
+            }
+
+
+            .confirm-box {
+                padding: 24px 20px;
+            }
+
+
+            .confirm-buttons {
+                flex-direction: column-reverse;
+            }
+
+
+            .confirm-button {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     HEADER
+========================================= -->
+
+<div class="header">
+
+    <div class="header-content">
+
+        <div class="header-title">
+            Teacher Class Monitoring System
+        </div>
+
+
+        <div class="header-links">
+
+            <a
+                href="{% url 'schedule_list' %}"
+                class="header-link"
+            >
+                ← Back to Schedules
+            </a>
+
+
+            <a
+                href="{% url 'dashboard' %}"
+                class="header-link"
+            >
+                ← Back to Dashboard
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================
+     MAIN CONTENT
+========================================= -->
+
+<div class="container">
+
+
+    <div class="page-title">
+
+        <h2>
+            Import Schedules
+        </h2>
+
+        <p>
+            Upload one or more schedule files and review
+            the extracted schedule data before saving it.
+        </p>
+
+    </div>
+
+
+
+    <!-- =========================================
+         DJANGO MESSAGES
+    ========================================== -->
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div
+                class="message
+                {% if message.tags == 'error' %}
+                    message-error
+                {% else %}
+                    message-warning
+                {% endif %}"
+            >
+
+                {{ message }}
+
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+
+
+    <!-- =========================================
+         UPLOAD PAGE
+    ========================================== -->
+
+    {% if not preview %}
+
+        <div class="card">
+
+
+            <div class="info-box">
+
+                <strong>
+                    Universal Schedule Importer
+                </strong>
+
+                <br>
+
+                The system will read the uploaded file,
+                extract the instructor, subject, room, day,
+                and class time, then show a preview before
+                anything is saved.
+
+                <br><br>
+
+                Existing instructors, subjects, rooms, and
+                schedules will be reused when possible.
+                Duplicate schedules will be skipped.
+
+                <br>
+
+                <strong>
+                    Monitoring records will NOT be created
+                    during schedule import.
+                </strong>
+
+            </div>
+
+
+            <div class="warning-box">
+
+                <strong>
+                    Important:
+                </strong>
+
+                Please review the extracted schedule data
+                carefully before clicking
+                <strong>Import Schedules</strong>.
+
+                Scanned PDFs and images use OCR, so you should
+                check the extracted text for accuracy.
+
+            </div>
+
+
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+            >
+
+                {% csrf_token %}
+
+
+                <div class="upload-area">
+
+
+                    <h3>
+                        Upload Schedule File(s)
+                    </h3>
+
+
+                    <p>
+
+                        You may select one file or multiple
+                        schedule files at the same time.
+
+                        <br>
+
+                        The system will combine the extracted
+                        schedule rows into one preview.
+
+                    </p>
+
+
+                    <input
+                        type="file"
+                        name="schedule_files"
+                        class="file-input"
+                        multiple
+                        accept=".xlsx,.xlsm,.xls,.csv,.pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tif,.tiff"
+                        required
+                    >
+
+
+                    <div class="file-help">
+
+                        Hold
+                        <strong>Ctrl</strong>
+                        while selecting files to choose
+                        multiple files.
+
+                    </div>
+
+
+                    <div class="supported-box">
+
+                        <strong>
+                            Supported file types
+                        </strong>
+
+
+                        <div class="supported-list">
+
+                            📊 Excel:
+                            .xlsx, .xlsm, .xls
+
+                            <br>
+
+                            📄 PDF:
+                            .pdf
+
+                            <br>
+
+                            📝 Word:
+                            .docx
+
+                            <br>
+
+                            📽️ PowerPoint:
+                            .pptx
+
+                            <br>
+
+                            📋 Data/Text:
+                            .csv, .txt
+
+                            <br>
+
+                            🖼️ Images / Scanned Documents:
+                            .png, .jpg, .jpeg, .webp, .bmp,
+                            .tif, .tiff
+
+                            <br><br>
+
+                            🔍
+                            OCR is available for scanned
+                            documents and images.
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="button-row">
+
+                        <button
+                            type="submit"
+                            class="button primary"
+                        >
+                            Preview Import
+                        </button>
+
+
+                        <a
+                            href="{% url 'schedule_list' %}"
+                            class="button secondary"
+                        >
+                            Cancel
+                        </a>
+
+                    </div>
+
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+    {% else %}
+
+
+        <!-- =====================================
+             PREVIEW
+        ====================================== -->
+
+        <div class="card">
+
+
+            <div class="info-box">
+
+                <strong>
+                    Review the imported data before saving.
+                </strong>
+
+                <br>
+
+                You can edit the extracted Instructor,
+                Subject, Day, Start Time, End Time, and Room
+                directly in the table.
+
+                <br>
+
+                No schedules have been saved yet.
+
+
+                {% if uploaded_count %}
+
+                    <div class="preview-count">
+
+                        Files processed:
+                        <strong>{{ uploaded_count }}</strong>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            {% if file_errors %}
+
+                <div class="warning-box file-errors">
+
+                    <strong>
+                        Some files could not be completely read:
+                    </strong>
+
+                    <ul>
+
+                        {% for error in file_errors %}
+
+                            <li>
+                                {{ error }}
+                            </li>
+
+                        {% endfor %}
+
+                    </ul>
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="warning-box">
+
+                <strong>
+                    Please check:
+                </strong>
+
+                Instructor name, Subject, Room, Day,
+                Start Time, and End Time.
+
+                <br>
+
+                Existing duplicate schedules will
+                automatically be skipped when you import.
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =====================================
+             CONFIRM IMPORT FORM
+        ====================================== -->
+
+        <form
+            method="POST"
+            action="{% url 'schedule_import_confirm' %}"
+            id="importForm"
+        >
+
+            {% csrf_token %}
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                #
+                            </th>
+
+                            <th>
+                                Instructor
+                            </th>
+
+                            <th>
+                                Subject
+                            </th>
+
+                            <th>
+                                Day
+                            </th>
+
+                            <th>
+                                Start Time
+                            </th>
+
+                            <th>
+                                End Time
+                            </th>
+
+                            <th>
+                                Room
+                            </th>
+
+                            <th>
+                                Source File
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for row in rows %}
+
+                            <tr
+                                {% if row.time_error %}
+                                    class="error-row"
+                                {% endif %}
+                            >
+
+
+                                <!-- ROW NUMBER -->
+
+                                <td class="row-number">
+
+                                    {{ forloop.counter }}
+
+                                </td>
+
+
+                                <!-- INSTRUCTOR -->
+
+                                <td>
+
+                                    <input
+                                        type="text"
+                                        class="editable"
+                                        value="{{ row.instructor }}"
+                                        data-field="instructor"
+                                        required
+                                    >
+
+                                </td>
+
+
+                                <!-- SUBJECT -->
+
+                                <td>
+
+                                    <input
+                                        type="text"
+                                        class="editable"
+                                        value="{{ row.subject }}"
+                                        data-field="subject"
+                                        required
+                                    >
+
+                                </td>
+
+
+                                <!-- DAY -->
+
+                                <td>
+
+                                    <select
+                                        class="editable"
+                                        data-field="day"
+                                        required
+                                    >
+
+                                        <option
+                                            value="M"
+                                            {% if row.day == "M" %}selected{% endif %}
+                                        >
+                                            Monday
+                                        </option>
+
+                                        <option
+                                            value="T"
+                                            {% if row.day == "T" %}selected{% endif %}
+                                        >
+                                            Tuesday
+                                        </option>
+
+                                        <option
+                                            value="W"
+                                            {% if row.day == "W" %}selected{% endif %}
+                                        >
+                                            Wednesday
+                                        </option>
+
+                                        <option
+                                            value="TH"
+                                            {% if row.day == "TH" %}selected{% endif %}
+                                        >
+                                            Thursday
+                                        </option>
+
+                                        <option
+                                            value="F"
+                                            {% if row.day == "F" %}selected{% endif %}
+                                        >
+                                            Friday
+                                        </option>
+
+                                        <option
+                                            value="S"
+                                            {% if row.day == "S" %}selected{% endif %}
+                                        >
+                                            Saturday
+                                        </option>
+
+                                    </select>
+
+                                </td>
+
+
+                                <!-- START TIME -->
+
+                                <td>
+
+                                    <input
+                                        type="time"
+                                        class="editable"
+                                        value="{{ row.start_time }}"
+                                        data-field="start_time"
+                                        required
+                                    >
+
+                                </td>
+
+
+                                <!-- END TIME -->
+
+                                <td>
+
+                                    <input
+                                        type="time"
+                                        class="editable"
+                                        value="{{ row.end_time }}"
+                                        data-field="end_time"
+                                        required
+                                    >
+
+
+                                    {% if row.time_error %}
+
+                                        <div class="error-text">
+
+                                            Original time:
+                                            {{ row.time_error }}
+
+                                        </div>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- ROOM -->
+
+                                <td>
+
+                                    <input
+                                        type="text"
+                                        class="editable"
+                                        value="{{ row.room }}"
+                                        data-field="room"
+                                        required
+                                    >
+
+                                </td>
+
+
+                                <!-- SOURCE FILE -->
+
+                                <td>
+
+                                    <div class="source-file">
+
+                                        {{ row.source_file }}
+
+                                    </div>
+
+                                </td>
+
+
+                            </tr>
+
+                        {% empty %}
+
+                            <tr>
+
+                                <td
+                                    colspan="8"
+                                    style="
+                                        text-align:center;
+                                        padding:30px;
+                                        color:#777;
+                                    "
+                                >
+
+                                    No schedule rows were found.
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+
+            <!-- =====================================
+                 BUTTONS
+            ====================================== -->
+
+            <div class="card">
+
+                <div class="button-row">
+
+                    <button
+                        type="button"
+                        class="button primary"
+                        onclick="submitImport()"
+                    >
+                        Import Schedules
+                    </button>
+
+
+                    <a
+                        href="{% url 'schedule_import' %}"
+                        class="button secondary"
+                    >
+                        Start Over
+                    </a>
+
+
+                    <a
+                        href="{% url 'schedule_list' %}"
+                        class="button secondary"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <div id="hiddenRows"></div>
+
+        </form>
+
+    {% endif %}
+
+</div>
+
+
+
+<!-- =========================================
+     CUSTOM IMPORT CONFIRMATION MODAL
+========================================= -->
+
+<div
+    id="confirmOverlay"
+    class="confirm-overlay"
+>
+
+    <div
+        class="confirm-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirmTitle"
+    >
+
+        <div class="confirm-icon">
+            ?
+        </div>
+
+
+        <h3 id="confirmTitle">
+            Confirm Import
+        </h3>
+
+
+        <p>
+            Are you sure you want to import these schedules?
+        </p>
+
+
+        <span class="confirm-note">
+            Existing duplicate schedules will be skipped.
+        </span>
+
+
+        <div class="confirm-buttons">
+
+            <button
+                type="button"
+                class="confirm-button confirm-cancel"
+                onclick="closeImportConfirmation()"
+            >
+                Cancel
+            </button>
+
+
+            <button
+                type="button"
+                class="confirm-button confirm-import"
+                onclick="confirmImport()"
+            >
+                Import Schedules
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================
+     JAVASCRIPT
+========================================= -->
+
+<script>
+
+
+function submitImport() {
+
+    const form =
+        document.getElementById("importForm");
+
+    const hiddenRows =
+        document.getElementById("hiddenRows");
+
+    hiddenRows.innerHTML = "";
+
+
+    const tableRows =
+        document.querySelectorAll(
+            "tbody tr"
+        );
+
+
+    let hasError = false;
+
+    let rowCount = 0;
+
+
+    tableRows.forEach(function(row) {
+
+        const fields =
+            row.querySelectorAll(
+                "[data-field]"
+            );
+
+
+        if (!fields.length) {
+            return;
+        }
+
+
+        const data = {};
+
+
+        fields.forEach(function(field) {
+
+            data[field.dataset.field] =
+                field.value.trim();
+
+        });
+
+
+        rowCount++;
+
+
+        if (
+            !data.instructor ||
+            !data.subject ||
+            !data.day ||
+            !data.start_time ||
+            !data.end_time ||
+            !data.room
+        ) {
+
+            hasError = true;
+
+            row.style.outline =
+                "2px solid #dc3545";
+
+        } else {
+
+            row.style.outline = "";
+
+        }
+
+
+        const input =
+            document.createElement("input");
+
+
+        input.type = "hidden";
+
+        input.name = "row_data";
+
+        input.value =
+            JSON.stringify(data);
+
+
+        hiddenRows.appendChild(input);
+
+    });
+
+
+    if (rowCount === 0) {
+
+        alert(
+            "There are no schedule rows to import."
+        );
+
+        return;
+
+    }
+
+
+    if (hasError) {
+
+        alert(
+            "Please complete all required schedule fields before importing."
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * OLD:
+     *
+     * confirm(...)
+     *
+     * This created the browser popup:
+     * "127.0.0.1:8000 says"
+     *
+     * NEW:
+     * Open our own modal instead.
+     */
+
+    openImportConfirmation();
+
+}
+
+
+
+/* =========================================
+   OPEN CONFIRMATION MODAL
+========================================= */
+
+function openImportConfirmation() {
+
+    const overlay =
+        document.getElementById("confirmOverlay");
+
+    if (!overlay) {
+        return;
+    }
+
+    overlay.classList.add("show");
+
+    document.body.style.overflow = "hidden";
+
+}
+
+
+
+/* =========================================
+   CLOSE CONFIRMATION MODAL
+========================================= */
+
+function closeImportConfirmation() {
+
+    const overlay =
+        document.getElementById("confirmOverlay");
+
+    if (!overlay) {
+        return;
+    }
+
+    overlay.classList.remove("show");
+
+    document.body.style.overflow = "";
+
+}
+
+
+
+/* =========================================
+   CONFIRM IMPORT
+========================================= */
+
+function confirmImport() {
+
+    const form =
+        document.getElementById("importForm");
+
+    if (!form) {
+        return;
+    }
+
+
+    /*
+     * Submit directly.
+     *
+     * No confirm() is used here.
+     * Therefore there will be no
+     * "127.0.0.1:8000 says" popup.
+     */
+
+    form.submit();
+
+}
+
+
+
+/* =========================================
+   CLICK OUTSIDE MODAL
+========================================= */
+
+document
+    .getElementById("confirmOverlay")
+    .addEventListener(
+        "click",
+        function(event) {
+
+            if (event.target === this) {
+
+                closeImportConfirmation();
+
+            }
+
+        }
+    );
+
+
+
+/* =========================================
+   ESC KEY
+========================================= */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key === "Escape") {
+
+            closeImportConfirmation();
+
+        }
+
+    }
+);
+
+
+</script>
+
+
+</body>
+
+</html>

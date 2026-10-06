@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>{{ title }} | Teacher Class Monitoring</title>
+
+
+    <!-- TOM SELECT -->
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css"
+        rel="stylesheet"
+    >
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #333;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .header {
+            background: #198754;
+            color: white;
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+
+        .header-content {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+
+        .header-title {
+            font-size: 23px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+
+        .header-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+
+        .header-link {
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 8px 10px;
+            border-radius: 5px;
+        }
+
+
+        .header-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+
+        /* =========================
+           PAGE
+        ========================= */
+
+        .page-container {
+            width: 100%;
+            padding: 30px 20px;
+        }
+
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+
+        h1 {
+            color: #198754;
+            margin: 0 0 25px;
+            font-size: 26px;
+        }
+
+
+        /* =========================
+           FORM
+        ========================= */
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+
+        .form-control,
+        .form-select {
+            width: 100%;
+            min-height: 45px;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            background: white;
+        }
+
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #198754;
+            outline: none;
+        }
+
+
+        /* =========================
+           TOM SELECT
+        ========================= */
+
+        .ts-wrapper {
+            width: 100%;
+        }
+
+
+        .ts-control {
+            min-height: 45px;
+            padding: 10px 12px !important;
+            border: 1px solid #ccc !important;
+            border-radius: 6px !important;
+            font-size: 15px;
+            box-shadow: none !important;
+        }
+
+
+        .ts-control.focus {
+            border-color: #198754 !important;
+            box-shadow:
+                0 0 0 2px rgba(25, 135, 84, 0.10)
+                !important;
+        }
+
+
+        .ts-control input {
+            font-size: 15px !important;
+        }
+
+
+        .ts-dropdown {
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            overflow: hidden;
+            z-index: 2000;
+        }
+
+
+        .ts-dropdown .option {
+            padding: 11px 12px;
+            font-size: 14px;
+        }
+
+
+        .ts-dropdown .option:hover,
+        .ts-dropdown .active {
+            background: #eaf7ee !important;
+            color: #198754 !important;
+        }
+
+
+        .ts-dropdown .no-results {
+            padding: 11px 12px;
+            color: #777;
+        }
+
+
+        /* =========================
+           TIME
+        ========================= */
+
+        .time-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+
+        input[type="time"] {
+            width: 100%;
+            min-height: 45px;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            background: white;
+        }
+
+
+        input[type="time"]:focus {
+            outline: none;
+            border-color: #198754;
+            box-shadow:
+                0 0 0 2px rgba(25, 135, 84, 0.10);
+        }
+
+
+        /* =========================
+           BUTTONS
+        ========================= */
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+
+        .save-btn {
+            border: none;
+            background: #198754;
+            color: white;
+            padding: 11px 20px;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+
+        .save-btn:hover {
+            background: #146c43;
+        }
+
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+            padding: 11px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        .cancel-btn:hover {
+            background: #5c636a;
+        }
+
+
+        /* =========================
+           ERROR / HELP
+        ========================= */
+
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+
+        .error ul {
+            margin: 5px 0 0;
+            padding-left: 20px;
+        }
+
+
+        .help-text {
+            color: #777;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+
+        /* =========================
+           FLOATING MESSAGE
+        ========================= */
+
+        .floating-message {
+            position: fixed;
+            top: 80px;
+            right: 25px;
+            z-index: 3000;
+            min-width: 280px;
+            max-width: 450px;
+            padding: 14px 18px;
+            border-radius: 7px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.18);
+            animation: slideIn 0.3s ease;
+            transition: opacity 0.4s ease;
+        }
+
+
+        .message-success {
+            background: #d1e7dd;
+            color: #0f5132;
+            border-left: 5px solid #198754;
+        }
+
+
+        .message-error {
+            background: #f8d7da;
+            color: #842029;
+            border-left: 5px solid #dc3545;
+        }
+
+
+        .message-warning {
+            background: #fff3cd;
+            color: #664d03;
+            border-left: 5px solid #ffc107;
+        }
+
+
+        @keyframes slideIn {
+
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+        }
+
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 700px) {
+
+            .header {
+                padding: 14px 16px;
+            }
+
+
+            .header-content {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+
+            .header-title {
+                font-size: 20px;
+            }
+
+
+            .header-links {
+                width: 100%;
+            }
+
+
+            .header-link {
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+
+
+            .page-container {
+                padding: 20px 15px;
+            }
+
+
+            .container {
+                padding: 20px;
+                border-radius: 9px;
+            }
+
+
+            h1 {
+                font-size: 23px;
+            }
+
+
+            .time-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+
+            .buttons {
+                flex-direction: column;
+            }
+
+
+            .save-btn,
+            .cancel-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+
+            .floating-message {
+                left: 15px;
+                right: 15px;
+                top: 120px;
+                min-width: auto;
+            }
+
+        }
+
+
+        @media (max-width: 400px) {
+
+            .container {
+                padding: 16px;
+            }
+
+
+            .header-title {
+                font-size: 18px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<div class="header">
+
+    <div class="header-content">
+
+        <div class="header-title">
+            Teacher Class Monitoring System
+        </div>
+
+
+        <div class="header-links">
+
+            <a
+                href="/instructors/"
+                class="header-link"
+            >
+                ← Back to Instructors
+            </a>
+
+
+            <a
+                href="{% url 'dashboard' %}"
+                class="header-link"
+            >
+                ← Back to Dashboard
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     MAIN CONTENT
+========================= -->
+
+<div class="page-container">
+
+    <div class="container">
+
+        <h1>
+            {{ title }}
+        </h1>
+
+
+        <!-- DJANGO MESSAGES -->
+
+        {% if messages %}
+
+            {% for message in messages %}
+
+                <div
+                    class="
+                        floating-message
+                        {% if message.tags == 'error' %}
+                            message-error
+                        {% elif message.tags == 'warning' %}
+                            message-warning
+                        {% else %}
+                            message-success
+                        {% endif %}
+                    "
+                >
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+
+        <form method="post">
+
+            {% csrf_token %}
+
+
+            <!-- =========================
+                 INSTRUCTOR
+            ========================= -->
+
+            <div class="form-group">
+
+                <label for="{{ form.instructor.id_for_label }}">
+                    Instructor
+                </label>
+
+                {{ form.instructor }}
+
+
+                {% if form.instructor.errors %}
+
+                    <div class="error">
+                        {{ form.instructor.errors }}
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- =========================
+                 SUBJECT
+            ========================= -->
+
+            <div class="form-group">
+
+                <label for="{{ form.subject.id_for_label }}">
+                    Subject
+                </label>
+
+                {{ form.subject }}
+
+
+                <div class="help-text">
+                    Type the subject code or subject name to search.
+                </div>
+
+
+                {% if form.subject.errors %}
+
+                    <div class="error">
+                        {{ form.subject.errors }}
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- =========================
+                 ROOM
+            ========================= -->
+
+            <div class="form-group">
+
+                <label for="{{ form.room.id_for_label }}">
+                    Room
+                </label>
+
+                {{ form.room }}
+
+
+                <div class="help-text">
+                    Type the room name to search.
+                </div>
+
+
+                {% if form.room.errors %}
+
+                    <div class="error">
+                        {{ form.room.errors }}
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- =========================
+                 DAY
+            ========================= -->
+
+            <div class="form-group">
+
+                <label for="{{ form.day.id_for_label }}">
+                    Day
+                </label>
+
+                {{ form.day }}
+
+
+                {% if form.day.errors %}
+
+                    <div class="error">
+                        {{ form.day.errors }}
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- =========================
+                 TIME
+            ========================= -->
+
+            <div class="time-row">
+
+
+                <div class="form-group">
+
+                    <label for="{{ form.start_time.id_for_label }}">
+                        Start Time
+                    </label>
+
+
+                    {{ form.start_time }}
+
+
+                    {% if form.start_time.errors %}
+
+                        <div class="error">
+                            {{ form.start_time.errors }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="{{ form.end_time.id_for_label }}">
+                        End Time
+                    </label>
+
+
+                    {{ form.end_time }}
+
+
+                    {% if form.end_time.errors %}
+
+                        <div class="error">
+                            {{ form.end_time.errors }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                 BUTTONS
+            ========================= -->
+
+            <div class="buttons">
+
+                <button
+                    type="submit"
+                    class="save-btn"
+                >
+                    Save Schedule
+                </button>
+
+
+                {% if instructor %}
+
+                    <a
+                        href="{% url 'instructor_schedule' instructor.pk %}"
+                        class="cancel-btn"
+                    >
+                        Cancel
+                    </a>
+
+                {% else %}
+
+                    <a
+                        href="{% url 'schedule_list' %}"
+                        class="cancel-btn"
+                    >
+                        Cancel
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     TOM SELECT
+========================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
+
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+
+        /* =================================
+           INSTRUCTOR
+        ================================= */
+
+        const instructorElement =
+            document.getElementById(
+                "instructor-select"
+            );
+
+
+        if (instructorElement) {
+
+            new TomSelect(
+                instructorElement,
+                {
+
+                    create: false,
+
+                    allowEmptyOption: true,
+
+                    placeholder:
+                        "Search instructor...",
+
+                    maxOptions: 100,
+
+                    searchField: [
+                        "text"
+                    ],
+
+                    sortField: {
+                        field: "text",
+                        direction: "asc"
+                    },
+
+                    onChange:
+                        function () {
+
+                            this.blur();
+
+                        }
+
+                }
+            );
+
+        }
+
+
+        /* =================================
+           SUBJECT
+        ================================= */
+
+        const subjectElement =
+            document.getElementById(
+                "subject-select"
+            );
+
+
+        if (subjectElement) {
+
+            new TomSelect(
+                subjectElement,
+                {
+
+                    create: false,
+
+                    allowEmptyOption: true,
+
+                    placeholder:
+                        "Search subject...",
+
+                    maxOptions: 100,
+
+                    searchField: [
+                        "text"
+                    ],
+
+                    sortField: {
+                        field: "text",
+                        direction: "asc"
+                    },
+
+                    onChange:
+                        function () {
+
+                            this.blur();
+
+                        }
+
+                }
+            );
+
+        }
+
+
+        /* =================================
+           ROOM
+        ================================= */
+
+        const roomElement =
+            document.getElementById(
+                "room-select"
+            );
+
+
+        if (roomElement) {
+
+            new TomSelect(
+                roomElement,
+                {
+
+                    create: false,
+
+                    allowEmptyOption: true,
+
+                    placeholder:
+                        "Search room...",
+
+                    maxOptions: 100,
+
+                    searchField: [
+                        "text"
+                    ],
+
+                    sortField: {
+                        field: "text",
+                        direction: "asc"
+                    },
+
+                    onChange:
+                        function () {
+
+                            this.blur();
+
+                        }
+
+                }
+            );
+
+        }
+
+
+        /* =================================
+           DAY
+        ================================= */
+
+        const dayElement =
+            document.getElementById(
+                "day-select"
+            );
+
+
+        if (dayElement) {
+
+            new TomSelect(
+                dayElement,
+                {
+
+                    create: false,
+
+                    allowEmptyOption: true,
+
+                    placeholder:
+                        "Search day...",
+
+                    maxOptions: 20,
+
+                    searchField: [
+                        "text"
+                    ],
+
+                    sortField: {
+                        field: "text",
+                        direction: "asc"
+                    },
+
+                    onChange:
+                        function () {
+
+                            this.blur();
+
+                        }
+
+                }
+            );
+
+        }
+
+
+        /* =================================
+           START TIME
+        ================================= */
+
+        const startTime =
+            document.getElementById(
+                "{{ form.start_time.id_for_label }}"
+            );
+
+
+        if (startTime) {
+
+            startTime.addEventListener(
+                "change",
+                function () {
+
+                    this.blur();
+
+                }
+            );
+
+        }
+
+
+        /* =================================
+           END TIME
+        ================================= */
+
+        const endTime =
+            document.getElementById(
+                "{{ form.end_time.id_for_label }}"
+            );
+
+
+        if (endTime) {
+
+            endTime.addEventListener(
+                "change",
+                function () {
+
+                    this.blur();
+
+                }
+            );
+
+        }
+
+
+        /* =================================
+           AUTO-HIDE MESSAGES
+        ================================= */
+
+        setTimeout(
+            function () {
+
+                document
+                    .querySelectorAll(
+                        ".floating-message"
+                    )
+                    .forEach(
+                        function (message) {
+
+                            message.style.opacity =
+                                "0";
+
+
+                            setTimeout(
+                                function () {
+
+                                    message.remove();
+
+                                },
+                                400
+                            );
+
+                        }
+                    );
+
+            },
+            4000
+        );
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
