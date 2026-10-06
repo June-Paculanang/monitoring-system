@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
-# Exit on error
+# exit on error
 set -o errexit
 
-# Upgrade pip
-pip install --upgrade pip
-
-# Install requirements
 pip install -r requirements.txt
 
-# Convert static files
 python manage.py collectstatic --no-input
-
-# Run database migrations
 python manage.py migrate
+
+# Create admin user automatically if it doesn't exist yet
+python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@example.com', 'AdminPass123!')"
