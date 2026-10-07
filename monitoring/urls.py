@@ -2,7 +2,9 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 
+
 urlpatterns = [
+
     # Dashboard
     path(
         "",
@@ -16,6 +18,7 @@ urlpatterns = [
         views.instructor_list,
         name="instructor_list"
     ),
+
     path(
         "instructors/add/",
         views.instructor_create,
@@ -33,19 +36,19 @@ urlpatterns = [
         views.instructor_update,
         name="instructor_update"
     ),
+
     path(
         "instructors/<int:pk>/delete/",
         views.instructor_delete,
         name="instructor_delete"
     ),
 
-    # IMPORTANT:
-    # This must use instructor_id because the view uses instructor_id
     path(
         "instructors/<int:instructor_id>/schedule/",
         views.instructor_schedule,
         name="instructor_schedule"
     ),
+
 
     # Subjects
     path(
@@ -53,26 +56,31 @@ urlpatterns = [
         views.subject_list,
         name="subject_list"
     ),
+
     path(
         "subjects/add/",
         views.subject_create,
         name="subject_create"
     ),
+
     path(
         "subjects/bulk-delete/",
         views.subject_bulk_delete,
         name="subject_bulk_delete"
     ),
+
     path(
         "subjects/<int:pk>/edit/",
         views.subject_update,
         name="subject_update"
     ),
+
     path(
         "subjects/<int:pk>/delete/",
         views.subject_delete,
         name="subject_delete"
     ),
+
 
     # Rooms
     path(
@@ -80,26 +88,31 @@ urlpatterns = [
         views.room_list,
         name="room_list"
     ),
+
     path(
         "rooms/add/",
         views.room_create,
         name="room_create"
     ),
+
     path(
         "rooms/<int:pk>/edit/",
         views.room_update,
         name="room_update"
     ),
+
     path(
         "rooms/<int:pk>/delete/",
         views.room_delete,
         name="room_delete"
     ),
+
     path(
         "rooms/bulk-delete/",
         views.room_bulk_delete,
         name="room_bulk_delete"
     ),
+
 
     # Schedules
     path(
@@ -107,6 +120,7 @@ urlpatterns = [
         views.schedule_list,
         name="schedule_list"
     ),
+
     path(
         "schedules/add/",
         views.schedule_create,
@@ -142,16 +156,19 @@ urlpatterns = [
         views.schedule_bulk_delete,
         name="schedule_bulk_delete"
     ),
+
     path(
         "schedules/<int:pk>/edit/",
         views.schedule_update,
         name="schedule_update"
     ),
+
     path(
         "schedules/<int:pk>/delete/",
         views.schedule_delete,
         name="schedule_delete"
     ),
+
 
     # Monitoring
     path(
@@ -159,36 +176,43 @@ urlpatterns = [
         views.monitoring_list,
         name="monitoring_list"
     ),
+
     path(
         "schedules/<int:schedule_id>/monitor/",
         views.monitoring_create,
         name="monitoring_create"
     ),
+
     path(
         "schedules/<int:schedule_id>/monitor-late/",
         views.monitor_late,
         name="monitor_late"
     ),
+
     path(
         "schedules/<int:schedule_id>/monitor-missed/",
         views.monitoring_missed,
         name="monitoring_missed"
     ),
+
     path(
         "monitoring/<int:pk>/edit/",
         views.monitoring_update,
         name="monitoring_update"
     ),
+
     path(
         "monitoring/<int:pk>/delete/",
         views.monitoring_delete,
         name="monitoring_delete"
     ),
+
     path(
         "monitoring/bulk-delete/",
         views.monitoring_bulk_delete,
         name="monitoring_bulk_delete"
     ),
+
 
     # Reports
     path(
@@ -197,14 +221,12 @@ urlpatterns = [
         name="reports"
     ),
 
-    # Automatically detect Windows printers
     path(
         "reports/printers/",
         views.report_printers,
         name="report_printers"
     ),
 
-    # Printer URL used by reports/list.html
     path(
         "reports/windows-printers/",
         views.report_printers,
@@ -216,17 +238,18 @@ urlpatterns = [
         views.report_print,
         name="report_print"
     ),
+
     path(
         "reports/template/",
         views.report_template_list,
         name="report_template_list"
     ),
+
     path(
         "reports/template/add/",
         views.report_template_create,
         name="report_template_create"
     ),
-
 
     path(
         "reports/template/<int:pk>/edit/",
@@ -245,25 +268,25 @@ urlpatterns = [
         views.report_template_bulk_delete,
         name="report_template_bulk_delete"
     ),
+
     path(
         "reports/pdf/",
         views.report_pdf,
         name="report_pdf"
     ),
 
-    # ADDED: DOCX Export
     path(
         "reports/docx/",
         views.report_docx,
         name="report_docx"
     ),
 
-    # ADDED: Excel Export
     path(
         "reports/excel/",
         views.report_excel,
         name="report_excel"
     ),
+
 
     # System Administrator Setup
     path(
@@ -272,12 +295,14 @@ urlpatterns = [
         name="system_setup"
     ),
 
+
     # Admin Account Management
     path(
         "admin-accounts/",
         views.admin_accounts,
         name="admin_accounts"
     ),
+
     path(
         "admin-accounts/add/",
         views.admin_account_create,
@@ -302,21 +327,49 @@ urlpatterns = [
         name="admin_account_delete"
     ),
 
+
+    # Password Reset
+    path(
+        "password-reset/",
+        auth_views.PasswordResetView.as_view(
+            template_name="registration/password_reset_form.html",
+            email_template_name="registration/password_reset_email.html",
+            subject_template_name="registration/password_reset_subject.txt",
+            success_url="/password-reset/done/",
+        ),
+        name="password_reset"
+    ),
+
+    path(
+        "password-reset/done/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="registration/password_reset_done.html"
+        ),
+        name="password_reset_done"
+    ),
+
+    path(
+        "reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name="registration/password_reset_confirm.html",
+            success_url="/reset/done/",
+        ),
+        name="password_reset_confirm"
+    ),
+
+    path(
+        "reset/done/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="registration/password_reset_complete.html"
+        ),
+        name="password_reset_complete"
+    ),
+
+
+    # Logout
     path(
         "logout/",
         auth_views.LogoutView.as_view(),
         name="logout"
     ),
 ]
-
-path(
-    "reports/printers/",
-    views.report_printers,
-    name="report_printers"
-),
-
-path(
-    "reports/windows-printers/",
-    views.report_printers,
-    name="windows_printers"
-),

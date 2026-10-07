@@ -582,6 +582,7 @@
             margin-top: 7px;
             font-size: 12px;
             color: #6c757d;
+            line-height: 1.4;
         }
 
         .printer-status.success {
@@ -1011,7 +1012,9 @@
         </p>
 
 
-        <!-- WEEK + CLASSIFICATION -->
+        <!-- =================================================
+             WEEK + CLASSIFICATION
+        ================================================= -->
 
         <div class="week-section">
 
@@ -1104,7 +1107,9 @@
         </div>
 
 
-        <!-- SEARCH -->
+        <!-- =================================================
+             SEARCH
+        ================================================= -->
 
         <div class="search-area">
 
@@ -1138,7 +1143,9 @@
         </div>
 
 
-        <!-- TOOLBAR -->
+        <!-- =================================================
+             TOOLBAR
+        ================================================= -->
 
         <div class="toolbar">
 
@@ -1181,7 +1188,9 @@
         </div>
 
 
-        <!-- REPORT TABLE -->
+        <!-- =================================================
+             REPORT TABLE
+        ================================================= -->
 
         <div class="table-wrapper">
 
@@ -1397,7 +1406,7 @@
 
 
 <!-- =====================================================
-     NO SELECTION MODAL
+     NO SELECTION / WARNING MODAL
 ===================================================== -->
 
 <div
@@ -1468,7 +1477,9 @@
         <div class="large-modal-body">
 
 
-            <!-- SETTINGS -->
+            <!-- =================================================
+                 PRINT SETTINGS
+            ================================================= -->
 
             <aside class="settings-panel">
 
@@ -1477,11 +1488,50 @@
                 </h3>
 
                 <p class="settings-description">
-                    Select the Windows printer and report
-                    settings before printing the selected
-                    monitoring records.
+                    Choose the uploaded Excel report layout,
+                    Windows printer, and print settings before
+                    printing the selected monitoring records.
                 </p>
 
+
+                <!-- REPORT LAYOUT -->
+
+                <div class="setting-group">
+
+                    <label for="reportTemplate">
+                        Report Layout
+                    </label>
+
+                    <select
+                        id="reportTemplate"
+                        class="setting-control"
+                    >
+
+                        <option value="">
+                            Select report layout
+                        </option>
+
+                        {% for template in report_templates %}
+
+                            <option
+                                value="{{ template.pk }}"
+                            >
+                                {{ template.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <div class="printer-status">
+                        Choose the uploaded Excel layout to
+                        use for this report.
+                    </div>
+
+                </div>
+
+
+                <!-- PRINTER -->
 
                 <div class="setting-group">
 
@@ -1509,6 +1559,8 @@
 
                 </div>
 
+
+                <!-- PAPER SIZE -->
 
                 <div class="setting-group">
 
@@ -1542,6 +1594,8 @@
                 </div>
 
 
+                <!-- ORIENTATION -->
+
                 <div class="setting-group">
 
                     <label for="orientation">
@@ -1566,6 +1620,8 @@
                 </div>
 
 
+                <!-- COLOR -->
+
                 <div class="setting-group">
 
                     <label for="color">
@@ -1589,6 +1645,8 @@
 
                 </div>
 
+
+                <!-- MARGINS -->
 
                 <div class="setting-group">
 
@@ -1627,6 +1685,14 @@
                     printing backend when you click
                     <strong>Print</strong>.
 
+                    <br><br>
+
+                    <strong>Report Layout:</strong>
+                    The selected uploaded Excel file controls
+                    the official report layout.
+                    Instructor classification only controls
+                    which monitoring records are included.
+
                 </div>
 
 
@@ -1654,14 +1720,16 @@
             </aside>
 
 
-            <!-- PREVIEW -->
+            <!-- =================================================
+                 PRINT PREVIEW
+            ================================================= -->
 
             <section class="preview-area">
 
                 <div class="preview-heading">
 
                     <h3>
-                        Live Report Preview
+                        Report Preview
                     </h3>
 
                     <span id="printPreviewCount">
@@ -1682,12 +1750,18 @@
                             OFFICE OF THE DEAN
                         </div>
 
-                        <div class="preview-title">
-                            MONITORING OF PART-TIME INSTRUCTORS
+                        <div
+                            id="printPreviewTitle"
+                            class="preview-title"
+                        >
+                            Select a report layout
                         </div>
 
-                        <div class="preview-school-year">
-                            First Semester, School Year 2026–2027
+                        <div
+                            id="printPreviewSchoolYear"
+                            class="preview-school-year"
+                        >
+                            —
                         </div>
 
                         <div
@@ -1706,20 +1780,48 @@
                             <tr>
 
                                 <th>INSTRUCTOR</th>
+
                                 <th>SUBJECT</th>
-                                <th>ASSIGNED<br>ROOM</th>
-                                <th>ACTUAL<br>ROOM USED</th>
-                                <th>SCHEDULED<br>CLASS TIME</th>
-                                <th>DATE &amp; TIME<br>MONITORED</th>
-                                <th>DAY</th>
-                                <th>REMARKS</th>
-                                <th>SIGNATURE</th>
+
+                                <th>
+                                    ASSIGNED<br>
+                                    ROOM
+                                </th>
+
+                                <th>
+                                    ACTUAL<br>
+                                    ROOM USED
+                                </th>
+
+                                <th>
+                                    SCHEDULED<br>
+                                    CLASS TIME
+                                </th>
+
+                                <th>
+                                    DATE &amp; TIME<br>
+                                    MONITORED
+                                </th>
+
+                                <th>
+                                    DAY
+                                </th>
+
+                                <th>
+                                    REMARKS
+                                </th>
+
+                                <th>
+                                    SIGNATURE
+                                </th>
 
                             </tr>
 
                         </thead>
 
-                        <tbody id="printPreviewBody">
+                        <tbody
+                            id="printPreviewBody"
+                        >
                         </tbody>
 
                     </table>
@@ -1766,6 +1868,10 @@
         <div class="large-modal-body">
 
 
+            <!-- =================================================
+                 SAVE SETTINGS
+            ================================================= -->
+
             <aside class="settings-panel">
 
                 <h3 class="settings-title">
@@ -1773,10 +1879,50 @@
                 </h3>
 
                 <p class="settings-description">
-                    Preview the selected monitoring records
-                    before saving them as PDF, DOCX, or Excel.
+                    Choose the uploaded Excel report layout
+                    and export format before saving the
+                    selected monitoring records.
                 </p>
 
+
+                <!-- REPORT LAYOUT -->
+
+                <div class="setting-group">
+
+                    <label for="saveReportTemplate">
+                        Report Layout
+                    </label>
+
+                    <select
+                        id="saveReportTemplate"
+                        class="setting-control"
+                    >
+
+                        <option value="">
+                            Select report layout
+                        </option>
+
+                        {% for template in report_templates %}
+
+                            <option
+                                value="{{ template.pk }}"
+                            >
+                                {{ template.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <div class="printer-status">
+                        Choose the uploaded Excel layout to
+                        use for this report.
+                    </div>
+
+                </div>
+
+
+                <!-- SAVE FORMAT -->
 
                 <div class="setting-group">
 
@@ -1818,6 +1964,8 @@
                 </div>
 
 
+                <!-- PAPER SIZE -->
+
                 <div class="setting-group">
 
                     <label for="savePaperSize">
@@ -1850,6 +1998,8 @@
                 </div>
 
 
+                <!-- ORIENTATION -->
+
                 <div class="setting-group">
 
                     <label for="saveOrientation">
@@ -1870,6 +2020,21 @@
                         </option>
 
                     </select>
+
+                </div>
+
+
+                <div class="printer-note">
+
+                    <strong>Report Layout:</strong>
+                    The selected Excel template is the master
+                    layout for the generated report.
+
+                    <br><br>
+
+                    Classification does not determine the
+                    template. It only determines which
+                    instructors' records are included.
 
                 </div>
 
@@ -1898,12 +2063,16 @@
             </aside>
 
 
+            <!-- =================================================
+                 SAVE PREVIEW
+            ================================================= -->
+
             <section class="preview-area">
 
                 <div class="preview-heading">
 
                     <h3>
-                        Live Export Preview
+                        Report Preview
                     </h3>
 
                     <span id="savePreviewCount">
@@ -1924,12 +2093,18 @@
                             OFFICE OF THE DEAN
                         </div>
 
-                        <div class="preview-title">
-                            MONITORING OF PART-TIME INSTRUCTORS
+                        <div
+                            id="savePreviewTitle"
+                            class="preview-title"
+                        >
+                            Select a report layout
                         </div>
 
-                        <div class="preview-school-year">
-                            First Semester, School Year 2026–2027
+                        <div
+                            id="savePreviewSchoolYear"
+                            class="preview-school-year"
+                        >
+                            —
                         </div>
 
                         <div
@@ -1948,20 +2123,48 @@
                             <tr>
 
                                 <th>INSTRUCTOR</th>
+
                                 <th>SUBJECT</th>
-                                <th>ASSIGNED<br>ROOM</th>
-                                <th>ACTUAL<br>ROOM USED</th>
-                                <th>SCHEDULED<br>CLASS TIME</th>
-                                <th>DATE &amp; TIME<br>MONITORED</th>
-                                <th>DAY</th>
-                                <th>REMARKS</th>
-                                <th>SIGNATURE</th>
+
+                                <th>
+                                    ASSIGNED<br>
+                                    ROOM
+                                </th>
+
+                                <th>
+                                    ACTUAL<br>
+                                    ROOM USED
+                                </th>
+
+                                <th>
+                                    SCHEDULED<br>
+                                    CLASS TIME
+                                </th>
+
+                                <th>
+                                    DATE &amp; TIME<br>
+                                    MONITORED
+                                </th>
+
+                                <th>
+                                    DAY
+                                </th>
+
+                                <th>
+                                    REMARKS
+                                </th>
+
+                                <th>
+                                    SIGNATURE
+                                </th>
 
                             </tr>
 
                         </thead>
 
-                        <tbody id="savePreviewBody">
+                        <tbody
+                            id="savePreviewBody"
+                        >
                         </tbody>
 
                     </table>
@@ -2039,7 +2242,6 @@
 
 </form>
 
-
 <script>
 
     /* =====================================================
@@ -2067,25 +2269,21 @@
             value
         );
 
-
         const classification =
             document.getElementById(
                 "classificationSelect"
             ).value;
-
 
         url.searchParams.set(
             "classification",
             classification
         );
 
-
         const instructor =
             document
                 .getElementById("instructorSearch")
                 .value
                 .trim();
-
 
         if (instructor) {
 
@@ -2101,7 +2299,6 @@
             );
 
         }
-
 
         window.location.href =
             url.toString();
@@ -2119,22 +2316,18 @@
             value = "ALL";
         }
 
-
         const url =
             new URL(window.location.href);
-
 
         url.searchParams.set(
             "classification",
             value
         );
 
-
         const week =
             document.getElementById(
                 "weekSelect"
             ).value;
-
 
         if (week) {
 
@@ -2145,13 +2338,11 @@
 
         }
 
-
         const instructor =
             document
                 .getElementById("instructorSearch")
                 .value
                 .trim();
-
 
         if (instructor) {
 
@@ -2167,7 +2358,6 @@
             );
 
         }
-
 
         window.location.href =
             url.toString();
@@ -2202,7 +2392,7 @@
 
 
     /* =====================================================
-       SELECT ALL / DESELECT ALL
+       SELECT ALL
     ===================================================== */
 
     function toggleSelectAll() {
@@ -2226,8 +2416,10 @@
 
         checkboxes.forEach(
             checkbox => {
+
                 checkbox.checked =
                     !allSelected;
+
             }
         );
 
@@ -2249,6 +2441,10 @@
             document.getElementById(
                 "selectToggleButton"
             );
+
+        if (!button) {
+            return;
+        }
 
         if (
             checkboxes.length > 0 &&
@@ -2343,14 +2539,18 @@
     function createPreviewRows(targetId) {
 
         const target =
-            document.getElementById(targetId);
+            document.getElementById(
+                targetId
+            );
+
+        if (!target) {
+            return;
+        }
 
         target.innerHTML = "";
 
-
         const selected =
             getSelectedCheckboxes();
-
 
         selected.forEach(
             checkbox => {
@@ -2358,130 +2558,54 @@
                 const row =
                     checkbox.closest("tr");
 
-
                 if (!row) {
                     return;
                 }
 
-
                 const cells =
                     row.querySelectorAll("td");
-
-
-                /*
-                 * Main table columns:
-                 *
-                 * 0  = Select
-                 * 1  = Instructor
-                 * 2  = Classification
-                 * 3  = Subject
-                 * 4  = Assigned Room
-                 * 5  = Actual Room Used
-                 * 6  = Scheduled Class Time
-                 * 7  = Date & Time Monitored
-                 * 8  = Day
-                 * 9  = Remarks
-                 * 10 = Signature
-                 * 11 = Actions
-                 */
-
 
                 if (cells.length < 12) {
                     return;
                 }
 
-
-                const instructor =
-                    cells[1].innerText.trim();
-
-
-                const subject =
-                    cells[3].innerText.trim();
-
-
-                const assignedRoom =
-                    cells[4].innerText.trim();
-
-
-                const actualRoom =
-                    cells[5].innerText.trim();
-
-
-                const scheduledTime =
-                    cells[6].innerText.trim();
-
-
-                const monitoredDateTime =
-                    cells[7].innerText.trim();
-
-
-                const day =
-                    cells[8].innerText.trim();
-
-
-                const remarks =
-                    cells[9].innerText.trim();
-
-
-                /*
-                 * Classification is displayed in the
-                 * main table but is intentionally NOT
-                 * included as a report column because
-                 * the existing report template does not
-                 * contain a Classification column.
-                 */
-
-
-                /*
-                 * Signature is intentionally blank
-                 * because it is for the physical signature.
-                 */
-
-                const signature = "";
-
-
                 const values = [
 
-                    instructor,
+                    cells[1].innerText.trim(),
 
-                    subject,
+                    cells[3].innerText.trim(),
 
-                    assignedRoom,
+                    cells[4].innerText.trim(),
 
-                    actualRoom,
+                    cells[5].innerText.trim(),
 
-                    scheduledTime,
+                    cells[6].innerText.trim(),
 
-                    monitoredDateTime,
+                    cells[7].innerText.trim(),
 
-                    day,
+                    cells[8].innerText.trim(),
 
-                    remarks,
+                    cells[9].innerText.trim(),
 
-                    signature
+                    ""
 
                 ];
 
-
                 const previewRow =
-                    document.createElement("tr");
-
+                    document.createElement(
+                        "tr"
+                    );
 
                 values.forEach(
                     (value, index) => {
 
                         const cell =
-                            document.createElement("td");
-
+                            document.createElement(
+                                "td"
+                            );
 
                         cell.textContent =
                             value || " ";
-
-
-                        /*
-                         * Signature is column 8
-                         * in the 9-column preview.
-                         */
 
                         if (index === 8) {
 
@@ -2491,7 +2615,6 @@
 
                         }
 
-
                         previewRow.appendChild(
                             cell
                         );
@@ -2499,14 +2622,12 @@
                     }
                 );
 
-
                 target.appendChild(
                     previewRow
                 );
 
             }
         );
-
 
         if (
             target.children.length === 0
@@ -2539,18 +2660,19 @@
                 "weekSelect"
             );
 
-
-        const selectedOption =
-            weekSelect.options[
-                weekSelect.selectedIndex
-            ];
-
-
         const element =
             document.getElementById(
                 elementId
             );
 
+        if (!weekSelect || !element) {
+            return;
+        }
+
+        const selectedOption =
+            weekSelect.options[
+                weekSelect.selectedIndex
+            ];
 
         if (selectedOption) {
 
@@ -2565,7 +2687,150 @@
 
 
     /* =====================================================
-       PAPER PREVIEW
+       REPORT LAYOUT PREVIEW
+    ===================================================== */
+
+    function updateReportLayoutPreview() {
+
+        const select =
+            document.getElementById(
+                "reportTemplate"
+            );
+
+        const title =
+            document.getElementById(
+                "printPreviewTitle"
+            );
+
+        const schoolYear =
+            document.getElementById(
+                "printPreviewSchoolYear"
+            );
+
+        if (
+            !select ||
+            !title ||
+            !schoolYear
+        ) {
+            return;
+        }
+
+        const option =
+            select.options[
+                select.selectedIndex
+            ];
+
+        if (
+            !option ||
+            !option.value
+        ) {
+
+            title.textContent =
+                "Select a report layout";
+
+            schoolYear.textContent =
+                "The uploaded Excel template will control the final report.";
+
+            return;
+
+        }
+
+        title.textContent =
+            option.textContent.trim();
+
+        schoolYear.textContent =
+            "Uploaded Excel template selected";
+
+    }
+
+
+    function updateSaveReportLayoutPreview() {
+
+        const select =
+            document.getElementById(
+                "saveReportTemplate"
+            );
+
+        const title =
+            document.getElementById(
+                "savePreviewTitle"
+            );
+
+        const schoolYear =
+            document.getElementById(
+                "savePreviewSchoolYear"
+            );
+
+        if (
+            !select ||
+            !title ||
+            !schoolYear
+        ) {
+            return;
+        }
+
+        const option =
+            select.options[
+                select.selectedIndex
+            ];
+
+        if (
+            !option ||
+            !option.value
+        ) {
+
+            title.textContent =
+                "Select a report layout";
+
+            schoolYear.textContent =
+                "The uploaded Excel template will control the final report.";
+
+            return;
+
+        }
+
+        title.textContent =
+            option.textContent.trim();
+
+        schoolYear.textContent =
+            "Uploaded Excel template selected";
+
+    }
+
+
+    /* =====================================================
+       SYNC PRINT → SAVE TEMPLATE
+    ===================================================== */
+
+    function syncSaveReportTemplate() {
+
+        const printTemplate =
+            document.getElementById(
+                "reportTemplate"
+            );
+
+        const saveTemplate =
+            document.getElementById(
+                "saveReportTemplate"
+            );
+
+        if (
+            !printTemplate ||
+            !saveTemplate
+        ) {
+            return;
+        }
+
+        saveTemplate.value =
+            printTemplate.value;
+
+        updateSaveReportLayoutPreview();
+
+    }
+
+
+    /* =====================================================
+       PAPER DIMENSIONS
     ===================================================== */
 
     function getPaperDimensions(
@@ -2597,11 +2862,9 @@
 
         };
 
-
         const selected =
             dimensions[paper] ||
             dimensions["A4"];
-
 
         if (
             orientation === "portrait"
@@ -2613,7 +2876,6 @@
             };
 
         }
-
 
         return {
             width: selected.height,
@@ -2636,11 +2898,9 @@
                 paperId
             );
 
-
         if (!paper) {
             return;
         }
-
 
         const dimensions =
             getPaperDimensions(
@@ -2648,20 +2908,18 @@
                 orientation
             );
 
-
         paper.style.width =
             dimensions.width + "px";
-
 
         paper.style.minWidth =
             dimensions.width + "px";
 
-
         paper.style.minHeight =
             dimensions.height + "px";
 
-
-        if (margins === "narrow") {
+        if (
+            margins === "narrow"
+        ) {
 
             paper.style.padding =
                 "18px";
@@ -2673,8 +2931,9 @@
 
         }
 
-
-        if (color === "bw") {
+        if (
+            color === "bw"
+        ) {
 
             paper.classList.add(
                 "bw-preview"
@@ -2692,7 +2951,7 @@
 
 
     /* =====================================================
-       PRINT PREVIEW SETTINGS
+       PRINT PREVIEW
     ===================================================== */
 
     function updatePrintPreview() {
@@ -2716,40 +2975,8 @@
     }
 
 
-    document.getElementById(
-        "paperSize"
-    ).addEventListener(
-        "change",
-        updatePrintPreview
-    );
-
-
-    document.getElementById(
-        "orientation"
-    ).addEventListener(
-        "change",
-        updatePrintPreview
-    );
-
-
-    document.getElementById(
-        "color"
-    ).addEventListener(
-        "change",
-        updatePrintPreview
-    );
-
-
-    document.getElementById(
-        "margins"
-    ).addEventListener(
-        "change",
-        updatePrintPreview
-    );
-
-
     /* =====================================================
-       SAVE PREVIEW SETTINGS
+       SAVE PREVIEW
     ===================================================== */
 
     function updateSavePreview() {
@@ -2769,22 +2996,6 @@
     }
 
 
-    document.getElementById(
-        "savePaperSize"
-    ).addEventListener(
-        "change",
-        updateSavePreview
-    );
-
-
-    document.getElementById(
-        "saveOrientation"
-    ).addEventListener(
-        "change",
-        updateSavePreview
-    );
-
-
     /* =====================================================
        WINDOWS PRINTERS
     ===================================================== */
@@ -2792,12 +3003,21 @@
     async function loadWindowsPrinters() {
 
         const printerSelect =
-            document.getElementById("printer");
-
+            document.getElementById(
+                "printer"
+            );
 
         const printerStatus =
-            document.getElementById("printerStatus");
+            document.getElementById(
+                "printerStatus"
+            );
 
+        if (
+            !printerSelect ||
+            !printerStatus
+        ) {
+            return;
+        }
 
         printerSelect.innerHTML = `
             <option value="">
@@ -2805,14 +3025,11 @@
             </option>
         `;
 
-
         printerStatus.textContent =
             "Detecting installed Windows printers.";
 
-
         printerStatus.className =
             "printer-status";
-
 
         try {
 
@@ -2831,7 +3048,6 @@
                     }
                 );
 
-
             if (!response.ok) {
 
                 throw new Error(
@@ -2841,18 +3057,12 @@
 
             }
 
-
             const data =
                 await response.json();
 
-
-            console.log(
-                "Windows printer response:",
-                data
-            );
-
-
-            if (data.available === false) {
+            if (
+                data.available === false
+            ) {
 
                 throw new Error(
                     data.message ||
@@ -2861,9 +3071,7 @@
 
             }
 
-
             printerSelect.innerHTML = "";
-
 
             if (
                 Array.isArray(data.printers) &&
@@ -2878,10 +3086,8 @@
                                 "option"
                             );
 
-
                         option.value =
                             printer.name;
-
 
                         option.textContent =
                             printer.name +
@@ -2891,14 +3097,12 @@
                                     : ""
                             );
 
-
                         printerSelect.appendChild(
                             option
                         );
 
                     }
                 );
-
 
                 if (
                     data.default_printer
@@ -2909,15 +3113,12 @@
 
                 }
 
-
                 printerStatus.textContent =
                     data.printers.length +
                     " Windows printer(s) detected.";
 
-
                 printerStatus.className =
                     "printer-status success";
-
 
             } else {
 
@@ -2927,16 +3128,13 @@
                     </option>
                 `;
 
-
                 printerStatus.textContent =
                     "No installed Windows printers were detected.";
-
 
                 printerStatus.className =
                     "printer-status error";
 
             }
-
 
         } catch (error) {
 
@@ -2945,18 +3143,15 @@
                 error
             );
 
-
             printerSelect.innerHTML = `
                 <option value="">
                     Unable to load Windows printers
                 </option>
             `;
 
-
             printerStatus.textContent =
                 error.message ||
                 "Could not load the Windows printer list.";
-
 
             printerStatus.className =
                 "printer-status error";
@@ -2967,14 +3162,13 @@
 
 
     /* =====================================================
-       PRINT
+       OPEN PRINT MODAL
     ===================================================== */
 
     function openPrintReport() {
 
         const selected =
             getSelectedRecords();
-
 
         if (
             selected.length === 0
@@ -2985,42 +3179,33 @@
                 "Please select at least one monitoring report before printing."
             );
 
-
             return;
 
         }
-
 
         createPreviewRows(
             "printPreviewBody"
         );
 
-
         document.getElementById(
             "printPreviewCount"
         ).textContent =
             selected.length +
-            (
-                selected.length === 1
-                    ? " selected"
-                    : " selected"
-            );
-
+            " selected";
 
         updatePreviewWeek(
             "printPreviewWeek"
         );
 
+        updateReportLayoutPreview();
 
         updatePrintPreview();
-
 
         document.getElementById(
             "printModal"
         ).classList.add(
             "show"
         );
-
 
         loadWindowsPrinters();
 
@@ -3038,11 +3223,14 @@
     }
 
 
+    /* =====================================================
+       PRINT SELECTED REPORTS
+    ===================================================== */
+
     async function printSelectedReports() {
 
         const selected =
             getSelectedRecords();
-
 
         if (
             selected.length === 0
@@ -3050,12 +3238,33 @@
 
             closePrintModal();
 
-
             showWarning(
                 "Please Select at Least One Report",
                 "Please select at least one monitoring report before printing."
             );
 
+            return;
+
+        }
+
+
+        /*
+         * IMPORTANT:
+         * Validate the Excel template BEFORE
+         * disabling the Print button.
+         */
+
+        const reportTemplate =
+            document.getElementById(
+                "reportTemplate"
+            ).value;
+
+        if (!reportTemplate) {
+
+            showWarning(
+                "No Report Layout Selected",
+                "Please choose an uploaded Excel report layout before printing."
+            );
 
             return;
 
@@ -3067,14 +3276,12 @@
                 "printer"
             ).value;
 
-
         if (!printer) {
 
             showWarning(
                 "No Printer Selected",
                 "Please select a Windows printer before printing."
             );
-
 
             return;
 
@@ -3086,9 +3293,7 @@
                 "printConfirmButton"
             );
 
-
         button.disabled = true;
-
 
         button.textContent =
             "Printing...";
@@ -3098,11 +3303,15 @@
             new URLSearchParams();
 
 
+        /* RECORDS */
+
         params.set(
             "records",
             selected.join(",")
         );
 
+
+        /* WEEK */
 
         params.set(
             "week",
@@ -3112,9 +3321,7 @@
         );
 
 
-        /* ---------------------------------------------
-           CLASSIFICATION
-        --------------------------------------------- */
+        /* CLASSIFICATION */
 
         params.set(
             "classification",
@@ -3124,6 +3331,21 @@
         );
 
 
+        /*
+         * TEMPLATE
+         *
+         * This is the selected uploaded
+         * Excel ReportTemplate primary key.
+         */
+
+        params.set(
+            "template_id",
+            reportTemplate
+        );
+
+
+        /* PAPER */
+
         params.set(
             "paper_size",
             document.getElementById(
@@ -3131,6 +3353,8 @@
             ).value
         );
 
+
+        /* ORIENTATION */
 
         params.set(
             "orientation",
@@ -3140,6 +3364,8 @@
         );
 
 
+        /* COLOR */
+
         params.set(
             "color",
             document.getElementById(
@@ -3147,6 +3373,8 @@
             ).value
         );
 
+
+        /* MARGINS */
 
         params.set(
             "margins",
@@ -3156,17 +3384,20 @@
         );
 
 
+        /* PRINTER */
+
         params.set(
             "printer",
             printer
         );
 
 
+        /* INSTRUCTOR SEARCH */
+
         const instructor =
             document.getElementById(
                 "instructorSearch"
             ).value.trim();
-
 
         if (instructor) {
 
@@ -3210,20 +3441,17 @@
                 const data =
                     await response.json();
 
-
                 if (
                     data.success
                 ) {
 
                     closePrintModal();
 
-
                     showWarning(
                         "Report Sent to Printer",
                         data.message ||
                         "The report was successfully sent to the selected Windows printer."
                     );
-
 
                 } else {
 
@@ -3234,18 +3462,27 @@
 
                 }
 
-
             } else {
+
+                if (!response.ok) {
+
+                    const errorText =
+                        await response.text();
+
+                    throw new Error(
+                        errorText ||
+                        "Printing failed."
+                    );
+
+                }
 
                 const blob =
                     await response.blob();
-
 
                 const blobUrl =
                     URL.createObjectURL(
                         blob
                     );
-
 
                 window.open(
                     blobUrl,
@@ -3254,7 +3491,6 @@
 
             }
 
-
         } catch (error) {
 
             console.error(
@@ -3262,18 +3498,15 @@
                 error
             );
 
-
             showWarning(
                 "Printing Failed",
                 error.message ||
                 "The report could not be sent to the selected printer."
             );
 
-
         } finally {
 
             button.disabled = false;
-
 
             button.textContent =
                 "🖨 Print";
@@ -3284,14 +3517,13 @@
 
 
     /* =====================================================
-       SAVE PREVIEW
+       OPEN SAVE PREVIEW
     ===================================================== */
 
     function openSavePreview() {
 
         const selected =
             getSelectedRecords();
-
 
         if (
             selected.length === 0
@@ -3302,42 +3534,40 @@
                 "Please select at least one monitoring report before saving."
             );
 
-
             return;
 
         }
-
 
         selectedSaveFormat =
             "pdf";
 
 
-        updateSaveFormatButtons();
+        /*
+         * Copy the currently selected Print
+         * layout into the Save layout selector.
+         */
 
+        syncSaveReportTemplate();
+
+        updateSaveFormatButtons();
 
         createPreviewRows(
             "savePreviewBody"
         );
 
-
         document.getElementById(
             "savePreviewCount"
         ).textContent =
             selected.length +
-            (
-                selected.length === 1
-                    ? " selected"
-                    : " selected"
-            );
-
+            " selected";
 
         updatePreviewWeek(
             "savePreviewWeek"
         );
 
+        updateSaveReportLayoutPreview();
 
         updateSavePreview();
-
 
         document.getElementById(
             "saveModal"
@@ -3367,7 +3597,6 @@
 
         selectedSaveFormat =
             format;
-
 
         updateSaveFormatButtons();
 
@@ -3417,6 +3646,11 @@
             );
 
 
+        if (!confirmButton) {
+            return;
+        }
+
+
         if (
             selectedSaveFormat === "pdf"
         ) {
@@ -3454,21 +3688,59 @@
         const selected =
             getSelectedRecords();
 
-
         if (
             selected.length === 0
         ) {
 
             closeSavePreview();
 
-
             showWarning(
                 "Please Select at Least One Report",
                 "Please select at least one monitoring report before saving."
             );
 
-
             return;
+
+        }
+
+
+        /*
+         * Excel layout is required for:
+         *
+         * PDF
+         * Excel
+         *
+         * DOCX is left as its existing
+         * separate backend format.
+         */
+
+        let reportTemplate = "";
+
+
+        if (
+            selectedSaveFormat === "pdf" ||
+            selectedSaveFormat === "excel"
+        ) {
+
+            const templateSelect =
+                document.getElementById(
+                    "saveReportTemplate"
+                );
+
+            reportTemplate =
+                templateSelect.value;
+
+
+            if (!reportTemplate) {
+
+                showWarning(
+                    "No Report Layout Selected",
+                    "Please choose an uploaded Excel report layout before saving this report."
+                );
+
+                return;
+
+            }
 
         }
 
@@ -3477,11 +3749,15 @@
             new URLSearchParams();
 
 
+        /* RECORDS */
+
         params.set(
             "records",
             selected.join(",")
         );
 
+
+        /* WEEK */
 
         params.set(
             "week",
@@ -3491,9 +3767,7 @@
         );
 
 
-        /* ---------------------------------------------
-           CLASSIFICATION
-        --------------------------------------------- */
+        /* CLASSIFICATION */
 
         params.set(
             "classification",
@@ -3503,6 +3777,24 @@
         );
 
 
+        /*
+         * SELECTED EXCEL TEMPLATE
+         */
+
+        if (
+            reportTemplate
+        ) {
+
+            params.set(
+                "template_id",
+                reportTemplate
+            );
+
+        }
+
+
+        /* PAPER SIZE */
+
         params.set(
             "paper_size",
             document.getElementById(
@@ -3511,6 +3803,8 @@
         );
 
 
+        /* ORIENTATION */
+
         params.set(
             "orientation",
             document.getElementById(
@@ -3518,6 +3812,8 @@
             ).value
         );
 
+
+        /* INSTRUCTOR SEARCH */
 
         const instructor =
             document.getElementById(
@@ -3538,6 +3834,8 @@
         let url;
 
 
+        /* PDF */
+
         if (
             selectedSaveFormat === "pdf"
         ) {
@@ -3547,6 +3845,9 @@
 
         }
 
+
+        /* DOCX */
+
         else if (
             selectedSaveFormat === "docx"
         ) {
@@ -3555,6 +3856,9 @@
                 "{% url 'report_docx' %}";
 
         }
+
+
+        /* EXCEL */
 
         else {
 
@@ -3586,7 +3890,6 @@
         const selected =
             getSelectedRecords();
 
-
         if (
             selected.length === 0
         ) {
@@ -3596,11 +3899,9 @@
                 "Please select at least one monitoring report before deleting."
             );
 
-
             return;
 
         }
-
 
         document.getElementById(
             "deleteModal"
@@ -3627,33 +3928,27 @@
         const selected =
             getSelectedRecords();
 
-
         if (
             selected.length === 0
         ) {
 
             closeDeleteModal();
 
-
             showWarning(
                 "Please Select One Report to Delete",
                 "Please select at least one monitoring report before deleting."
             );
 
-
             return;
 
         }
-
 
         const container =
             document.getElementById(
                 "deleteInputs"
             );
 
-
         container.innerHTML = "";
-
 
         selected.forEach(
             id => {
@@ -3663,18 +3958,14 @@
                         "input"
                     );
 
-
                 input.type =
                     "hidden";
-
 
                 input.name =
                     "selected_records";
 
-
                 input.value =
                     id;
-
 
                 container.appendChild(
                     input
@@ -3682,7 +3973,6 @@
 
             }
         );
-
 
         document.getElementById(
             "deleteForm"
@@ -3700,14 +3990,16 @@
             "instructorSearch"
         );
 
-
     const suggestions =
         document.getElementById(
             "suggestions"
         );
 
 
-    if (searchInput) {
+    if (
+        searchInput &&
+        suggestions
+    ) {
 
         searchInput.addEventListener(
             "input",
@@ -3718,27 +4010,22 @@
                         .trim()
                         .toLowerCase();
 
-
                 const items =
                     suggestions.querySelectorAll(
                         ".suggestion-item"
                     );
-
 
                 if (!value) {
 
                     suggestions.style.display =
                         "none";
 
-
                     return;
 
                 }
 
-
                 let visible =
                     false;
-
 
                 items.forEach(
                     item => {
@@ -3747,7 +4034,6 @@
                             item.dataset.name
                                 .toLowerCase();
 
-
                         if (
                             name.includes(value)
                         ) {
@@ -3755,12 +4041,9 @@
                             item.style.display =
                                 "block";
 
-
                             visible = true;
 
-                        }
-
-                        else {
+                        } else {
 
                             item.style.display =
                                 "none";
@@ -3769,7 +4052,6 @@
 
                     }
                 );
-
 
                 suggestions.style.display =
                     visible
@@ -3789,7 +4071,6 @@
                 ) {
 
                     event.preventDefault();
-
 
                     applyInstructorSearch(
                         this.value.trim()
@@ -3817,10 +4098,8 @@
                         searchInput.value =
                             this.dataset.name;
 
-
                         suggestions.style.display =
                             "none";
-
 
                         applyInstructorSearch(
                             this.dataset.name
@@ -3842,18 +4121,15 @@
                 window.location.href
             );
 
-
         const week =
             document.getElementById(
                 "weekSelect"
             ).value;
 
-
         const classification =
             document.getElementById(
                 "classificationSelect"
             ).value;
-
 
         if (week) {
 
@@ -3864,12 +4140,10 @@
 
         }
 
-
         url.searchParams.set(
             "classification",
             classification
         );
-
 
         if (instructor) {
 
@@ -3886,9 +4160,163 @@
 
         }
 
-
         window.location.href =
             url.toString();
+
+    }
+
+
+    /* =====================================================
+       EVENT LISTENERS
+    ===================================================== */
+
+    const paperSize =
+        document.getElementById(
+            "paperSize"
+        );
+
+    const orientation =
+        document.getElementById(
+            "orientation"
+        );
+
+    const color =
+        document.getElementById(
+            "color"
+        );
+
+    const margins =
+        document.getElementById(
+            "margins"
+        );
+
+    const savePaperSize =
+        document.getElementById(
+            "savePaperSize"
+        );
+
+    const saveOrientation =
+        document.getElementById(
+            "saveOrientation"
+        );
+
+    const reportTemplate =
+        document.getElementById(
+            "reportTemplate"
+        );
+
+    const saveReportTemplate =
+        document.getElementById(
+            "saveReportTemplate"
+        );
+
+
+    if (paperSize) {
+
+        paperSize.addEventListener(
+            "change",
+            updatePrintPreview
+        );
+
+    }
+
+
+    if (orientation) {
+
+        orientation.addEventListener(
+            "change",
+            updatePrintPreview
+        );
+
+    }
+
+
+    if (color) {
+
+        color.addEventListener(
+            "change",
+            updatePrintPreview
+        );
+
+    }
+
+
+    if (margins) {
+
+        margins.addEventListener(
+            "change",
+            updatePrintPreview
+        );
+
+    }
+
+
+    if (savePaperSize) {
+
+        savePaperSize.addEventListener(
+            "change",
+            updateSavePreview
+        );
+
+    }
+
+
+    if (saveOrientation) {
+
+        saveOrientation.addEventListener(
+            "change",
+            updateSavePreview
+        );
+
+    }
+
+
+    /* =====================================================
+       PRINT TEMPLATE CHANGE
+    ===================================================== */
+
+    if (reportTemplate) {
+
+        reportTemplate.addEventListener(
+            "change",
+            function() {
+
+                updateReportLayoutPreview();
+
+                /*
+                 * Keep Save As synchronized with
+                 * the selected Print layout.
+                 */
+
+                if (saveReportTemplate) {
+
+                    saveReportTemplate.value =
+                        this.value;
+
+                    updateSaveReportLayoutPreview();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       SAVE TEMPLATE CHANGE
+    ===================================================== */
+
+    if (saveReportTemplate) {
+
+        saveReportTemplate.addEventListener(
+            "change",
+            function() {
+
+                updateSaveReportLayoutPreview();
+
+            }
+        );
 
     }
 
@@ -3897,76 +4325,105 @@
        OUTSIDE MODAL CLICK
     ===================================================== */
 
-    document.getElementById(
-        "noSelectionModal"
-    ).addEventListener(
-        "click",
-        function(event) {
+    const noSelectionModal =
+        document.getElementById(
+            "noSelectionModal"
+        );
 
-            if (
-                event.target === this
-            ) {
+    const printModal =
+        document.getElementById(
+            "printModal"
+        );
 
-                closeNoSelectionModal();
+    const saveModal =
+        document.getElementById(
+            "saveModal"
+        );
 
-            }
-
-        }
-    );
-
-
-    document.getElementById(
-        "printModal"
-    ).addEventListener(
-        "click",
-        function(event) {
-
-            if (
-                event.target === this
-            ) {
-
-                closePrintModal();
-
-            }
-
-        }
-    );
+    const deleteModal =
+        document.getElementById(
+            "deleteModal"
+        );
 
 
-    document.getElementById(
-        "saveModal"
-    ).addEventListener(
-        "click",
-        function(event) {
+    if (noSelectionModal) {
 
-            if (
-                event.target === this
-            ) {
+        noSelectionModal.addEventListener(
+            "click",
+            function(event) {
 
-                closeSavePreview();
+                if (
+                    event.target === this
+                ) {
+
+                    closeNoSelectionModal();
+
+                }
 
             }
+        );
 
-        }
-    );
+    }
 
 
-    document.getElementById(
-        "deleteModal"
-    ).addEventListener(
-        "click",
-        function(event) {
+    if (printModal) {
 
-            if (
-                event.target === this
-            ) {
+        printModal.addEventListener(
+            "click",
+            function(event) {
 
-                closeDeleteModal();
+                if (
+                    event.target === this
+                ) {
+
+                    closePrintModal();
+
+                }
 
             }
+        );
 
-        }
-    );
+    }
+
+
+    if (saveModal) {
+
+        saveModal.addEventListener(
+            "click",
+            function(event) {
+
+                if (
+                    event.target === this
+                ) {
+
+                    closeSavePreview();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    if (deleteModal) {
+
+        deleteModal.addEventListener(
+            "click",
+            function(event) {
+
+                if (
+                    event.target === this
+                ) {
+
+                    closeDeleteModal();
+
+                }
+
+            }
+        );
+
+    }
 
 
     /* =====================================================
@@ -3996,10 +4453,18 @@
 
 
     /* =====================================================
-       INITIAL
+       INITIALIZE
     ===================================================== */
 
     updateSelectButton();
+
+    updateReportLayoutPreview();
+
+    updateSaveReportLayoutPreview();
+
+    updatePrintPreview();
+
+    updateSavePreview();
 
 </script>
 

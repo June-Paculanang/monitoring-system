@@ -136,6 +136,13 @@
             font-size: 12px;
         }
 
+        .field-error {
+            display: block;
+            margin-top: 6px;
+            color: #842029;
+            font-size: 13px;
+        }
+
         .buttons {
             display: flex;
             gap: 10px;
@@ -269,60 +276,117 @@
 
             <div class="form-group">
 
-                <label for="username">
+                <label for="{{ form.username.id_for_label }}">
                     Username
                 </label>
 
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    class="form-control"
-                    required
-                    autocomplete="username"
-                >
+                {{ form.username }}
+
+                {% if form.username.errors %}
+
+                    {% for error in form.username.errors %}
+
+                        <span class="field-error">
+                            {{ error }}
+                        </span>
+
+                    {% endfor %}
+
+                {% endif %}
 
             </div>
 
 
             <div class="form-group">
 
-                <label for="password">
+                <label for="{{ form.email.id_for_label }}">
+                    Email Address
+                </label>
+
+                {{ form.email }}
+
+                <span class="help-text">
+                    This email address will be used for password recovery.
+                </span>
+
+                {% if form.email.errors %}
+
+                    {% for error in form.email.errors %}
+
+                        <span class="field-error">
+                            {{ error }}
+                        </span>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="{{ form.password.id_for_label }}">
                     Password
                 </label>
 
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    class="form-control"
-                    required
-                    autocomplete="new-password"
-                >
+                {{ form.password }}
 
                 <span class="help-text">
                     Password must be at least 8 characters.
                 </span>
 
+                {% if form.password.errors %}
+
+                    {% for error in form.password.errors %}
+
+                        <span class="field-error">
+                            {{ error }}
+                        </span>
+
+                    {% endfor %}
+
+                {% endif %}
+
             </div>
 
 
             <div class="form-group">
 
-                <label for="confirm_password">
+                <label for="{{ form.confirm_password.id_for_label }}">
                     Confirm Password
                 </label>
 
-                <input
-                    type="password"
-                    id="confirm_password"
-                    name="confirm_password"
-                    class="form-control"
-                    required
-                    autocomplete="new-password"
-                >
+                {{ form.confirm_password }}
+
+                {% if form.confirm_password.errors %}
+
+                    {% for error in form.confirm_password.errors %}
+
+                        <span class="field-error">
+                            {{ error }}
+                        </span>
+
+                    {% endfor %}
+
+                {% endif %}
 
             </div>
+
+
+            {% if form.non_field_errors %}
+
+                <div class="field-error">
+
+                    {% for error in form.non_field_errors %}
+
+                        {{ error }}
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
 
 
             <div class="buttons">

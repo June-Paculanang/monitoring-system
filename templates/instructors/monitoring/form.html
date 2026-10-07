@@ -14,6 +14,11 @@
         Monitor Class | Teacher Class Monitoring
     </title>
 
+    <link
+        href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css"
+        rel="stylesheet"
+    >
+
     <style>
 
         * {
@@ -215,7 +220,8 @@
            FORM CONTROL
         ========================================= */
 
-        .form-control {
+        .form-control,
+        .form-select {
             display: block;
 
             width: 100%;
@@ -231,7 +237,8 @@
             background: white;
         }
 
-        .form-control:focus {
+        .form-control:focus,
+        .form-select:focus {
             outline: none;
 
             border-color: #198754;
@@ -240,13 +247,96 @@
                 0 0 0 2px rgba(25, 135, 84, 0.12);
         }
 
-
         textarea.form-control {
             min-height: 110px;
 
             resize: vertical;
 
             line-height: 1.5;
+        }
+
+
+        /* =========================================
+           TOM SELECT
+        ========================================= */
+
+        .ts-wrapper {
+            width: 100%;
+        }
+
+        .ts-control {
+            min-height: 44px;
+
+            width: 100%;
+
+            padding: 9px 12px;
+
+            border: 1px solid #ccc;
+
+            border-radius: 5px;
+
+            background: white;
+
+            font-size: 15px;
+
+            box-shadow: none;
+        }
+
+        .ts-wrapper.focus .ts-control {
+            border-color: #198754;
+
+            box-shadow:
+                0 0 0 2px rgba(25, 135, 84, 0.12);
+        }
+
+        .ts-control input {
+            font-size: 15px;
+
+            color: #333;
+        }
+
+        .ts-control input::placeholder {
+            color: #6c757d;
+        }
+
+        .ts-dropdown {
+            width: 100%;
+
+            border: 1px solid #ccc;
+
+            border-radius: 5px;
+
+            margin-top: 3px;
+
+            background: white;
+
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.12);
+
+            z-index: 2000;
+        }
+
+        .ts-dropdown .option {
+            padding: 10px 12px;
+
+            font-size: 14px;
+
+            cursor: pointer;
+        }
+
+        .ts-dropdown .option:hover,
+        .ts-dropdown .active {
+            background: #e9f7ef;
+
+            color: #198754;
+        }
+
+        .ts-dropdown .no-results {
+            padding: 10px 12px;
+
+            color: #6c757d;
+
+            font-size: 14px;
         }
 
 
@@ -723,6 +813,90 @@
 
 
 </main>
+
+
+<script
+    src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"
+></script>
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const roomSelect =
+                document.getElementById(
+                    "transfer-room-select"
+                );
+
+            if (roomSelect) {
+
+                new TomSelect(
+                    roomSelect,
+                    {
+                        create: false,
+
+                        allowEmptyOption: true,
+
+                        placeholder:
+                            "Search actual room...",
+
+                        searchField: [
+                            "text"
+                        ],
+
+                        maxOptions: 100,
+
+                        closeAfterSelect: true,
+
+                        hideSelected: false,
+
+                        selectOnTab: true,
+
+                        noResultsText:
+                            "No room found",
+
+                        render: {
+
+                            option: function (
+                                data,
+                                escape
+                            ) {
+
+                                return (
+                                    '<div>' +
+                                    escape(data.text) +
+                                    '</div>'
+                                );
+
+                            },
+
+                            item: function (
+                                data,
+                                escape
+                            ) {
+
+                                return (
+                                    '<div>' +
+                                    escape(data.text) +
+                                    '</div>'
+                                );
+
+                            }
+
+                        }
+
+                    }
+                );
+
+            }
+
+        }
+
+    );
+
+</script>
 
 
 </body>
