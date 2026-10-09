@@ -5,18 +5,11 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
 
-    # Homepage decides between first-time setup, login, and dashboard.
-    path(
-        "",
-        views.home_redirect,
-        name="home",
-    ),
-
     # Dashboard
     path(
-        "dashboard/",
+        "",
         views.dashboard,
-        name="dashboard",
+        name="dashboard"
     ),
 
     # Instructors

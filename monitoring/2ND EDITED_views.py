@@ -104,24 +104,19 @@ from .models import SystemAdministrator
 
 
 def home_redirect(request):
-    """
-    Send visitors to setup only while there is no active system administrator.
-    Once an administrator exists, anonymous visitors go to login and logged-in
-    users go to the dashboard.
-    """
     User = get_user_model()
 
-    active_main_admin_exists = SystemAdministrator.objects.filter(
+    main_admin_exists = SystemAdministrator.objects.filter(
         is_main_admin=True,
         user__is_active=True,
     ).exists()
 
-    active_admin_group_exists = User.objects.filter(
+    admin_group_exists = User.objects.filter(
         groups__name="System Administrator",
         is_active=True,
     ).exists()
 
-    if not active_main_admin_exists and not active_admin_group_exists:
+    if not main_admin_exists and not admin_group_exists:
         return redirect("system_setup")
 
     if request.user.is_authenticated:
@@ -157,69 +152,31 @@ def dashboard(request):
 # SYSTEM ADMINISTRATOR SETUP
 # =========================================================
 
-
 def system_setup(request):
-    """Allow first-time setup only when no administrator exists."""
-
+    """Create the first administrator with a registered recovery email."""
     User = get_user_model()
+    admin_group, _ = Group.objects.get_or_create(name="System Administrator")
 
-    # Never allow public registration once any active superuser
-    # or System Administrator exists.
-    admin_group, _ = Group.objects.get_or_create(
-        name="System Administrator"
-    )
-
-    active_superuser_exists = User.objects.filter(
-        is_superuser=True,
-        is_active=True,
+    # Do not allow public setup once an active main administrator exists.
+    main_admin_exists = SystemAdministrator.objects.filter(
+        is_main_admin=True, user__is_active=True
     ).exists()
-
-    active_main_admin_exists = SystemAdministrator.objects.filter(
-        is_main_admin=True,
-        user__is_active=True,
-    ).exists()
-
-    active_admin_group_exists = admin_group.user_set.filter(
-        is_active=True,
-    ).exists()
-
-    if (
-        active_superuser_exists
-        or active_main_admin_exists
-        or active_admin_group_exists
-    ):
-        return render(
-            request,
-            "registration/setup_locked.html",
-            status=403,
-        )
+    if main_admin_exists or admin_group.user_set.filter(is_active=True).exists():
+        return render(request, "registration/setup_locked.html")
 
     form = FirstAdminSetupForm(request.POST or None)
-
     if request.method == "POST" and form.is_valid():
         user = form.save()
-
         admin_group.user_set.add(user)
-
         SystemAdministrator.objects.update_or_create(
             user=user,
             defaults={"is_main_admin": True},
         )
-
         login(request, user)
-
-        messages.success(
-            request,
-            "Main Administrator account created successfully.",
-        )
-
+        messages.success(request, "Main Administrator account created successfully.")
         return redirect("dashboard")
 
-    return render(
-        request,
-        "registration/setup.html",
-        {"form": form},
-    )
+    return render(request, "registration/setup.html", {"form": form})
 
 # =========================================================
 # ADMIN ACCOUNT MANAGEMENT
