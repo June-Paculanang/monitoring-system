@@ -77,6 +77,8 @@ from .forms import (
     LateMonitoringRecordForm,
     MissedMonitoringForm,
     ReportTemplateForm,
+    FirstAdminSetupForm,
+    AdminAccountForm,
 )
 
 from .models import (
@@ -86,12 +88,42 @@ from .models import (
     Schedule,
     MonitoringRecord,
     ReportTemplate,
+    SystemAdministrator,
 )
 
 
 # ==========================================
 # DASHBOARD
 # ==========================================
+
+
+from django.shortcuts import redirect
+from django.contrib.auth import get_user_model
+
+from .models import SystemAdministrator
+
+
+def home_redirect(request):
+    User = get_user_model()
+
+    main_admin_exists = SystemAdministrator.objects.filter(
+        is_main_admin=True,
+        user__is_active=True,
+    ).exists()
+
+    admin_group_exists = User.objects.filter(
+        groups__name="System Administrator",
+        is_active=True,
+    ).exists()
+
+    if not main_admin_exists and not admin_group_exists:
+        return redirect("system_setup")
+
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+
+    return redirect("login")
+
 
 @login_required
 def dashboard(request):
@@ -121,119 +153,30 @@ def dashboard(request):
 # =========================================================
 
 def system_setup(request):
+    """Create the first administrator with a registered recovery email."""
     User = get_user_model()
+    admin_group, _ = Group.objects.get_or_create(name="System Administrator")
 
-    # Get or create the System Administrator group
-    admin_group, created = Group.objects.get_or_create(
-        name="System Administrator"
-    )
-
-    # Check whether a real active System Administrator exists
-    system_admin_exists = admin_group.user_set.filter(
-        is_active=True
+    # Do not allow public setup once an active main administrator exists.
+    main_admin_exists = SystemAdministrator.objects.filter(
+        is_main_admin=True, user__is_active=True
     ).exists()
+    if main_admin_exists or admin_group.user_set.filter(is_active=True).exists():
+        return render(request, "registration/setup_locked.html")
 
-    # If the system has already been initialized,
-    # prevent creation of another first administrator.
-    if system_admin_exists:
-        return render(
-            request,
-            "registration/setup_locked.html"
+    form = FirstAdminSetupForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        admin_group.user_set.add(user)
+        SystemAdministrator.objects.update_or_create(
+            user=user,
+            defaults={"is_main_admin": True},
         )
+        login(request, user)
+        messages.success(request, "Main Administrator account created successfully.")
+        return redirect("dashboard")
 
-    if request.method == "POST":
-
-        username = request.POST.get(
-            "username",
-            ""
-        ).strip()
-
-        password = request.POST.get(
-            "password",
-            ""
-        )
-
-        confirm_password = request.POST.get(
-            "confirm_password",
-            ""
-        )
-
-        # -----------------------------
-        # VALIDATION
-        # -----------------------------
-
-        if not username:
-            messages.error(
-                request,
-                "Please enter a username."
-            )
-
-        elif not password:
-            messages.error(
-                request,
-                "Please enter a password."
-            )
-
-        elif not confirm_password:
-            messages.error(
-                request,
-                "Please confirm your password."
-            )
-
-        elif password != confirm_password:
-            messages.error(
-                request,
-                "Passwords do not match."
-            )
-
-        elif len(password) < 8:
-            messages.error(
-                request,
-                "Password must be at least 8 characters."
-            )
-
-        elif User.objects.filter(
-            username=username
-        ).exists():
-            messages.error(
-                request,
-                "That username already exists."
-            )
-
-        else:
-
-            # -----------------------------
-            # CREATE FIRST ADMINISTRATOR
-            # -----------------------------
-
-            user = User.objects.create_user(
-                username=username,
-                password=password
-            )
-
-            user.is_staff = True
-            user.is_active = True
-
-            user.save()
-
-            # Add the account to the
-            # System Administrator group.
-            admin_group.user_set.add(user)
-
-            # Automatically log in the new administrator.
-            login(request, user)
-
-            messages.success(
-                request,
-                "System Administrator account created successfully."
-            )
-
-            return redirect("dashboard")
-
-    return render(
-        request,
-        "registration/setup.html"
-    )
+    return render(request, "registration/setup.html", {"form": form})
 
 # =========================================================
 # ADMIN ACCOUNT MANAGEMENT
@@ -275,65 +218,24 @@ def admin_accounts(request):
 @login_required
 @user_passes_test(is_system_admin)
 def admin_account_create(request):
-
     User = get_user_model()
+    admin_group, _ = Group.objects.get_or_create(name="System Administrator")
+    form = AdminAccountForm(request.POST or None)
 
-    admin_group, created = Group.objects.get_or_create(
-        name="System Administrator"
-    )
-
-    if request.method == "POST":
-
-        username = request.POST.get("username", "").strip()
-        password = request.POST.get("password", "")
-        confirm_password = request.POST.get("confirm_password", "")
-
-        if not username or not password or not confirm_password:
-            messages.error(
-                request,
-                "Please complete all fields."
-            )
-
-        elif password != confirm_password:
-            messages.error(
-                request,
-                "Passwords do not match."
-            )
-
-        elif len(password) < 8:
-            messages.error(
-                request,
-                "Password must be at least 8 characters."
-            )
-
-        elif User.objects.filter(username=username).exists():
-            messages.error(
-                request,
-                "That username already exists."
-            )
-
-        else:
-            user = User.objects.create_user(
-                username=username,
-                password=password
-            )
-
-            user.is_staff = True
-            user.is_active = True
-            user.save()
-
-            admin_group.user_set.add(user)
-
-            messages.success(
-                request,
-                f"Administrator account '{username}' created successfully."
-            )
-
-            return redirect("admin_accounts")
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        admin_group.user_set.add(user)
+        SystemAdministrator.objects.update_or_create(
+            user=user,
+            defaults={"is_main_admin": False},
+        )
+        messages.success(request, f"Administrator account '{user.username}' created successfully.")
+        return redirect("admin_accounts")
 
     return render(
         request,
-        "registration/admin_account_form.html"
+        "registration/admin_account_form.html",
+        {"form": form},
     )
 
 @login_required

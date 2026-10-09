@@ -1,288 +1,207 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Administrator Login</title>
+    <title>Login | Teacher Class Monitoring System</title>
 
     <style>
-
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: #f2f4f7;
-
+            margin: 0;
             min-height: 100vh;
-
             display: flex;
-            justify-content: center;
             align-items: center;
-
+            justify-content: center;
             padding: 20px;
+            background: #f5f7f6;
+            font-family: Arial, sans-serif;
+            color: #333;
         }
 
-        .login-container {
+        .card {
             width: 100%;
             max-width: 420px;
-
-            background: white;
-
-            padding: 40px;
-
+            background: #fff;
+            padding: 32px;
             border-radius: 12px;
-
-            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.12);
-        }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .logo-circle {
-            width: 75px;
-            height: 75px;
-
-            margin: auto;
-
-            border-radius: 50%;
-
-            background: #198754;
-
-            color: white;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            font-size: 30px;
-            font-weight: bold;
+            box-shadow: 0 3px 15px #00000015;
         }
 
         h1 {
             text-align: center;
+            color: #198754;
             font-size: 24px;
-            margin-bottom: 8px;
-            color: #222;
+            margin: 0 0 8px;
         }
 
-        .subtitle {
+        .intro {
             text-align: center;
-            color: #777;
-            margin-bottom: 30px;
+            color: #6c757d;
             font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 25px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        .field {
+            margin-bottom: 18px;
         }
 
         label {
             display: block;
-            margin-bottom: 7px;
-
-            font-size: 14px;
             font-weight: bold;
-
-            color: #333;
+            margin-bottom: 7px;
         }
 
         input {
             width: 100%;
-
             padding: 12px;
-
             border: 1px solid #ccc;
-
-            border-radius: 7px;
-
+            border-radius: 5px;
             font-size: 15px;
-
-            outline: none;
         }
 
         input:focus {
+            outline: none;
             border-color: #198754;
+            box-shadow: 0 0 0 2px #19875420;
         }
 
-        .login-button {
-            width: 100%;
-
-            padding: 13px;
-
-            border: none;
-
-            border-radius: 7px;
-
-            background: #198754;
-
-            color: white;
-
-            font-size: 16px;
-
-            font-weight: bold;
-
-            cursor: pointer;
-        }
-
-        .login-button:hover {
-            opacity: 0.9;
-        }
-
-        .forgot-password {
+        .forgot {
             display: block;
-
             text-align: right;
-
-            margin-top: -8px;
-            margin-bottom: 20px;
-
-            color: #198754;
-
+            margin: -5px 0 20px;
             font-size: 13px;
+        }
 
+        a {
+            color: #198754;
             text-decoration: none;
         }
 
-        .forgot-password:hover {
+        a:hover {
             text-decoration: underline;
+        }
+
+        button {
+            width: 100%;
+            border: 0;
+            border-radius: 5px;
+            background: #198754;
+            color: #fff;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #146c43;
         }
 
         .error {
             background: #f8d7da;
-
             color: #842029;
-
             padding: 10px;
-
-            border-radius: 6px;
-
-            margin-bottom: 20px;
-
+            border-radius: 5px;
+            margin-bottom: 15px;
             font-size: 14px;
-
-            text-align: center;
         }
 
-        .footer {
+        .setup-note {
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 1px solid #eee;
             text-align: center;
-
-            margin-top: 25px;
-
-            font-size: 12px;
-
-            color: #888;
+            color: #6c757d;
+            font-size: 13px;
+            line-height: 1.6;
         }
 
         @media (max-width: 500px) {
-
-            .login-container {
-                padding: 30px 20px;
-            }
-
-            h1 {
-                font-size: 21px;
+            .card {
+                padding: 24px 20px;
             }
         }
-
     </style>
 </head>
 
 <body>
+<main class="card">
 
-<div class="login-container">
+    <h1>Teacher Class Monitoring System</h1>
 
-    <div class="logo">
-        <div class="logo-circle">
-            TC
-        </div>
-    </div>
-
-    <h1>Teacher Class Monitoring</h1>
-
-    <p class="subtitle">
-        Administrator Login
+    <p class="intro">
+        Sign in to access the monitoring dashboard.
     </p>
 
-
-    {% if form.errors %}
-
-        <div class="error">
-            Username or password is incorrect.
-            Please try again.
-        </div>
-
+    {% if messages %}
+        {% for message in messages %}
+            <div class="error">{{ message }}</div>
+        {% endfor %}
     {% endif %}
 
+    {% if form.errors %}
+        <div class="error">
+            Invalid username or password. Please try again.
+        </div>
+    {% endif %}
+
+    {% if next %}
+        {% if user.is_authenticated %}
+            <div class="error">
+                Your account does not have permission to access that page.
+            </div>
+        {% endif %}
+    {% endif %}
 
     <form method="post">
-
         {% csrf_token %}
 
-        <div class="form-group">
-
-            <label for="id_username">
-                Username
-            </label>
-
+        <div class="field">
+            <label for="id_username">Username</label>
             <input
                 type="text"
                 name="username"
                 id="id_username"
-                placeholder="Enter username"
+                placeholder="Enter your username"
+                autocomplete="username"
                 required
                 autofocus
             >
-
         </div>
 
-
-        <div class="form-group">
-
-            <label for="id_password">
-                Password
-            </label>
-
+        <div class="field">
+            <label for="id_password">Password</label>
             <input
                 type="password"
                 name="password"
                 id="id_password"
-                placeholder="Enter password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
                 required
             >
-
         </div>
 
+        <input type="hidden" name="next" value="{{ next }}">
 
-        <a
-            href="{% url 'password_reset' %}"
-            class="forgot-password"
-        >
+        <a class="forgot" href="{% url 'password_reset' %}">
             Forgot Password?
         </a>
 
-
-        <button
-            type="submit"
-            class="login-button"
-        >
-            LOGIN
-        </button>
-
+        <button type="submit">Log In</button>
     </form>
 
-
-    <div class="footer">
-        Teacher Class Monitoring System
+    <div class="setup-note">
+        Main Administrator registration is available only when
+        the system has no active administrator account.
     </div>
 
-</div>
-
+</main>
 </body>
 </html>
