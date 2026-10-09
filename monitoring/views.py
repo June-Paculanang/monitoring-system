@@ -158,36 +158,22 @@ def dashboard(request):
 # =========================================================
 
 
+
 def system_setup(request):
-    """Allow first-time setup only when no administrator exists."""
+    """Allow the Dean to create the first Main Administrator account."""
 
-    User = get_user_model()
-
-    # Never allow public registration once any active superuser
-    # or System Administrator exists.
     admin_group, _ = Group.objects.get_or_create(
         name="System Administrator"
     )
 
-    active_superuser_exists = User.objects.filter(
-        is_superuser=True,
-        is_active=True,
-    ).exists()
-
-    active_main_admin_exists = SystemAdministrator.objects.filter(
+    # Check whether the Dean's Main Administrator account
+    # has already been registered.
+    main_admin_exists = SystemAdministrator.objects.filter(
         is_main_admin=True,
         user__is_active=True,
     ).exists()
 
-    active_admin_group_exists = admin_group.user_set.filter(
-        is_active=True,
-    ).exists()
-
-    if (
-        active_superuser_exists
-        or active_main_admin_exists
-        or active_admin_group_exists
-    ):
+    if main_admin_exists:
         return render(
             request,
             "registration/setup_locked.html",
