@@ -211,30 +211,31 @@ def system_setup(request):
 # ADMIN ACCOUNT MANAGEMENT
 # =========================================================
 
+
 def is_system_admin(user):
     if not user.is_authenticated:
         return False
 
+    # Technical Django superuser
     if user.is_superuser:
         return True
 
+    # Only the Dean/Main Administrator can manage admin accounts
     return SystemAdministrator.objects.filter(
-        user=user
+        user=user,
+        is_main_admin=True,
     ).exists()
 
 @login_required
-@user_passes_test(lambda user: user.is_superuser)
+@user_passes_test(is_system_admin)
 def admin_accounts(request):
-
     User = get_user_model()
 
-    admin_group, created = Group.objects.get_or_create(
+    admin_group, _ = Group.objects.get_or_create(
         name="System Administrator"
     )
 
-    admins = admin_group.user_set.all().order_by(
-        "username"
-    )
+    admins = admin_group.user_set.all().order_by("username")
 
     return render(
         request,
@@ -243,6 +244,7 @@ def admin_accounts(request):
             "admins": admins,
         }
     )
+
 
 @login_required
 @user_passes_test(is_system_admin)
