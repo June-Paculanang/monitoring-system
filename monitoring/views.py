@@ -2673,77 +2673,332 @@ def _windows_printers():
 
     return printers
 
-def _get_report_template(template_id=None):
-    """
-    Return the exact Excel report template selected
-    by the user.
 
-    Instructor classification does NOT determine
-    the report layout.
+def _get_report_template(template_id=None, classification="ALL"):
     """
+    Select the actual uploaded Excel template.
 
+    Classification filters the report's records and heading.
+    It does NOT select a different template based on its filename.
+    """
     from pathlib import Path
 
-    if not template_id:
+    templates = ReportTemplate.objects.all()
+    template = None
 
-        raise ValueError(
-            "Please choose a report layout before "
-            "generating the report."
-        )
+    if template_id:
+        try:
+            template = templates.get(pk=template_id)
+        except (
+            ReportTemplate.DoesNotExist,
+            ValueError,
+            TypeError,
+        ):
+            template = None
 
-    try:
-
+    # If no valid template was explicitly selected, use the active one.
+    if template is None:
         template = (
-            ReportTemplate.objects.get(
-                pk=template_id
-            )
+            templates
+            .filter(is_active=True)
+            .exclude(file="")
+            .first()
         )
 
-    except ReportTemplate.DoesNotExist:
+    # Last fallback: use any uploaded template.
+    if template is None:
+        template = (
+            templates
+            .exclude(file="")
+            .first()
+        )
 
+    if template is None:
         raise ValueError(
-            "The selected report layout "
-            "could not be found."
+            "No uploaded Excel report template was found. "
+            "Upload an Excel template and activate it in Report Templates."
         )
 
     if not template.file:
-
         raise ValueError(
-            "The selected report layout "
-            "does not contain a file."
+            "The selected report template does not contain a file."
         )
 
     try:
-
-        template_path = Path(
-            template.file.path
-        )
-
+        template_path = Path(template.file.path)
     except Exception as exc:
-
         raise ValueError(
-            "The selected report layout file "
-            "could not be accessed."
+            "The selected report template file could not be accessed."
         ) from exc
 
     if not template_path.exists():
-
         raise ValueError(
-            "The selected report layout file "
-            "could not be found."
+            "The selected report template file could not be found."
         )
 
     if template_path.suffix.lower() != ".xlsx":
-
         raise ValueError(
-            "The selected report layout must "
-            "be an Excel .xlsx file."
+            "The report template must be an Excel .xlsx file."
         )
 
-    return (
-        template,
-        template_path,
+    return template, template_path
+
+
+def _update_template_classification_heading(
+    worksheet,
+    header_rows,
+    classification="ALL",
+):
+    """
+    Update the existing classification heading in the uploaded template.
+
+    Examples:
+        PART-TIME INSTRUCTORS
+            -> REGULAR AND PART-TIME INSTRUCTORS (ALL)
+
+        PART-TIME INSTRUCTORS
+            -> PART-TIME INSTRUCTORS (PART_TIME)
+
+        PART-TIME INSTRUCTORS
+            -> REGULAR INSTRUCTORS (REGULAR)
+
+    Existing wording, capitalization style, surrounding heading text,
+    and cell formatting are retained as far as possible.
+
+    This function does not create a new report title.
+    """
+
+    import re
+
+    classification = (
+        classification or "ALL"
+    ).strip().upper()
+
+    if classification not in {
+        "ALL",
+        "PART_TIME",
+        "REGULAR",
+    }:
+        classification = "ALL"
+
+    category_pattern = (
+        r"(?:PART[\s-]*TIME|FULL[\s-]*TIME|REGULAR)"
     )
+
+    section_heading_pattern = re.compile(
+        rf"(?P<categories>{category_pattern}"
+        rf"(?:\s*(?:AND|&)\s*{category_pattern})*)"
+        rf"\s+(?P<noun>INSTRUCTORS?|FACULTY|TEACHERS?)\b",
+        re.IGNORECASE,
+    )
+
+    category_token_pattern = re.compile(
+        category_pattern,
+        re.IGNORECASE,
+    )
+
+    def match_case(value, reference):
+        if reference.isupper():
+            return value.upper()
+
+        if reference.islower():
+            return value.lower()
+
+        # For headings such as "Part-Time Instructors".
+        return value.title()
+
+    def get_category_details(category_text):
+        tokens = category_token_pattern.findall(
+            category_text or ""
+        )
+
+        part_token = next(
+            (
+                token for token in tokens
+                if re.match(
+                    r"PART[\s-]*TIME",
+                    token,
+                    re.IGNORECASE,
+                )
+            ),
+            None,
+        )
+
+        full_token = next(
+            (
+                token for token in tokens
+                if re.match(
+                    r"FULL[\s-]*TIME",
+                    token,
+                    re.IGNORECASE,
+                )
+            ),
+            None,
+        )
+
+        regular_token = next(
+            (
+                token for token in tokens
+                if token.upper() == "REGULAR"
+            ),
+            None,
+        )
+
+        reference = tokens[0] if tokens else "PART-TIME"
+
+        # Retain the template's existing spelling where available.
+        if part_token:
+            part_label = part_token
+        else:
+            separator = (
+                "-"
+                if any("-" in token for token in tokens)
+                else " "
+            )
+
+            part_label = match_case(
+                f"PART{separator}TIME",
+                reference,
+            )
+
+        if regular_token:
+            regular_label = regular_token
+        elif full_token:
+            regular_label = full_token
+        else:
+            regular_label = match_case(
+                "REGULAR",
+                reference,
+            )
+
+        return {
+            "part_label": part_label,
+            "regular_label": regular_label,
+            "reference": reference,
+            "tokens": tokens,
+        }
+
+    def build_new_label(match):
+        category_text = match.group("categories")
+        noun = match.group("noun")
+
+        details = get_category_details(category_text)
+
+        part_label = details["part_label"]
+        regular_label = details["regular_label"]
+        reference = details["reference"]
+        tokens = details["tokens"]
+
+        if classification == "PART_TIME":
+            new_categories = part_label
+
+        elif classification == "REGULAR":
+            new_categories = regular_label
+
+        else:
+            # If the uploaded template already contains both types,
+            # retain its existing category wording.
+            has_part_time = any(
+                re.match(
+                    r"PART[\s-]*TIME",
+                    token,
+                    re.IGNORECASE,
+                )
+                for token in tokens
+            )
+
+            has_regular_type = any(
+                re.match(
+                    r"(?:FULL[\s-]*TIME|REGULAR)",
+                    token,
+                    re.IGNORECASE,
+                )
+                for token in tokens
+            )
+
+            if has_part_time and has_regular_type:
+                return match.group(0)
+
+            # Otherwise, form the combined heading using the wording
+            # available in the uploaded template.
+            if reference.isupper():
+                conjunction = " AND "
+            elif reference.islower():
+                conjunction = " and "
+            else:
+                conjunction = " and "
+
+            new_categories = (
+                regular_label
+                + conjunction
+                + part_label
+            )
+
+        return f"{new_categories} {noun}"
+
+    # Locate a classification heading above the table's column headings.
+    # This avoids changing arbitrary text throughout the workbook.
+    if not header_rows:
+        return
+
+    table_header_row = min(header_rows)
+    candidates = []
+
+    for row in worksheet.iter_rows():
+        for cell in row:
+            if not isinstance(cell.value, str):
+                continue
+
+            match = section_heading_pattern.search(
+                cell.value
+            )
+
+            if not match:
+                continue
+
+            # Prefer the closest matching heading above the table header.
+            if cell.row <= table_header_row:
+                distance = table_header_row - cell.row
+                priority = 0
+            else:
+                distance = cell.row - table_header_row
+                priority = 1
+
+            candidates.append(
+                (
+                    priority,
+                    distance,
+                    cell,
+                    match,
+                )
+            )
+
+    if not candidates:
+        # The uploaded template has no recognisable classification
+        # heading, so leave its existing layout and title untouched.
+        return
+
+    candidates.sort(
+        key=lambda item: (
+            item[0],
+            item[1],
+        )
+    )
+
+    _, _, target_cell, match = candidates[0]
+
+    original_text = target_cell.value
+    new_label = build_new_label(match)
+
+    target_cell.value = (
+        original_text[:match.start()]
+        + new_label
+        + original_text[match.end():]
+    )
+
+# ==========================================
+# REPORT PRINT PAGE / WINDOWS PRINTING
+# ==========================================
 
 @login_required
 def report_printers(request):
@@ -2837,73 +3092,127 @@ def _instructor_name_matches(
         or django_name.startswith(template_name)
     )
 
+# =============================================================
+# REPORT GENERATION — COMPLETE CORRECTED REPLACEMENT
+# =============================================================
+
+def _report_template_id(request):
+    """Read the optional uploaded ReportTemplate primary key."""
+    value = _request_value(request, "template_id", "")
+    return str(value or "").strip() or None
+
+
+def _checked_report_build_result(result, function_name):
+    """Validate report builder results before unpacking them."""
+    if not isinstance(result, (tuple, list)) or len(result) != 3:
+        raise RuntimeError(
+            f"{function_name} must return "
+            "(output_path, temp_dir, template). "
+            "Check for a missing return statement or duplicate function."
+        )
+
+    output_path, temp_dir, template = result
+
+    if not output_path or not temp_dir:
+        raise RuntimeError(
+            f"{function_name} did not return both "
+            "output_path and temp_dir."
+        )
+
+    return output_path, temp_dir, template
+
+
+def _report_last_name_sort_key(name):
+    """Sort instructors by surname, including 'Surname, Given' names."""
+    name = " ".join(str(name or "").split())
+
+    if not name:
+        return ("", "", "")
+
+    if "," in name:
+        surname, given = name.split(",", 1)
+        return (
+            surname.strip().casefold(),
+            given.strip().casefold(),
+            name.casefold(),
+        )
+
+    parts = name.split()
+
+    if len(parts) == 1:
+        return (parts[0].casefold(), "", name.casefold())
+
+    return (
+        parts[-1].casefold(),
+        " ".join(parts[:-1]).casefold(),
+        name.casefold(),
+    )
+
+
+# =============================================================
+# EXCEL REPORT BUILDER
+# =============================================================
+
 def _build_report_excel_file(
     records,
     week_start,
     week_end,
-    template_id,
+    template_id=None,
+    classification="ALL",
+    settings=None,
 ):
     """
-    Build the report from the ACTIVE uploaded Excel template.
+    Generate an Excel monitoring report from an uploaded template.
 
-    IMPORTANT:
-    - The Excel file is the master layout.
-    - Python does NOT create report headers/columns.
-    - Python does NOT define colors, borders, widths, merged cells,
-      page layout, semester, school year, etc.
-    - The template controls all of those things.
-    - Python only replaces {{PLACEHOLDERS}} with system data.
+    Returns:
+        (output_xlsx, temp_dir, template)
 
-    Template placeholders:
-
-        {{WEEK_START}}
-        {{WEEK_END}}
-        {{WEEK}}
-        {{INSTRUCTOR}}
-        {{SUBJECT}}
-        {{TIME}}
-        {{DAY}}
-        {{ROOM}}
-        {{ACTUAL_ROOM}}
-        {{MONITORING_TIME}}
-        {{SIGNATURE}}
-        {{REMARKS}}
-
-    For a repeating monitoring row, put the placeholders on ONE
-    template row. The system will copy that row for every record.
+    The selected uploaded Excel workbook is used as the layout base.
+    Instructor names are merged vertically when an instructor has
+    multiple monitoring records.
     """
 
     import os
     import re
     import shutil
     import tempfile
-
     from copy import copy
-    from pathlib import Path
+    from itertools import groupby
 
+    from django.utils import timezone
     from openpyxl import load_workbook
-    from openpyxl.formula.translate import Translator
+    from openpyxl.cell.cell import MergedCell
+    from openpyxl.styles import Alignment
+    from openpyxl.utils import get_column_letter
 
-    # ==========================================================
-    # 1. GET USER-SELECTED UPLOADED TEMPLATE
-    # ==========================================================
+    record_list = list(records or [])
 
-    template, template_path = _get_report_template(
-        template_id
-    )
-
-    extension = os.path.splitext(
-        str(template_path)
-    )[1].lower()
-
-    if extension != ".xlsx":
+    if not record_list:
         raise ValueError(
-            "The active report template must be an .xlsx Excel file."
+            "No monitoring records match the selected week, "
+            "classification, search, and selected-record filters."
         )
 
-    # ==========================================================
-    # 2. CREATE TEMPORARY WORKING DIRECTORY
-    # ==========================================================
+    classification = (classification or "ALL").strip().upper()
+
+    # Get the selected uploaded template, or automatically select one
+    # based on classification when template_id is not provided.
+    template, template_path = _get_report_template(
+        template_id=template_id,
+        classification=classification,
+    )
+
+    template_path = str(template_path)
+
+    if os.path.splitext(template_path)[1].lower() != ".xlsx":
+        raise ValueError(
+            "The selected report template must be an .xlsx file."
+        )
+
+    if not os.path.isfile(template_path):
+        raise FileNotFoundError(
+            "The selected Excel report template was not found."
+        )
 
     temp_dir = tempfile.mkdtemp(
         prefix="teacher_monitoring_report_"
@@ -2911,1784 +3220,1163 @@ def _build_report_excel_file(
 
     output_xlsx = os.path.join(
         temp_dir,
-        "Monitoring_Report.xlsx"
+        "Monitoring_Report.xlsx",
     )
 
-    # ==========================================================
-    # 3. COPY THE ORIGINAL TEMPLATE
-    # ==========================================================
+    workbook = None
 
-    shutil.copy2(
-        str(template_path),
-        output_xlsx
-    )
+    try:
+        # Work on a copy. Never modify the original uploaded template.
+        shutil.copy2(template_path, output_xlsx)
 
-    # ==========================================================
-    # 4. OPEN THE COPIED TEMPLATE
-    # ==========================================================
-
-    workbook = load_workbook(
-        output_xlsx,
-        data_only=False
-    )
-
-    # ==========================================================
-    # 5. DATE VALUES
-    # ==========================================================
-
-    week_start_text = week_start.strftime(
-        "%B %d, %Y"
-    )
-
-    week_end_text = week_end.strftime(
-        "%B %d, %Y"
-    )
-
-    week_text = (
-        f"{week_start_text} - {week_end_text}"
-    )
-
-    # ==========================================================
-    # 6. CREATE DATA FOR EACH MONITORING RECORD
-    # ==========================================================
-
-    def build_record_data(record):
-
-        schedule = getattr(
-            record,
-            "schedule",
-            None
+        workbook = load_workbook(
+            output_xlsx,
+            data_only=False,
         )
 
-        if not schedule:
-            return {}
+        aliases = {
+            "INSTRUCTOR": {
+                "NAME",
+                "INSTRUCTOR",
+                "INSTRUCTOR NAME",
+                "FACULTY NAME",
+                "TEACHER NAME",
+                "NAME OF INSTRUCTOR",
+                "FACULTY",
+            },
+            "SUBJECT": {
+                "SUBJECT",
+                "SUBJECT CODE",
+                "COURSE",
+                "SUBJECT / COURSE",
+            },
+            "TIME": {
+                "TIME",
+                "CLASS TIME",
+                "SCHEDULED TIME",
+                "ORIGINAL TIME",
+            },
+            "DAY": {
+                "DAY",
+                "CLASS DAY",
+            },
+            "ROOM": {
+                "ROOM",
+                "ROOM USED",
+                "ACTUAL ROOM",
+                "ACTUAL ROOM USED",
+            },
+            "MONITORING_TIME": {
+                "MONITORING TIME",
+                "DATE & TIME",
+                "DATE AND TIME",
+                "DATE & TIME MONITORED",
+                "ACTUAL TIME",
+                "MONITORED AT",
+            },
+            "SIGNATURE": {
+                "SIGNATURE",
+                "INSTRUCTOR SIGNATURE",
+            },
+            "REMARKS": {
+                "REMARKS",
+                "REMARK",
+                "STATUS",
+            },
+        }
 
-        instructor = getattr(
-            schedule,
-            "instructor",
-            None
-        )
+        def normalize_heading(value):
+            if value is None:
+                return ""
 
-        subject = getattr(
-            schedule,
-            "subject",
-            None
-        )
-
-        room = getattr(
-            schedule,
-            "room",
-            None
-        )
-
-        # ------------------------------------------------------
-        # INSTRUCTOR
-        # ------------------------------------------------------
-
-        instructor_name = str(
-            getattr(
-                instructor,
-                "name",
-                ""
-            ) or ""
-        ).strip()
-
-        # ------------------------------------------------------
-        # SUBJECT
-        # ------------------------------------------------------
-
-        subject_code = str(
-            getattr(
-                subject,
-                "subject_code",
-                ""
-            ) or ""
-        ).strip()
-
-        subject_name = str(
-            getattr(
-                subject,
-                "subject_name",
-                ""
-            ) or ""
-        ).strip()
-
-        if subject_code and subject_name:
-            subject_text = (
-                f"{subject_code} - {subject_name}"
-            )
-        else:
-            subject_text = (
-                subject_code
-                or subject_name
+            return re.sub(
+                r"\s+",
+                " ",
+                str(value).replace("\n", " ").strip().upper(),
             )
 
-        # ------------------------------------------------------
-        # SCHEDULED TIME
-        # ------------------------------------------------------
+        # The actual uploaded templates use a TWO-ROW table heading:
+        # row 2 contains NAME, while row 3 contains SUBJECT, TIME, DAY,
+        # SIGNATURE, and REMARKS. Some templates also repeat these labels
+        # between instructor groups. Therefore, scan each possible NAME
+        # row together with the next two rows instead of requiring every
+        # heading to be on the same row.
+        worksheet = None
+        header_row = None
+        header_map = {}
+        header_rows = set()
+        best_score = 0
 
-        start_time = getattr(
-            schedule,
-            "start_time",
-            None
-        )
+        for sheet in workbook.worksheets:
+            for candidate_row in range(1, sheet.max_row + 1):
+                candidate_map = {}
+                candidate_header_rows = set()
 
-        end_time = getattr(
-            schedule,
-            "end_time",
-            None
-        )
+                # The instructor/name heading can be on its own row,
+                # with the remaining column headings on the next row(s).
+                scan_end = min(sheet.max_row, candidate_row + 2)
 
-        if start_time and end_time:
+                for scan_row in range(candidate_row, scan_end + 1):
+                    for cell in sheet[scan_row]:
+                        heading = normalize_heading(cell.value)
 
-            scheduled_time = (
-                start_time.strftime("%I:%M %p")
-                + " - "
-                + end_time.strftime("%I:%M %p")
+                        if not heading:
+                            continue
+
+                        for field, choices in aliases.items():
+                            if (
+                                heading in choices
+                                and field not in candidate_map
+                            ):
+                                candidate_map[field] = cell.column
+                                candidate_header_rows.add(scan_row)
+
+                score = len(candidate_map)
+
+                if (
+                    "INSTRUCTOR" in candidate_map
+                    and score >= 3
+                    and score > best_score
+                ):
+                    worksheet = sheet
+                    header_map = candidate_map
+                    header_rows = candidate_header_rows
+                    # The data starts after the LAST row used by the
+                    # detected column headings, not after the NAME row.
+                    header_row = max(candidate_header_rows)
+                    best_score = score
+
+        if worksheet is None or header_row is None:
+            # Include useful diagnostics: list the visible non-empty
+            # cells from the first few rows of each sheet.
+            sheet_details = []
+
+            for sheet in workbook.worksheets:
+                sample_rows = []
+
+                for row in sheet.iter_rows(
+                    min_row=1,
+                    max_row=min(sheet.max_row, 6),
+                ):
+                    values = [
+                        str(cell.value).replace("\\n", " ").strip()
+                        for cell in row
+                        if cell.value is not None
+                    ]
+
+                    if values:
+                        sample_rows.append(
+                            f"Row {row[0].row}: " + " | ".join(values[:10])
+                        )
+
+                sheet_details.append(
+                    f"{sheet.title}: " + "; ".join(sample_rows)
+                )
+
+            raise ValueError(
+                "Could not recognize the report table headings in the "
+                "selected Excel template. The template may place NAME on "
+                "one row and SUBJECT/TIME/DAY/SIGNATURE/REMARKS on the next. "
+                "Detected worksheet contents: "
+                + " || ".join(sheet_details)
             )
 
-        else:
+        # Keep the title and headings exactly as they appear in the
+        # uploaded Excel template. Do not hard-code title text here.
+        data_start = header_row + 1
+        name_column = header_map["INSTRUCTOR"]
+
+        # Remove existing sample-data merges while preserving merges
+        # located above the report's data rows.
+        for merged_range in list(worksheet.merged_cells.ranges):
+            if merged_range.max_row >= data_start:
+                worksheet.unmerge_cells(str(merged_range))
+
+        original_max_row = worksheet.max_row
+
+        original_max_column = max(
+            worksheet.max_column,
+            max(header_map.values()),
+        )
+
+        # Capture the formatting of the template's first data row.
+        source_styles = {}
+
+        style_source_row = data_start
+
+        source_height = worksheet.row_dimensions[
+            style_source_row
+        ].height
+
+        for col in range(1, original_max_column + 1):
+            cell = worksheet.cell(style_source_row, col)
+
+            if isinstance(cell, MergedCell):
+                continue
+
+            source_styles[col] = {
+                "style": copy(cell._style) if cell.has_style else None,
+                "number_format": cell.number_format,
+                "alignment": copy(cell.alignment),
+                "protection": copy(cell.protection),
+            }
+
+        # ---------------------------------------------------------
+        # EXTRACT VALUES FROM MONITORING RECORDS
+        # ---------------------------------------------------------
+
+        def extract_values(record):
+            schedule = getattr(record, "schedule", None)
+
+            instructor = (
+                getattr(schedule, "instructor", None)
+                if schedule else None
+            )
+
+            subject = (
+                getattr(schedule, "subject", None)
+                if schedule else None
+            )
+
+            room = (
+                getattr(schedule, "room", None)
+                if schedule else None
+            )
+
+            instructor_name = str(
+                getattr(instructor, "name", "") or ""
+            ).strip()
+
+            subject_code = str(
+                getattr(subject, "subject_code", "") or ""
+            ).strip()
+
+            subject_name = str(
+                getattr(subject, "subject_name", "") or ""
+            ).strip()
+
+            if subject_code and subject_name:
+                subject_text = (
+                    f"{subject_code} - {subject_name}"
+                )
+            else:
+                subject_text = subject_code or subject_name
+
+            start_time = (
+                getattr(schedule, "start_time", None)
+                if schedule else None
+            )
+
+            end_time = (
+                getattr(schedule, "end_time", None)
+                if schedule else None
+            )
 
             scheduled_time = ""
 
-        # ------------------------------------------------------
-        # DAY
-        # ------------------------------------------------------
+            if start_time and end_time:
+                scheduled_time = (
+                    f"{start_time.strftime('%I:%M %p')} - "
+                    f"{end_time.strftime('%I:%M %p')}"
+                )
 
-        try:
+            if schedule:
+                try:
+                    day_text = schedule.get_day_display()
+                except Exception:
+                    day_text = str(
+                        getattr(schedule, "day", "") or ""
+                    )
+            else:
+                day_text = ""
 
-            day_text = (
-                schedule.get_day_display()
-            )
+            assigned_room = str(
+                getattr(room, "room_name", "") or ""
+            ).strip()
 
-        except Exception:
+            actual_room = str(
+                getattr(record, "transfer_room", "") or ""
+            ).strip()
 
-            day_text = str(
-                getattr(
-                    schedule,
-                    "day",
-                    ""
-                ) or ""
-            )
+            room_text = actual_room or assigned_room
 
-        # ------------------------------------------------------
-        # ROOM
-        # ------------------------------------------------------
-
-        assigned_room = str(
-            getattr(
-                room,
-                "room_name",
-                ""
-            ) or ""
-        ).strip()
-
-        actual_room = str(
-            getattr(
+            record_datetime = getattr(
                 record,
-                "transfer_room",
-                ""
-            ) or ""
-        ).strip()
-
-        if not actual_room:
-            actual_room = assigned_room
-
-        # ------------------------------------------------------
-        # MONITORING DATE/TIME
-        # ------------------------------------------------------
-
-        record_datetime = getattr(
-            record,
-            "record_datetime",
-            None
-        )
-
-        if record_datetime:
-
-            monitoring_time = timezone.localtime(
-                record_datetime
-            ).strftime(
-                "%B %d, %Y %I:%M %p"
+                "record_datetime",
+                None,
             )
-
-        else:
 
             monitoring_time = ""
 
-        # ------------------------------------------------------
-        # SIGNATURE
-        # ------------------------------------------------------
+            if record_datetime:
+                if timezone.is_aware(record_datetime):
+                    record_datetime = timezone.localtime(
+                        record_datetime
+                    )
 
-        signature = str(
-            getattr(
-                record,
-                "signature",
-                ""
-            ) or ""
-        ).strip()
+                monitoring_time = record_datetime.strftime(
+                    "%B %d, %Y - %I:%M %p"
+                )
 
-        # ------------------------------------------------------
-        # REMARKS
-        # ------------------------------------------------------
+            remarks = str(
+                getattr(record, "remarks", "") or ""
+            ).strip()
 
-        remarks = str(
-            getattr(
-                record,
-                "remarks",
-                ""
-            ) or ""
-        ).strip()
+            other_remarks = str(
+                getattr(record, "other_remarks", "") or ""
+            ).strip()
 
-        other_remarks = str(
-            getattr(
-                record,
-                "other_remarks",
-                ""
-            ) or ""
-        ).strip()
+            missed_reason = str(
+                getattr(record, "missed_reason", "") or ""
+            ).strip()
 
-        missed_reason = str(
-            getattr(
-                record,
-                "missed_reason",
-                ""
-            ) or ""
-        ).strip()
+            if remarks == "Not Monitored" and other_remarks:
+                remarks = f"{remarks} - {other_remarks}"
 
-        if remarks == "Not Monitored" and other_remarks:
+            elif remarks == "Missed" and missed_reason:
+                remarks = f"{remarks} - {missed_reason}"
 
-            remarks_text = (
-                f"{remarks} - {other_remarks}"
+            elif other_remarks:
+                remarks = (
+                    f"{remarks} - {other_remarks}"
+                    if remarks else other_remarks
+                )
+
+            elif missed_reason:
+                remarks = (
+                    f"{remarks} - {missed_reason}"
+                    if remarks else missed_reason
+                )
+
+            return {
+                "INSTRUCTOR": instructor_name,
+                "SUBJECT": subject_text,
+                "TIME": scheduled_time,
+                "DAY": str(day_text or ""),
+                "ROOM": room_text,
+                "MONITORING_TIME": monitoring_time,
+                "SIGNATURE": str(
+                    getattr(record, "signature", "") or ""
+                ).strip(),
+                "REMARKS": remarks,
+            }
+
+        record_pairs = [
+            (record, extract_values(record))
+            for record in record_list
+        ]
+
+        # Alphabetize by instructor surname, then given name.
+        record_pairs.sort(
+            key=lambda pair: (
+                _report_last_name_sort_key(
+                    pair[1]["INSTRUCTOR"]
+                ),
+                str(
+                    getattr(pair[0], "record_datetime", "") or ""
+                ),
+                getattr(pair[0], "pk", 0) or 0,
+            )
+        )
+
+        total_records = len(record_pairs)
+
+        clear_until = max(
+            original_max_row,
+            data_start + total_records - 1,
+        )
+
+        # Clear old sample values before inserting the current report.
+        for row_number in range(data_start, clear_until + 1):
+            for col in range(1, original_max_column + 1):
+                cell = worksheet.cell(row_number, col)
+
+                if not isinstance(cell, MergedCell):
+                    cell.value = None
+
+        # ---------------------------------------------------------
+        # WRITE RECORDS AND GROUP EACH INSTRUCTOR'S ROWS
+        # ---------------------------------------------------------
+
+        row_groups = []
+        current_row = data_start
+
+        grouped_records = groupby(
+            record_pairs,
+            key=lambda pair: pair[1]["INSTRUCTOR"].casefold(),
+        )
+
+        for _, grouped_items in grouped_records:
+            grouped_items = list(grouped_items)
+
+            group_start = current_row
+            group_end = group_start + len(grouped_items) - 1
+
+            instructor_name = grouped_items[0][1]["INSTRUCTOR"]
+
+            row_groups.append(
+                (group_start, group_end, instructor_name)
             )
 
-        elif remarks == "Missed" and missed_reason:
+            for _record, values in grouped_items:
+                if source_height is not None:
+                    worksheet.row_dimensions[
+                        current_row
+                    ].height = source_height
 
-            remarks_text = (
-                f"{remarks} - {missed_reason}"
+                # Apply the uploaded template's row formatting.
+                for col, info in source_styles.items():
+                    cell = worksheet.cell(current_row, col)
+
+                    if isinstance(cell, MergedCell):
+                        continue
+
+                    if info["style"] is not None:
+                        cell._style = copy(info["style"])
+
+                    cell.number_format = info["number_format"]
+                    cell.alignment = copy(info["alignment"])
+                    cell.protection = copy(info["protection"])
+
+                # Populate the columns that actually exist in the template.
+                for field, col in header_map.items():
+                    if field == "INSTRUCTOR":
+                        continue
+
+                    worksheet.cell(
+                        current_row,
+                        col,
+                    ).value = values.get(field, "")
+
+                current_row += 1
+
+        # One vertically merged NAME cell per instructor.
+        for group_start, group_end, instructor_name in row_groups:
+            if group_end > group_start:
+                worksheet.merge_cells(
+                    start_row=group_start,
+                    start_column=name_column,
+                    end_row=group_end,
+                    end_column=name_column,
+                )
+
+            name_cell = worksheet.cell(
+                group_start,
+                name_column,
             )
 
-        elif other_remarks:
-
-            remarks_text = (
-                f"{remarks} - {other_remarks}"
-                if remarks
-                else other_remarks
+            name_cell.value = instructor_name
+            name_cell.alignment = Alignment(
+                horizontal="center",
+                vertical="center",
+                wrap_text=True,
             )
 
-        elif missed_reason:
-
-            remarks_text = (
-                f"{remarks} - {missed_reason}"
-                if remarks
-                else missed_reason
-            )
-
-        else:
-
-            remarks_text = remarks
-
-        # ------------------------------------------------------
-        # RETURN PLACEHOLDER DATA
-        # ------------------------------------------------------
-
-        return {
-            "{{WEEK_START}}": week_start_text,
-            "{{WEEK_END}}": week_end_text,
-            "{{WEEK}}": week_text,
-
-            "{{INSTRUCTOR}}": instructor_name,
-            "{{SUBJECT}}": subject_text,
-            "{{TIME}}": scheduled_time,
-            "{{DAY}}": str(day_text or ""),
-            "{{ROOM}}": assigned_room,
-            "{{ACTUAL_ROOM}}": actual_room,
-
-            "{{MONITORING_TIME}}": monitoring_time,
-            "{{SIGNATURE}}": signature,
-            "{{REMARKS}}": remarks_text,
+        # Replace supported week placeholders without changing other
+        # headings, titles, or wording in the selected uploaded template.
+        replacements = {
+            "{{WEEK_START}}": week_start.strftime("%B %d, %Y"),
+            "{{WEEK_END}}": week_end.strftime("%B %d, %Y"),
+            "{{WEEK}}": (
+                f"{week_start:%B %d, %Y} - "
+                f"{week_end:%B %d, %Y}"
+            ),
         }
 
-    # ==========================================================
-    # 7. BUILD DATA LIST
-    # ==========================================================
-
-    record_data = []
-
-    for record in records:
-
-        data = build_record_data(
-            record
-        )
-
-        if data:
-            record_data.append(data)
-
-    # ==========================================================
-    # 8. PLACEHOLDER REGEX
-    # ==========================================================
-
-    placeholder_pattern = re.compile(
-        r"\{\{[A-Z0-9_]+\}\}"
-    )
-
-    # ==========================================================
-    # 9. REPLACE SIMPLE PLACEHOLDERS
-    # ==========================================================
-
-    def replace_placeholders_in_workbook():
-
-        for worksheet in workbook.worksheets:
-
-            for row in worksheet.iter_rows():
-
+        for sheet in workbook.worksheets:
+            for row in sheet.iter_rows():
                 for cell in row:
-
-                    value = cell.value
-
-                    if not isinstance(
-                        value,
-                        str
+                    if (
+                        isinstance(cell, MergedCell)
+                        or not isinstance(cell.value, str)
                     ):
                         continue
 
-                    matches = (
-                        placeholder_pattern.findall(
-                            value
-                        )
-                    )
+                    new_value = cell.value
 
-                    if not matches:
-                        continue
-
-                    new_value = value
-
-                    for placeholder in matches:
-
-                        # This is a header/week/global
-                        # placeholder, so use the first
-                        # record's data if available.
-                        replacement = ""
-
-                        if record_data:
-
-                            replacement = (
-                                record_data[0]
-                                .get(
-                                    placeholder,
-                                    ""
-                                )
-                            )
-
-                        else:
-
-                            global_values = {
-                                "{{WEEK_START}}":
-                                    week_start_text,
-
-                                "{{WEEK_END}}":
-                                    week_end_text,
-
-                                "{{WEEK}}":
-                                    week_text,
-                            }
-
-                            replacement = (
-                                global_values.get(
-                                    placeholder,
-                                    ""
-                                )
-                            )
-
+                    for placeholder, replacement in replacements.items():
                         new_value = new_value.replace(
                             placeholder,
-                            str(
-                                replacement
-                                or ""
-                            )
+                            replacement,
                         )
 
-                    cell.value = new_value
+                    if new_value != cell.value:
+                        cell.value = new_value
 
-    # ==========================================================
-    # 10. FIND THE REPEATING DATA ROW
-    # ==========================================================
-
-    detail_row = None
-
-    detail_placeholders = {
-        "{{INSTRUCTOR}}",
-        "{{SUBJECT}}",
-        "{{TIME}}",
-        "{{DAY}}",
-        "{{ROOM}}",
-        "{{ACTUAL_ROOM}}",
-        "{{MONITORING_TIME}}",
-        "{{SIGNATURE}}",
-        "{{REMARKS}}",
-    }
-
-    for worksheet in workbook.worksheets:
-
-        for row in worksheet.iter_rows():
-
-            row_placeholders = set()
-
-            for cell in row:
-
-                value = cell.value
-
-                if not isinstance(
-                    value,
-                    str
-                ):
-                    continue
-
-                matches = (
-                    placeholder_pattern.findall(
-                        value
-                    )
-                )
-
-                row_placeholders.update(
-                    matches
-                )
-
-            if row_placeholders.intersection(
-                detail_placeholders
-            ):
-
-                detail_row = (
-                    worksheet,
-                    row[0].row
-                )
-
-                break
-
-        if detail_row:
-            break
-
-    # ==========================================================
-    # 11. FUNCTION TO COPY A COMPLETE EXCEL ROW
-    # ==========================================================
-
-    def copy_row_with_style(
-        worksheet,
-        source_row,
-        target_row
-    ):
-        """
-        Copy the template row exactly enough for normal Excel
-        report templates.
-
-        This copies:
-        - values
-        - formulas
-        - font
-        - fill
-        - border
-        - alignment
-        - number format
-        - protection
-        - comments
-        - row height
-        """
-
-        source_dimension = worksheet.row_dimensions[
-            source_row
-        ]
-
-        target_dimension = worksheet.row_dimensions[
-            target_row
-        ]
-
-        if source_dimension.height is not None:
-
-            target_dimension.height = (
-                source_dimension.height
-            )
-
-        target_dimension.hidden = (
-            source_dimension.hidden
+        # Configure the print area and page layout.
+        final_last_row = max(
+            header_row,
+            data_start + total_records - 1,
         )
 
-        target_dimension.outlineLevel = (
-            source_dimension.outlineLevel
+        final_last_column = max(
+            worksheet.max_column,
+            max(header_map.values()),
         )
 
-        for column in range(
-            1,
-            worksheet.max_column + 1
-        ):
-
-            source_cell = worksheet.cell(
-                source_row,
-                column
-            )
-
-            target_cell = worksheet.cell(
-                target_row,
-                column
-            )
-
-            if source_cell.data_type == "f":
-
-                try:
-
-                    target_cell.value = (
-                        Translator(
-                            source_cell.value,
-                            origin=source_cell.coordinate
-                        ).translate_formula(
-                            target_cell.coordinate
-                        )
-                    )
-
-                except Exception:
-
-                    target_cell.value = (
-                        source_cell.value
-                    )
-
-            else:
-
-                target_cell.value = (
-                    source_cell.value
-                )
-
-            if source_cell.has_style:
-
-                target_cell._style = copy(
-                    source_cell._style
-                )
-
-            if source_cell.number_format:
-
-                target_cell.number_format = (
-                    source_cell.number_format
-                )
-
-            if source_cell.alignment:
-
-                target_cell.alignment = copy(
-                    source_cell.alignment
-                )
-
-            if source_cell.protection:
-
-                target_cell.protection = copy(
-                    source_cell.protection
-                )
-
-            if source_cell.comment:
-
-                target_cell.comment = copy(
-                    source_cell.comment
-                )
-
-    # ==========================================================
-    # 12. COPY MERGED-CELL STRUCTURE FOR A ROW
-    # ==========================================================
-
-    def copy_row_merges(
-        worksheet,
-        source_row,
-        target_row
-    ):
-
-        merged_ranges = list(
-            worksheet.merged_cells.ranges
+        worksheet.print_area = (
+            f"A1:{get_column_letter(final_last_column)}{final_last_row}"
         )
 
-        for merged_range in merged_ranges:
+        worksheet.print_title_rows = f"1:{header_row}"
 
-            if (
-                merged_range.min_row
-                <= source_row
-                <= merged_range.max_row
-            ):
+        worksheet.page_setup.fitToWidth = 1
+        worksheet.page_setup.fitToHeight = 0
+        worksheet.sheet_properties.pageSetUpPr.fitToPage = True
 
-                row_height = (
-                    merged_range.max_row
-                    - merged_range.min_row
-                )
+        # Apply selected print settings when provided.
+        settings = settings or {}
 
-                if row_height != 0:
-                    continue
+        paper_codes = {
+            "A4": "9",
+            "LETTER": "1",
+            "LEGAL": "5",
+            "FOLIO": "14",
+        }
 
-                new_min_row = target_row
+        requested_paper = str(
+            settings.get("paper_size", "")
+        ).upper()
 
-                new_max_row = target_row
+        if requested_paper in paper_codes:
+            worksheet.page_setup.paperSize = paper_codes[
+                requested_paper
+            ]
 
-                new_range = (
-                    f"{get_column_letter(merged_range.min_col)}"
-                    f"{new_min_row}:"
-                    f"{get_column_letter(merged_range.max_col)}"
-                    f"{new_max_row}"
-                )
+        requested_orientation = str(
+            settings.get("orientation", "")
+        ).lower()
 
-                try:
+        if requested_orientation in {"portrait", "landscape"}:
+            worksheet.page_setup.orientation = requested_orientation
 
-                    worksheet.merge_cells(
-                        new_range
-                    )
-
-                except Exception:
-
-                    pass
-
-    # ==========================================================
-    # 13. FILL REPEATING DATA ROW
-    # ==========================================================
-
-    if detail_row:
-
-        worksheet, template_row = detail_row
-
-        # ------------------------------------------------------
-        # MAKE SPACE FOR ADDITIONAL RECORDS
-        # ------------------------------------------------------
-
-        number_of_records = len(
-            record_data
+        margin = (
+            0.30
+            if str(settings.get("margins", "normal")).lower() == "narrow"
+            else 0.50
         )
 
-        if number_of_records > 1:
+        if settings:
+            worksheet.page_margins.left = margin
+            worksheet.page_margins.right = margin
+            worksheet.page_margins.top = margin
+            worksheet.page_margins.bottom = margin
 
-            worksheet.insert_rows(
-                template_row + 1,
-                amount=number_of_records - 1
-            )
+        # Make the report sheet active so DOCX conversion uses the same sheet.
+        workbook.active = workbook.worksheets.index(worksheet)
 
-            # Copy the template row's formatting
-            # into all newly created rows.
-            for index in range(
-                1,
-                number_of_records
-            ):
+        workbook.save(output_xlsx)
+        workbook.close()
+        workbook = None
 
-                target_row = (
-                    template_row + index
-                )
+        # IMPORTANT: always return all three values.
+        return output_xlsx, temp_dir, template
 
-                copy_row_with_style(
-                    worksheet,
-                    template_row,
-                    target_row
-                )
+    except Exception:
+        if workbook is not None:
+            try:
+                workbook.close()
+            except Exception:
+                pass
 
-                copy_row_merges(
-                    worksheet,
-                    template_row,
-                    target_row
-                )
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise
 
-        # ------------------------------------------------------
-        # FILL EVERY RECORD
-        # ------------------------------------------------------
 
-        for index, data in enumerate(
-            record_data
-        ):
+# =============================================================
+# DOCX REPORT BUILDER
+# =============================================================
 
-            target_row = (
-                template_row + index
-            )
-
-            for column in range(
-                1,
-                worksheet.max_column + 1
-            ):
-
-                cell = worksheet.cell(
-                    target_row,
-                    column
-                )
-
-                value = cell.value
-
-                if not isinstance(
-                    value,
-                    str
-                ):
-                    continue
-
-                matches = (
-                    placeholder_pattern.findall(
-                        value
-                    )
-                )
-
-                if not matches:
-                    continue
-
-                new_value = value
-
-                for placeholder in matches:
-
-                    replacement = data.get(
-                        placeholder,
-                        ""
-                    )
-
-                    new_value = (
-                        new_value.replace(
-                            placeholder,
-                            str(
-                                replacement
-                                or ""
-                            )
-                        )
-                    )
-
-                cell.value = new_value
-
-    # ==========================================================
-    # 14. IF THERE IS NO DETAIL ROW
-    # ==========================================================
-
-    else:
-
-        # The template does not contain a repeating
-        # data placeholder.
-        #
-        # Do NOT invent a table or columns here.
-        # This protects the "template is the master"
-        # requirement.
-
-        if record_data:
-
-            raise ValueError(
-                "The active Excel report template does not "
-                "contain a repeating monitoring row. "
-                "Add at least one row containing one or more "
-                "of these placeholders: "
-                "{{INSTRUCTOR}}, {{SUBJECT}}, {{TIME}}, "
-                "{{DAY}}, {{ROOM}}, {{ACTUAL_ROOM}}, "
-                "{{MONITORING_TIME}}, {{SIGNATURE}}, "
-                "{{REMARKS}}."
-            )
-
-    # ==========================================================
-    # 15. REPLACE GLOBAL PLACEHOLDERS
-    # ==========================================================
-
-    # We do this after the repeating row so that the
-    # repeating row has already received its own values.
-
-    global_values = {
-        "{{WEEK_START}}": week_start_text,
-        "{{WEEK_END}}": week_end_text,
-        "{{WEEK}}": week_text,
-    }
-
-    for worksheet in workbook.worksheets:
-
-        for row in worksheet.iter_rows():
-
-            for cell in row:
-
-                value = cell.value
-
-                if not isinstance(
-                    value,
-                    str
-                ):
-                    continue
-
-                new_value = value
-
-                for placeholder, replacement in (
-                    global_values.items()
-                ):
-
-                    new_value = (
-                        new_value.replace(
-                            placeholder,
-                            replacement
-                        )
-                    )
-
-                cell.value = new_value
-
-    # ==========================================================
-    # 16. REMOVE UNUSED TEMPLATE PLACEHOLDERS
-    # ==========================================================
-
-    for worksheet in workbook.worksheets:
-
-        for row in worksheet.iter_rows():
-
-            for cell in row:
-
-                value = cell.value
-
-                if not isinstance(
-                    value,
-                    str
-                ):
-                    continue
-
-                if (
-                    "{{" in value
-                    and "}}" in value
-                ):
-
-                    # Only replace placeholders that
-                    # are actually known system fields.
-                    for placeholder in (
-                        detail_placeholders
-                    ):
-
-                        if placeholder in value:
-
-                            # If this cell was outside the
-                            # repeating row, blank it rather
-                            # than inventing data.
-                            value = value.replace(
-                                placeholder,
-                                ""
-                            )
-
-                    cell.value = value
-
-    # ==========================================================
-    # 17. SAVE GENERATED EXCEL
-    # ==========================================================
-
-    workbook.save(
-        output_xlsx
-    )
-
-    return (
-        output_xlsx,
-        temp_dir,
-        template,
-    )
-
-def _build_report_docx_file(records, week_start, week_end):
+def _build_report_docx_file(
+    records,
+    week_start,
+    week_end,
+    template_id=None,
+    classification="ALL",
+    settings=None,
+):
     """
-    Build an editable DOCX from the generated Excel report.
+    Build an editable Word report from the generated Excel report.
 
-    The uploaded Excel template is used as the master source.
-    The generated Excel report is converted into an editable
-    Word table while preserving:
-    - cell values
-    - merged cells
-    - column widths
-    - row heights
-    - alignment
-    - fonts
-    - background colors
-    - borders
-    - Excel images/logos
-    - page size
-    - margins
+    Copies worksheet values, merges, fonts, fill colors, borders,
+    alignment, images where possible, and page layout.
     """
 
     import os
+    import shutil
     from io import BytesIO
 
     from openpyxl import load_workbook
+    from openpyxl.utils.cell import range_boundaries
     from openpyxl.utils import get_column_letter
 
     from docx import Document
-    from docx.shared import Inches, Pt
+    from docx.shared import Inches, Pt, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
     from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
-
     from docx.oxml import OxmlElement
     from docx.oxml.ns import qn
 
-    # =========================================================
-    # 1. BUILD THE EXCEL REPORT FIRST
-    # =========================================================
-
-    excel_path, temp_dir, template = _build_report_excel_file(
+    # Use exactly the same Excel builder, template, records, and settings.
+    result = _build_report_excel_file(
         records,
         week_start,
         week_end,
+        template_id=template_id,
+        classification=classification,
+        settings=settings,
     )
 
-    # =========================================================
-    # 2. OPEN GENERATED EXCEL REPORT
-    # =========================================================
-
-    workbook = load_workbook(
-        excel_path,
-        data_only=False,
+    excel_path, temp_dir, template = _checked_report_build_result(
+        result,
+        "_build_report_excel_file",
     )
 
-    worksheet = workbook.active
+    workbook = None
 
-    # =========================================================
-    # 3. DEFINE EXCEL RANGE
-    # =========================================================
+    try:
+        workbook = load_workbook(
+            excel_path,
+            data_only=False,
+        )
 
-    min_row = 1
-    max_row = worksheet.max_row
+        worksheet = workbook.active
 
-    min_col = 1
-    max_col = worksheet.max_column
+        min_col, min_row = 1, 1
+        max_col, max_row = worksheet.max_column, worksheet.max_row
 
-    # =========================================================
-    # 4. FIND ACTUAL REPORT WIDTH
-    # =========================================================
+        print_area = worksheet.print_area
 
-    header_row = None
+        if print_area:
+            try:
+                area = str(print_area).split(",")[0].strip()
 
-    for row in worksheet.iter_rows():
+                if "!" in area:
+                    area = area.rsplit("!", 1)[1]
 
-        values = []
-
-        for cell in row:
-
-            value = cell.value
-
-            if value is None:
-                values.append("")
-            else:
-                values.append(
-                    str(value).strip().upper()
+                (
+                    min_col,
+                    min_row,
+                    max_col,
+                    max_row,
+                ) = range_boundaries(
+                    area.replace("$", "")
                 )
 
-        if (
-            "NAME" in values
-            or "SUBJECT" in values
-            or "REMARKS" in values
-        ):
-            header_row = row[0].row
-            break
+            except (ValueError, TypeError):
+                min_col, min_row = 1, 1
+                max_col, max_row = worksheet.max_column, worksheet.max_row
 
-    if header_row is not None:
+        # Include merged ranges that overlap the print area.
+        for merged in worksheet.merged_cells.ranges:
+            if (
+                merged.min_row <= max_row
+                and merged.max_row >= min_row
+                and merged.min_col <= max_col
+                and merged.max_col >= min_col
+            ):
+                max_row = max(max_row, merged.max_row)
+                max_col = max(max_col, merged.max_col)
 
-        meaningful_columns = []
+        document = Document()
+        section = document.sections[0]
 
-        # Find columns containing actual values
-        for column in range(
-            1,
-            worksheet.max_column + 1,
-        ):
+        paper_dimensions = {
+            "1": (8.5, 11.0),
+            "2": (8.5, 11.0),
+            "5": (8.5, 14.0),
+            "9": (8.27, 11.69),
+            "14": (8.5, 13.0),
+        }
 
-            value = worksheet.cell(
-                header_row,
-                column,
-            ).value
+        page_width, page_height = paper_dimensions.get(
+            str(worksheet.page_setup.paperSize),
+            (8.27, 11.69),
+        )
+
+        if worksheet.page_setup.orientation == "landscape":
+            page_width, page_height = page_height, page_width
+
+        section.page_width = Inches(page_width)
+        section.page_height = Inches(page_height)
+
+        for side in ("left", "right", "top", "bottom"):
+            value = getattr(
+                worksheet.page_margins,
+                side,
+                None,
+            )
 
             if value is not None:
-                meaningful_columns.append(
-                    column
+                setattr(
+                    section,
+                    f"{side}_margin",
+                    Inches(value),
                 )
 
-        # Include columns covered by merged cells
-        for merged_range in worksheet.merged_cells.ranges:
+        row_count = max_row - min_row + 1
+        col_count = max_col - min_col + 1
 
-            if (
-                merged_range.min_row
-                <= header_row
-                <= merged_range.max_row
-            ):
+        table = document.add_table(
+            rows=row_count,
+            cols=col_count,
+        )
 
-                meaningful_columns.append(
-                    merged_range.max_col
+        table.autofit = False
+
+        table_layout = OxmlElement("w:tblLayout")
+        table_layout.set(qn("w:type"), "fixed")
+        table._tbl.tblPr.append(table_layout)
+
+        # Apply column widths based on the Excel template.
+        for excel_col in range(min_col, max_col + 1):
+            col_letter = get_column_letter(excel_col)
+
+            excel_width = (
+                worksheet.column_dimensions[col_letter].width or 8.43
+            )
+
+            word_width = Inches(
+                max(0.25, min(excel_width * 0.095, 3.5))
+            )
+
+            for word_row in table.rows:
+                word_row.cells[
+                    excel_col - min_col
+                ].width = word_width
+
+        # Copy cell data and visible formatting.
+        for excel_row in range(min_row, max_row + 1):
+            word_row_index = excel_row - min_row
+
+            excel_height = worksheet.row_dimensions[
+                excel_row
+            ].height
+
+            if excel_height:
+                table.rows[word_row_index].height = Pt(excel_height)
+
+            for excel_col in range(min_col, max_col + 1):
+                source = worksheet.cell(
+                    excel_row,
+                    excel_col,
                 )
 
-        if meaningful_columns:
-
-            max_col = max(
-                meaningful_columns
-            )
-
-    # =========================================================
-    # 5. CREATE WORD DOCUMENT
-    # =========================================================
-
-    document = Document()
-
-    section = document.sections[0]
-
-    # =========================================================
-    # 6. PAGE SIZE
-    # =========================================================
-
-    orientation = worksheet.page_setup.orientation
-    paper_size = worksheet.page_setup.paperSize
-
-    paper_sizes = {
-        "1": (8.5, 11),       # Letter
-        "2": (8.5, 11),       # Letter
-        "3": (11.69, 16.54),  # A3
-        "5": (8.27, 11.69),   # A4
-        "6": (8.5, 13),       # Legal
-        "7": (8.5, 14),       # Legal
-    }
-
-    if str(paper_size) in paper_sizes:
-
-        width, height = paper_sizes[
-            str(paper_size)
-        ]
-
-        if orientation == "landscape":
-
-            width, height = (
-                height,
-                width,
-            )
-
-        section.page_width = Inches(
-            width
-        )
-
-        section.page_height = Inches(
-            height
-        )
-
-    # =========================================================
-    # 7. PAGE MARGINS
-    # =========================================================
-
-    margins = worksheet.page_margins
-
-    if margins.left is not None:
-
-        section.left_margin = Inches(
-            margins.left
-        )
-
-    if margins.right is not None:
-
-        section.right_margin = Inches(
-            margins.right
-        )
-
-    if margins.top is not None:
-
-        section.top_margin = Inches(
-            margins.top
-        )
-
-    if margins.bottom is not None:
-
-        section.bottom_margin = Inches(
-            margins.bottom
-        )
-
-    # =========================================================
-    # 8. COLUMN WIDTHS
-    # =========================================================
-
-    column_widths = {}
-
-    for column in range(
-        min_col,
-        max_col + 1,
-    ):
-
-        # IMPORTANT:
-        # Use the column number directly.
-        # This avoids MergedCell.column_letter errors.
-
-        letter = get_column_letter(
-            column
-        )
-
-        width = worksheet.column_dimensions[
-            letter
-        ].width
-
-        if width is None:
-            width = 8.43
-
-        # Excel column width -> approximate Word inches
-        column_widths[column] = (
-            width * 0.095
-        )
-
-    # =========================================================
-    # 9. CREATE WORD TABLE
-    # =========================================================
-
-    table = document.add_table(
-        rows=max_row,
-        cols=max_col,
-    )
-
-    table.autofit = False
-
-    # =========================================================
-    # 10. COPY EXCEL CELLS
-    # =========================================================
-
-    for row_number in range(
-        min_row,
-        max_row + 1,
-    ):
-
-        excel_row = worksheet.row_dimensions[
-            row_number
-        ]
-
-        word_row = table.rows[
-            row_number - 1
-        ]
-
-        # -----------------------------------------------------
-        # ROW HEIGHT
-        # -----------------------------------------------------
-
-        if excel_row.height:
-
-            word_row.height = Pt(
-                excel_row.height
-            )
-
-        # -----------------------------------------------------
-        # CELLS
-        # -----------------------------------------------------
-
-        for column_number in range(
-            min_col,
-            max_col + 1,
-        ):
-
-            excel_cell = worksheet.cell(
-                row_number,
-                column_number,
-            )
-
-            word_cell = word_row.cells[
-                column_number - 1
-            ]
-
-            # =================================================
-            # VALUE
-            # =================================================
-
-            value = excel_cell.value
-
-            if value is None:
-                value = ""
-
-            word_cell.text = str(
-                value
-            )
-
-            # =================================================
-            # WIDTH
-            # =================================================
-
-            word_cell.width = Inches(
-                column_widths[
-                    column_number
-                ]
-            )
-
-            # =================================================
-            # ALIGNMENT
-            # =================================================
-
-            excel_alignment = (
-                excel_cell.alignment
-            )
-
-            paragraph = (
-                word_cell.paragraphs[0]
-            )
-
-            horizontal = (
-                excel_alignment.horizontal
-            )
-
-            if horizontal == "center":
-
-                paragraph.alignment = (
-                    WD_ALIGN_PARAGRAPH.CENTER
+                target = table.cell(
+                    word_row_index,
+                    excel_col - min_col,
                 )
 
-            elif horizontal == "right":
-
-                paragraph.alignment = (
-                    WD_ALIGN_PARAGRAPH.RIGHT
+                target.text = (
+                    ""
+                    if source.value is None
+                    else str(source.value)
                 )
 
-            else:
-
-                paragraph.alignment = (
-                    WD_ALIGN_PARAGRAPH.LEFT
-                )
-
-            vertical = (
-                excel_alignment.vertical
-            )
-
-            if vertical == "center":
-
-                word_cell.vertical_alignment = (
+                target.vertical_alignment = (
                     WD_CELL_VERTICAL_ALIGNMENT.CENTER
                 )
 
-            elif vertical == "bottom":
+                paragraph = target.paragraphs[0]
+                horizontal = source.alignment.horizontal
 
-                word_cell.vertical_alignment = (
-                    WD_CELL_VERTICAL_ALIGNMENT.BOTTOM
+                if horizontal == "center":
+                    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                elif horizontal == "right":
+                    paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                else:
+                    paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+
+                run = (
+                    paragraph.runs[0]
+                    if paragraph.runs
+                    else paragraph.add_run()
                 )
 
-            else:
+                if source.font.name:
+                    run.font.name = source.font.name
 
-                word_cell.vertical_alignment = (
-                    WD_CELL_VERTICAL_ALIGNMENT.TOP
-                )
+                if source.font.sz:
+                    run.font.size = Pt(source.font.sz)
 
-            # =================================================
-            # FONT
-            # =================================================
+                run.bold = bool(source.font.bold)
+                run.italic = bool(source.font.italic)
+                run.underline = bool(source.font.underline)
 
-            excel_font = excel_cell.font
-
-            for run in paragraph.runs:
-
-                if excel_font.name:
-
-                    run.font.name = (
-                        excel_font.name
-                    )
-
-                if excel_font.sz:
-
-                    run.font.size = Pt(
-                        excel_font.sz
-                    )
-
-                run.bold = bool(
-                    excel_font.bold
-                )
-
-                run.italic = bool(
-                    excel_font.italic
-                )
-
-                if excel_font.underline:
-
-                    run.underline = True
-
-            # =================================================
-            # CELL BACKGROUND
-            # =================================================
-
-            fill = excel_cell.fill
-
-            if (
-                fill
-                and fill.fill_type
-                and fill.fgColor
-            ):
-
-                color = fill.fgColor
-
-                # Only process real RGB colors.
-                # Theme/indexed colors are skipped.
                 if (
-                    color.type == "rgb"
-                    and color.rgb
+                    source.font.color
+                    and source.font.color.type == "rgb"
+                    and source.font.color.rgb
                 ):
-
-                    rgb_value = str(
-                        color.rgb
-                    )
-
-                    # Excel normally uses ARGB:
-                    # FFFFFFFF
-                    #
-                    # Word needs RGB:
-                    # FFFFFF
-
-                    if len(rgb_value) == 8:
-
-                        rgb_value = (
-                            rgb_value[-6:]
+                    try:
+                        run.font.color.rgb = RGBColor.from_string(
+                            str(source.font.color.rgb)[-6:]
                         )
+                    except ValueError:
+                        pass
 
-                    elif len(rgb_value) == 6:
+                # Copy the cell fill.
+                if (
+                    source.fill
+                    and source.fill.fill_type
+                    and source.fill.fgColor
+                ):
+                    color = source.fill.fgColor
 
-                        rgb_value = rgb_value
-
-                    else:
-
-                        rgb_value = None
-
-                    if rgb_value:
-
-                        tc_pr = (
-                            word_cell
-                            ._tc
-                            .get_or_add_tcPr()
-                        )
-
-                        shading = OxmlElement(
-                            "w:shd"
-                        )
-
+                    if color.type == "rgb" and color.rgb:
+                        tc_pr = target._tc.get_or_add_tcPr()
+                        shading = OxmlElement("w:shd")
                         shading.set(
                             qn("w:fill"),
-                            rgb_value,
+                            str(color.rgb)[-6:],
+                        )
+                        tc_pr.append(shading)
+
+                # Copy visible cell borders.
+                tc_pr = target._tc.get_or_add_tcPr()
+                borders = tc_pr.find(qn("w:tcBorders"))
+
+                if borders is None:
+                    borders = OxmlElement("w:tcBorders")
+                    tc_pr.append(borders)
+
+                for edge_name in ("top", "left", "bottom", "right"):
+                    edge = getattr(
+                        source.border,
+                        edge_name,
+                        None,
+                    )
+
+                    if edge is None or not edge.style:
+                        continue
+
+                    border = OxmlElement(f"w:{edge_name}")
+                    border.set(qn("w:val"), "single")
+                    border.set(qn("w:sz"), "4")
+
+                    if (
+                        edge.color
+                        and edge.color.type == "rgb"
+                        and edge.color.rgb
+                    ):
+                        border.set(
+                            qn("w:color"),
+                            str(edge.color.rgb)[-6:],
                         )
 
-                        tc_pr.append(
-                            shading
-                        )
+                    borders.append(border)
 
-    # =========================================================
-    # 11. MERGED CELLS
-    # =========================================================
-
-    for merged_range in (
-        worksheet.merged_cells.ranges
-    ):
-
-        start_row = (
-            merged_range.min_row - 1
-        )
-
-        start_col = (
-            merged_range.min_col - 1
-        )
-
-        end_row = (
-            merged_range.max_row - 1
-        )
-
-        end_col = (
-            merged_range.max_col - 1
-        )
-
-        # Make sure the merge is inside
-        # the generated Word table.
-
-        if (
-            start_row >= 0
-            and start_col >= 0
-            and end_row < len(table.rows)
-            and end_col < len(table.columns)
-        ):
-
-            start_cell = table.cell(
-                start_row,
-                start_col,
-            )
-
-            end_cell = table.cell(
-                end_row,
-                end_col,
-            )
-
-            start_cell.merge(
-                end_cell
-            )
-
-    # =========================================================
-    # 12. COPY BORDERS
-    # =========================================================
-
-    for row_number in range(
-        min_row,
-        max_row + 1,
-    ):
-
-        for column_number in range(
-            min_col,
-            max_col + 1,
-        ):
-
-            excel_cell = worksheet.cell(
-                row_number,
-                column_number,
-            )
-
-            word_cell = table.cell(
-                row_number - 1,
-                column_number - 1,
-            )
-
-            tc_pr = (
-                word_cell
-                ._tc
-                .get_or_add_tcPr()
-            )
-
-            borders = tc_pr.find(
-                qn("w:tcBorders")
-            )
-
-            if borders is None:
-
-                borders = OxmlElement(
-                    "w:tcBorders"
-                )
-
-                tc_pr.append(
-                    borders
-                )
-
-            excel_border = (
-                excel_cell.border
-            )
-
-            border_map = {
-                "top": excel_border.top,
-                "left": excel_border.left,
-                "bottom": excel_border.bottom,
-                "right": excel_border.right,
-            }
-
-            for edge_name, edge in (
-                border_map.items()
+        # Recreate Excel merged cells in Word.
+        for merged in list(worksheet.merged_cells.ranges):
+            if (
+                merged.min_row < min_row
+                or merged.max_row > max_row
+                or merged.min_col < min_col
+                or merged.max_col > max_col
             ):
+                continue
 
-                if (
-                    edge is None
-                    or edge.style is None
+            table.cell(
+                merged.min_row - min_row,
+                merged.min_col - min_col,
+            ).merge(
+                table.cell(
+                    merged.max_row - min_row,
+                    merged.max_col - min_col,
+                )
+            )
+
+        # Copy Excel logos/images into Word where possible.
+        for excel_image in getattr(worksheet, "_images", []):
+            try:
+                anchor = excel_image.anchor
+                image_row = anchor._from.row
+                image_col = anchor._from.col
+
+                if not (
+                    min_row - 1 <= image_row <= max_row - 1
+                    and min_col - 1 <= image_col <= max_col - 1
                 ):
                     continue
 
-                border = OxmlElement(
-                    f"w:{edge_name}"
-                )
-
-                border.set(
-                    qn("w:val"),
-                    "single",
-                )
-
-                border.set(
-                    qn("w:sz"),
-                    "4",
-                )
-
-                border.set(
-                    qn("w:space"),
-                    "0",
-                )
-
-                if (
-                    edge.color
-                    and edge.color.type == "rgb"
-                    and edge.color.rgb
-                ):
-
-                    border_color = str(
-                        edge.color.rgb
-                    )
-
-                    if len(border_color) == 8:
-
-                        border_color = (
-                            border_color[-6:]
-                        )
-
-                    elif len(border_color) != 6:
-
-                        border_color = None
-
-                    if border_color:
-
-                        border.set(
-                            qn("w:color"),
-                            border_color,
-                        )
-
-                borders.append(
-                    border
-                )
-
-    # =========================================================
-    # 13. COPY EXCEL IMAGES / LOGOS
-    # =========================================================
-
-    for image in getattr(
-        worksheet,
-        "_images",
-        [],
-    ):
-
-        try:
-
-            image_data = image._data()
-
-            anchor = image.anchor
-
-            row = anchor._from.row
-            column = anchor._from.col
-
-            if (
-                row < len(table.rows)
-                and column < len(table.columns)
-            ):
-
                 cell = table.cell(
-                    row,
-                    column,
+                    image_row + 1 - min_row,
+                    image_col + 1 - min_col,
                 )
 
-                paragraph = (
-                    cell.paragraphs[0]
+                cell.paragraphs[0].alignment = (
+                    WD_ALIGN_PARAGRAPH.CENTER
                 )
 
-                run = paragraph.add_run()
-
-                run.add_picture(
-                    BytesIO(
-                        image_data
-                    )
+                cell.paragraphs[0].add_run().add_picture(
+                    BytesIO(excel_image._data())
                 )
 
-        except Exception:
+            except Exception:
+                continue
 
-            # If an Excel image cannot be
-            # converted, continue generating
-            # the rest of the report.
-            pass
+        output_path = os.path.join(
+            temp_dir,
+            "Monitoring_Report.docx",
+        )
 
-    # =========================================================
-    # 14. SAVE EDITABLE DOCX
-    # =========================================================
+        document.save(output_path)
 
-    output_path = os.path.join(
-        temp_dir,
-        "Monitoring_Report.docx",
-    )
+        workbook.close()
+        workbook = None
 
-    document.save(
-        output_path
-    )
+        return output_path, temp_dir, template
 
-    return (
-        output_path,
-        temp_dir,
-        template,
-    )
+    except Exception:
+        if workbook is not None:
+            try:
+                workbook.close()
+            except Exception:
+                pass
+
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise
 
 
-# ==========================================
-# REPORT PDF BUILDER
-# ==========================================
+# =============================================================
+# REPORT TEMPLATE EXTENSION
+# =============================================================
+
 def _get_template_extension(template):
-    """
-    Return the uploaded template file extension.
-    """
-    return os.path.splitext(template.file.name)[1].lower()
+    """Return the uploaded template's extension in lowercase."""
+    import os
+
+    return os.path.splitext(
+        getattr(template.file, "name", "")
+    )[1].lower()
+
+
+# =============================================================
+# BUILD REPORT FILE — COMPATIBILITY HELPER
+# =============================================================
 
 def _build_report_file(
     records,
     week_start,
     week_end,
-    template_id,
+    template_id=None,
+    classification="ALL",
+    settings=None,
 ):
-    """
-    Build the report using the selected
-    uploaded Excel template.
-
-    The Excel template is the master layout.
-    """
-
-    output_path, temp_dir, template = (
-        _build_report_excel_file(
-            records,
-            week_start,
-            week_end,
-            template_id,
-        )
+    """Return the standard Excel build result."""
+    return _build_report_excel_file(
+        records,
+        week_start,
+        week_end,
+        template_id=template_id,
+        classification=classification,
+        settings=settings,
     )
 
-    return (
-        output_path,
-        temp_dir,
-        template,
-        "excel",
-    )
+
+# =============================================================
+# BUILD PDF BYTES FROM EXCEL
+# =============================================================
 
 def _build_report_pdf_bytes(
     records,
     week_start,
     week_end,
-    template_id,
+    template_id=None,
+    classification="ALL",
+    settings=None,
 ):
     """
-    Generate PDF from the generated Excel report.
+    Convert the generated Excel report to PDF.
 
-    There is NO ReportLab report layout here.
-
-    Excel is the master template.
-    LibreOffice performs the Excel -> PDF conversion.
+    Returns PDF bytes, not a file path.
     """
 
     import os
+    import shutil
     import subprocess
+    from pathlib import Path
 
-    output_xlsx, temp_dir, template = (
-        _build_report_excel_file(
-            records,
-            week_start,
-            week_end,
-            template_id,
-        )
+    result = _build_report_excel_file(
+        records,
+        week_start,
+        week_end,
+        template_id=template_id,
+        classification=classification,
+        settings=settings,
     )
 
-    pdf_dir = os.path.join(
-        temp_dir,
-        "pdf"
+    output_xlsx, temp_dir, _template = _checked_report_build_result(
+        result,
+        "_build_report_excel_file",
     )
 
-    os.makedirs(
-        pdf_dir,
-        exist_ok=True
-    )
-
-    # ==========================================================
-    # FIND LIBREOFFICE
-    # ==========================================================
-
-    libreoffice_paths = [
-        r"C:\Program Files\LibreOffice\program\soffice.exe",
-        r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
-    ]
-
-    libreoffice_path = None
-
-    for path in libreoffice_paths:
-
-        if os.path.isfile(path):
-
-            libreoffice_path = path
-            break
-
-    if not libreoffice_path:
-
-        raise FileNotFoundError(
-            "LibreOffice was not found. "
-            "Please install LibreOffice so the Excel "
-            "template can be converted to PDF."
+    try:
+        pdf_dir = os.path.join(
+            temp_dir,
+            "pdf",
         )
 
-    # ==========================================================
-    # EXCEL -> PDF
-    # ==========================================================
+        os.makedirs(pdf_dir, exist_ok=True)
 
-    command = [
-        libreoffice_path,
-        "--headless",
-        "--convert-to",
-        "pdf",
-        "--outdir",
-        pdf_dir,
-        output_xlsx,
-    ]
+        candidates = [
+            os.environ.get("LIBREOFFICE_PATH", ""),
+            shutil.which("libreoffice") or "",
+            shutil.which("soffice") or "",
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
+            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+        ]
 
-    result = subprocess.run(
-        command,
-        capture_output=True,
-        text=True,
-        timeout=120,
-        creationflags=getattr(
-            subprocess,
-            "CREATE_NO_WINDOW",
-            0,
-        ),
-    )
-
-    pdf_path = os.path.join(
-        pdf_dir,
-        "Monitoring_Report.pdf"
-    )
-
-    if not os.path.exists(pdf_path):
-
-        raise RuntimeError(
-            "LibreOffice could not create the PDF.\n\n"
-            f"Output:\n{result.stdout}\n\n"
-            f"Error:\n{result.stderr}"
+        office = next(
+            (
+                path
+                for path in candidates
+                if path and (
+                    os.path.isfile(path)
+                    or shutil.which(path)
+                )
+            ),
+            None,
         )
 
-    with open(
-        pdf_path,
-        "rb"
-    ) as pdf_file:
+        if not office:
+            raise FileNotFoundError(
+                "LibreOffice was not found. Install it on the computer "
+                "running Django or set LIBREOFFICE_PATH to the "
+                "soffice executable."
+            )
 
-        pdf_bytes = pdf_file.read()
+        profile_dir = os.path.join(
+            temp_dir,
+            "libreoffice_profile",
+        )
 
-    return pdf_bytes
+        os.makedirs(profile_dir, exist_ok=True)
 
-# ==========================================
+        command = [
+            office,
+            f"-env:UserInstallation={Path(profile_dir).resolve().as_uri()}",
+            "--headless",
+            "--convert-to",
+            "pdf",
+            "--outdir",
+            pdf_dir,
+            output_xlsx,
+        ]
+
+        try:
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                timeout=120,
+                creationflags=getattr(
+                    subprocess,
+                    "CREATE_NO_WINDOW",
+                    0,
+                ),
+            )
+
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(
+                "Excel-to-PDF conversion timed out."
+            ) from exc
+
+        pdf_path = os.path.join(
+            pdf_dir,
+            "Monitoring_Report.pdf",
+        )
+
+        if (
+            result.returncode != 0
+            or not os.path.isfile(pdf_path)
+            or os.path.getsize(pdf_path) == 0
+        ):
+            raise RuntimeError(
+                "LibreOffice could not create the PDF. "
+                f"Output: {result.stdout.strip()} "
+                f"Error: {result.stderr.strip()}"
+            )
+
+        with open(pdf_path, "rb") as pdf_file:
+            pdf_bytes = pdf_file.read()
+
+        if not pdf_bytes.startswith(b"%PDF"):
+            raise RuntimeError(
+                "LibreOffice produced an invalid PDF file."
+            )
+
+        return pdf_bytes
+
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+# =============================================================
 # REPORTS PAGE
-# ==========================================
+# =============================================================
+
 @login_required
 def reports(request):
+    """Display the selected week's monitoring records and report controls."""
+
     week_start, week_end, current_week_start = (
         _report_week_range(request)
     )
 
-    all_records = (
-        MonitoringRecord.objects
-        .select_related(
-            "schedule__instructor",
-            "schedule__subject",
-            "schedule__room",
-        )
-        .order_by("-record_datetime")
+    all_records = MonitoringRecord.objects.only(
+        "record_datetime"
     )
 
-    week_starts = {
-        current_week_start
-    }
+    week_starts = {current_week_start}
 
     for record in all_records:
+        if not record.record_datetime:
+            continue
 
-        record_date = timezone.localtime(
-            record.record_datetime
-        ).date()
+        record_dt = record.record_datetime
+
+        if timezone.is_aware(record_dt):
+            record_dt = timezone.localtime(record_dt)
+
+        record_date = record_dt.date()
 
         week_starts.add(
-            record_date
-            - timedelta(
-                days=record_date.weekday()
-            )
+            record_date - timedelta(days=record_date.weekday())
         )
 
     weeks = []
 
-    for start in sorted(
-        week_starts,
-        reverse=True,
-    ):
-
+    for start in sorted(week_starts, reverse=True):
         end = start + timedelta(days=6)
 
         weeks.append({
-            "value": start.strftime(
-                "%Y-%m-%d"
-            ),
+            "value": start.strftime("%Y-%m-%d"),
             "label": (
-                f"{start.strftime('%B %d, %Y')} - "
-                f"{end.strftime('%B %d, %Y')}"
+                f"{start:%B %d, %Y} - {end:%B %d, %Y}"
             ),
         })
 
-    records, instructor_search = (
-        _report_records(
-            request,
-            week_start,
-            week_end,
+    records, instructor_search = _report_records(
+        request,
+        week_start,
+        week_end,
+    )
+
+    classification = _report_classification(request)
+
+    templates = list(
+        ReportTemplate.objects.all().order_by("name")
+    )
+
+    selected_template_id = _report_template_id(request) or ""
+
+    instructors = list(Instructor.objects.all())
+
+    instructors.sort(
+        key=lambda instructor: _report_last_name_sort_key(
+            instructor.name
         )
-    )
-
-    selected_classification = (
-        _report_classification(request)
-    )
-
-    report_templates = (
-        ReportTemplate.objects
-        .all()
-        .order_by("name")
     )
 
     return render(
@@ -4696,56 +4384,452 @@ def reports(request):
         "instructors/reports/list.html",
         {
             "records": records,
-
             "weeks": weeks,
-
-            "selected_week":
-                week_start.strftime(
-                    "%Y-%m-%d"
-                ),
-
-            "week_start":
-                week_start,
-
-            "week_end":
-                week_end,
-
-            "previous_week":
-                week_start
-                - timedelta(days=7),
-
-            "next_week":
-                week_start
-                + timedelta(days=7),
-
-            "current_week_start":
-                current_week_start,
-
-            "current_week_end":
-                current_week_start
-                + timedelta(days=6),
-
-            "instructors":
-                Instructor.objects
-                .all()
-                .order_by("name"),
-
-            "instructor_search":
-                instructor_search,
-
-            "selected_classification":
-                selected_classification,
-
-            "report_settings":
-                _report_settings(request),
-
-            "report_templates":
-                report_templates,
-
-            "windows_printers":
-                _windows_printers(),
+            "selected_week": week_start.strftime("%Y-%m-%d"),
+            "week_start": week_start,
+            "week_end": week_end,
+            "previous_week": week_start - timedelta(days=7),
+            "next_week": week_start + timedelta(days=7),
+            "current_week_start": current_week_start,
+            "current_week_end": current_week_start + timedelta(days=6),
+            "instructors": instructors,
+            "instructor_search": instructor_search,
+            "selected_classification": classification,
+            "selected_template_id": selected_template_id,
+            "report_settings": _report_settings(request),
+            "report_templates": templates,
+            "windows_printers": _windows_printers(),
         },
     )
+
+
+# =============================================================
+# PRINT REPORT
+# =============================================================
+
+@login_required
+def report_print(request):
+    """Generate the selected report and send it to a Windows printer."""
+
+    import os
+    import shutil
+    import subprocess
+    import tempfile
+    import threading
+    from pathlib import Path
+
+    if os.name != "nt":
+        return JsonResponse(
+            {
+                "success": False,
+                "message": (
+                    "Direct printer access requires Django to run on Windows."
+                ),
+            },
+            status=400,
+        )
+
+    week_start, week_end, _ = _report_week_range(request)
+    classification = _report_classification(request)
+    template_id = _report_template_id(request)
+
+    records, _ = _report_records(
+        request,
+        week_start,
+        week_end,
+    )
+
+    if not records:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": (
+                    "No monitoring records match your selected week and filters."
+                ),
+            },
+            status=400,
+        )
+
+    printer_name = _request_value(
+        request,
+        "printer",
+        "",
+    ).strip()
+
+    if not printer_name:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Select a printer first.",
+            },
+            status=400,
+        )
+
+    valid_printers = {
+        printer.get("name", "")
+        for printer in _windows_printers()
+    }
+
+    if printer_name not in valid_printers:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": (
+                    f"Printer '{printer_name}' was not found "
+                    "on the Django computer."
+                ),
+            },
+            status=400,
+        )
+
+    temp_pdf_path = None
+    keep_file_for_spooler = False
+
+    def remove_temp_file(path):
+        try:
+            if path and os.path.exists(path):
+                os.remove(path)
+        except OSError:
+            pass
+
+    try:
+        pdf_bytes = _build_report_pdf_bytes(
+            records,
+            week_start,
+            week_end,
+            template_id=template_id,
+            classification=classification,
+            settings=_report_settings(request),
+        )
+
+        file_descriptor, temp_pdf_path = tempfile.mkstemp(
+            prefix="teacher_monitoring_print_",
+            suffix=".pdf",
+        )
+
+        os.close(file_descriptor)
+
+        with open(temp_pdf_path, "wb") as pdf_file:
+            pdf_file.write(pdf_bytes)
+
+        paths = [
+            os.environ.get("LIBREOFFICE_PATH", ""),
+            shutil.which("libreoffice") or "",
+            shutil.which("soffice") or "",
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
+            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+        ]
+
+        office = next(
+            (
+                path
+                for path in paths
+                if path and (
+                    os.path.isfile(path)
+                    or shutil.which(path)
+                )
+            ),
+            None,
+        )
+
+        if office:
+            profile_dir = tempfile.mkdtemp(
+                prefix="teacher_monitoring_printer_profile_"
+            )
+
+            try:
+                command = [
+                    office,
+                    f"-env:UserInstallation={Path(profile_dir).resolve().as_uri()}",
+                    "--headless",
+                    "--pt",
+                    printer_name,
+                    temp_pdf_path,
+                ]
+
+                result = subprocess.run(
+                    command,
+                    capture_output=True,
+                    text=True,
+                    timeout=120,
+                    creationflags=getattr(
+                        subprocess,
+                        "CREATE_NO_WINDOW",
+                        0,
+                    ),
+                )
+
+                if result.returncode != 0:
+                    detail = (
+                        result.stderr.strip()
+                        or result.stdout.strip()
+                        or "Unknown printer error."
+                    )
+
+                    raise RuntimeError(detail)
+
+            finally:
+                shutil.rmtree(
+                    profile_dir,
+                    ignore_errors=True,
+                )
+
+        else:
+            # Fallback to the installed Windows PDF application's PrintTo action.
+            os.startfile(
+                temp_pdf_path,
+                "printto",
+                printer_name,
+            )
+
+        # Give the operating system's print spooler time to read the PDF.
+        threading.Timer(
+            120,
+            remove_temp_file,
+            args=(temp_pdf_path,),
+        ).start()
+
+        keep_file_for_spooler = True
+
+        return JsonResponse({
+            "success": True,
+            "message": f"The report was sent to '{printer_name}'.",
+            "printer": printer_name,
+        })
+
+    except Exception as exc:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "The report could not be printed.",
+                "detail": str(exc),
+            },
+            status=500,
+        )
+
+    finally:
+        if temp_pdf_path and not keep_file_for_spooler:
+            remove_temp_file(temp_pdf_path)
+
+
+# =============================================================
+# PDF DOWNLOAD AND PREVIEW
+# =============================================================
+
+@login_required
+def report_pdf(request):
+    """
+    Return the generated PDF inline for preview or as a download.
+
+    ?preview=1 displays the PDF in the preview iframe.
+    Without preview=1, the PDF downloads normally.
+    """
+
+    week_start, week_end, _ = _report_week_range(request)
+    classification = _report_classification(request)
+    template_id = _report_template_id(request)
+
+    records, _ = _report_records(
+        request,
+        week_start,
+        week_end,
+    )
+
+    try:
+        pdf_bytes = _build_report_pdf_bytes(
+            records,
+            week_start,
+            week_end,
+            template_id=template_id,
+            classification=classification,
+            settings=_report_settings(request),
+        )
+
+        filename = (
+            f"Monitoring_Report_{week_start:%Y-%m-%d}.pdf"
+        )
+
+        response = HttpResponse(
+            pdf_bytes,
+            content_type="application/pdf",
+        )
+
+        disposition = (
+            "inline"
+            if request.GET.get("preview") == "1"
+            else "attachment"
+        )
+
+        response["Content-Disposition"] = (
+            f'{disposition}; filename="{filename}"'
+        )
+
+        return response
+
+    except Exception as exc:
+        return HttpResponse(
+            f"Report PDF could not be generated: {exc}",
+            status=500,
+            content_type="text/plain; charset=utf-8",
+        )
+
+
+# =============================================================
+# DOCX DOWNLOAD
+# =============================================================
+
+@login_required
+def report_docx(request):
+    """Generate and download the Word report."""
+
+    import os
+    import shutil
+
+    week_start, week_end, _ = _report_week_range(request)
+    classification = _report_classification(request)
+    template_id = _report_template_id(request)
+
+    records, _ = _report_records(
+        request,
+        week_start,
+        week_end,
+    )
+
+    temp_dir = None
+
+    try:
+        result = _build_report_docx_file(
+            records,
+            week_start,
+            week_end,
+            template_id=template_id,
+            classification=classification,
+            settings=_report_settings(request),
+        )
+
+        output_path, temp_dir, _template = (
+            _checked_report_build_result(
+                result,
+                "_build_report_docx_file",
+            )
+        )
+
+        if not os.path.isfile(output_path):
+            raise FileNotFoundError(
+                "The DOCX builder returned a missing file path."
+            )
+
+        with open(output_path, "rb") as file:
+            content = file.read()
+
+        if not content:
+            raise RuntimeError(
+                "The generated Word report is empty."
+            )
+
+        response = HttpResponse(
+            content,
+            content_type=(
+                "application/vnd.openxmlformats-officedocument."
+                "wordprocessingml.document"
+            ),
+        )
+
+        response["Content-Disposition"] = (
+            f'attachment; filename="Monitoring_Report_{week_start:%Y-%m-%d}.docx"'
+        )
+
+        return response
+
+    except Exception as exc:
+        return HttpResponse(
+            f"DOCX report could not be generated: {exc}",
+            status=500,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    finally:
+        if temp_dir:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+# =============================================================
+# EXCEL DOWNLOAD
+# =============================================================
+
+@login_required
+def report_excel(request):
+    """Generate and download the Excel report."""
+
+    import os
+    import shutil
+
+    week_start, week_end, _ = _report_week_range(request)
+    classification = _report_classification(request)
+    template_id = _report_template_id(request)
+
+    records, _ = _report_records(
+        request,
+        week_start,
+        week_end,
+    )
+
+    temp_dir = None
+
+    try:
+        result = _build_report_excel_file(
+            records,
+            week_start,
+            week_end,
+            template_id=template_id,
+            classification=classification,
+            settings=_report_settings(request),
+        )
+
+        output_path, temp_dir, _template = (
+            _checked_report_build_result(
+                result,
+                "_build_report_excel_file",
+            )
+        )
+
+        if not os.path.isfile(output_path):
+            raise FileNotFoundError(
+                "The Excel builder returned a missing file path."
+            )
+
+        with open(output_path, "rb") as file:
+            content = file.read()
+
+        if not content:
+            raise RuntimeError(
+                "The generated Excel report is empty."
+            )
+
+        response = HttpResponse(
+            content,
+            content_type=(
+                "application/vnd.openxmlformats-officedocument."
+                "spreadsheetml.sheet"
+            ),
+        )
+
+        response["Content-Disposition"] = (
+            f'attachment; filename="Monitoring_Report_{week_start:%Y-%m-%d}.xlsx"'
+        )
+
+        return response
+
+    except Exception as exc:
+        return HttpResponse(
+            f"Excel report could not be generated: {exc}",
+            status=500,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    finally:
+        if temp_dir:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 # ==========================================
 # REPORT TEMPLATES
@@ -4938,716 +5022,8 @@ def report_template_bulk_delete(request):
     return redirect("report_template_list")
 
 
-# ==========================================
-# REPORT PRINT PAGE / WINDOWS PRINTING
-# ==========================================
-@login_required
-def report_print(request):
-    """
-    Generate the selected report using the selected
-    Excel report template and send it directly
-    to the selected Windows printer.
-    """
 
-    # ==========================================================
-    # REPORT WEEK
-    # ==========================================================
 
-    week_start, week_end, _ = (
-        _report_week_range(request)
-    )
-
-    # ==========================================================
-    # REPORT DATA
-    # ==========================================================
-
-    records, instructor_search = (
-        _report_records(
-            request,
-            week_start,
-            week_end,
-        )
-    )
-
-    # ==========================================================
-    # SELECTED EXCEL TEMPLATE
-    # ==========================================================
-
-    template_id = request.GET.get(
-        "template_id",
-        "",
-    ).strip()
-
-    if not template_id:
-
-        template_id = request.POST.get(
-            "template_id",
-            "",
-        ).strip()
-
-    if not template_id:
-
-        return JsonResponse(
-            {
-                "success": False,
-                "message": (
-                    "Please choose a report layout "
-                    "before printing."
-                ),
-            },
-            status=400,
-        )
-
-    # ==========================================================
-    # CHECK WINDOWS
-    # ==========================================================
-
-    if os.name != "nt":
-
-        return JsonResponse(
-            {
-                "success": False,
-                "message": (
-                    "Direct printing is only available "
-                    "when Django is running on Windows."
-                ),
-            },
-            status=400,
-        )
-
-    # ==========================================================
-    # SELECTED PRINTER
-    # ==========================================================
-
-    printer_name = request.GET.get(
-        "printer",
-        "",
-    ).strip()
-
-    if not printer_name:
-
-        printer_name = request.POST.get(
-            "printer",
-            "",
-        ).strip()
-
-    if not printer_name:
-
-        return JsonResponse(
-            {
-                "success": False,
-                "message":
-                    "Please select a printer.",
-            },
-            status=400,
-        )
-
-    # ==========================================================
-    # VERIFY PRINTER
-    # ==========================================================
-
-    printers = _windows_printers()
-
-    valid_printers = {
-        item["name"]
-        for item in printers
-    }
-
-    if printer_name not in valid_printers:
-
-        return JsonResponse(
-            {
-                "success": False,
-                "message": (
-                    f"The printer '{printer_name}' "
-                    "was not found."
-                ),
-            },
-            status=400,
-        )
-
-    # ==========================================================
-    # GENERATE PDF FROM SELECTED EXCEL TEMPLATE
-    # ==========================================================
-
-    temp_path = None
-
-    try:
-
-        temp_path = (
-            _build_report_pdf_bytes(
-                records,
-                week_start,
-                week_end,
-                template_id,
-            )
-        )
-
-        if not temp_path:
-
-            return JsonResponse(
-                {
-                    "success": False,
-                    "message": (
-                        "The report PDF could not "
-                        "be generated."
-                    ),
-                },
-                status=500,
-            )
-
-        # ======================================================
-        # FIND LIBREOFFICE
-        # ======================================================
-
-        libreoffice_paths = [
-            (
-                r"C:\Program Files\LibreOffice"
-                r"\program\soffice.exe"
-            ),
-            (
-                r"C:\Program Files (x86)"
-                r"\LibreOffice\program\soffice.exe"
-            ),
-        ]
-
-        libreoffice_path = None
-
-        for path in libreoffice_paths:
-
-            if os.path.isfile(path):
-
-                libreoffice_path = path
-                break
-
-        # ======================================================
-        # WINDOWS PRINTTO FALLBACK
-        # ======================================================
-
-        if not libreoffice_path:
-
-            try:
-
-                os.startfile(
-                    temp_path,
-                    "printto",
-                    printer_name,
-                )
-
-                def remove_temp_file(path):
-
-                    try:
-
-                        if os.path.exists(path):
-
-                            os.remove(path)
-
-                    except Exception:
-                        pass
-
-                threading.Timer(
-                    120,
-                    remove_temp_file,
-                    args=(temp_path,),
-                ).start()
-
-                return JsonResponse(
-                    {
-                        "success": True,
-                        "message": (
-                            f"The report was sent to "
-                            f"'{printer_name}'."
-                        ),
-                        "printer":
-                            printer_name,
-                        "method":
-                            "Windows PrintTo",
-                    }
-                )
-
-            except Exception as exc:
-
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "message": (
-                            "LibreOffice was not found "
-                            "and Windows could not "
-                            "print the PDF."
-                        ),
-                        "detail": str(exc),
-                    },
-                    status=500,
-                )
-
-        # ======================================================
-        # LIBREOFFICE PRINT
-        # ======================================================
-
-        command = [
-            libreoffice_path,
-            "--headless",
-            "--pt",
-            printer_name,
-            temp_path,
-        ]
-
-        try:
-
-            result = subprocess.run(
-                command,
-                capture_output=True,
-                text=True,
-                timeout=120,
-                creationflags=getattr(
-                    subprocess,
-                    "CREATE_NO_WINDOW",
-                    0,
-                ),
-            )
-
-        except subprocess.TimeoutExpired:
-
-            return JsonResponse(
-                {
-                    "success": False,
-                    "message": (
-                        "Printing timed out while "
-                        "LibreOffice was processing "
-                        "the report."
-                    ),
-                },
-                status=500,
-            )
-
-        # ======================================================
-        # PRINT RESULT
-        # ======================================================
-
-        if result.returncode != 0:
-
-            error_text = (
-                result.stderr.strip()
-                or result.stdout.strip()
-                or "LibreOffice returned an unknown error."
-            )
-
-            return JsonResponse(
-                {
-                    "success": False,
-                    "message": (
-                        f"The report could not be "
-                        f"printed to '{printer_name}'."
-                    ),
-                    "detail": error_text,
-                },
-                status=500,
-            )
-
-        # ======================================================
-        # CLEANUP
-        # ======================================================
-
-        def remove_temp_file(path):
-
-            try:
-
-                if os.path.exists(path):
-
-                    os.remove(path)
-
-            except Exception:
-                pass
-
-        threading.Timer(
-            10,
-            remove_temp_file,
-            args=(temp_path,),
-        ).start()
-
-        # ======================================================
-        # SUCCESS
-        # ======================================================
-
-        return JsonResponse(
-            {
-                "success": True,
-                "message": (
-                    f"The report was sent successfully "
-                    f"to '{printer_name}'."
-                ),
-                "printer": printer_name,
-                "method": "LibreOffice",
-            }
-        )
-
-    except Exception as exc:
-
-        if temp_path:
-
-            try:
-
-                if os.path.exists(temp_path):
-
-                    os.remove(temp_path)
-
-            except Exception:
-                pass
-
-        return JsonResponse(
-            {
-                "success": False,
-                "message": (
-                    "The report could not be printed."
-                ),
-                "detail": str(exc),
-            },
-            status=500,
-        )
-
-# ==========================================
-# REPORT PDF DOWNLOAD
-# ==========================================
-@login_required
-def report_pdf(request):
-    """
-    Generate a PDF from the Excel report layout
-    selected by the user.
-    """
-
-    week_start, week_end, _ = (
-        _report_week_range(request)
-    )
-
-    records, _ = _report_records(
-        request,
-        week_start,
-        week_end,
-    )
-
-    # ==========================================================
-    # SELECT TEMPLATE
-    # ==========================================================
-
-    template_id = request.GET.get(
-        "template_id",
-        "",
-    ).strip()
-
-    if not template_id:
-
-        template_id = request.POST.get(
-            "template_id",
-            "",
-        ).strip()
-
-    if not template_id:
-
-        return HttpResponse(
-            (
-                "Please choose a report layout "
-                "before generating the PDF."
-            ),
-            status=400,
-        )
-
-    # ==========================================================
-    # BUILD EXCEL USING SELECTED TEMPLATE
-    # ==========================================================
-
-    try:
-
-        output_xlsx, temp_dir, template = (
-            _build_report_excel_file(
-                records,
-                week_start,
-                week_end,
-                template_id,
-            )
-        )
-
-    except Exception as exc:
-
-        return HttpResponse(
-            (
-                "Report could not be generated: "
-                f"{exc}"
-            ),
-            status=500,
-        )
-
-    # ==========================================================
-    # PDF DIRECTORY
-    # ==========================================================
-
-    pdf_dir = os.path.join(
-        temp_dir,
-        "pdf",
-    )
-
-    os.makedirs(
-        pdf_dir,
-        exist_ok=True,
-    )
-
-    # ==========================================================
-    # LIBREOFFICE
-    # ==========================================================
-
-    libreoffice_paths = [
-        (
-            r"C:\Program Files\LibreOffice"
-            r"\program\soffice.exe"
-        ),
-        (
-            r"C:\Program Files (x86)"
-            r"\LibreOffice\program\soffice.exe"
-        ),
-    ]
-
-    libreoffice_path = None
-
-    for path in libreoffice_paths:
-
-        if os.path.isfile(path):
-
-            libreoffice_path = path
-            break
-
-    if not libreoffice_path:
-
-        shutil.rmtree(
-            temp_dir,
-            ignore_errors=True,
-        )
-
-        return HttpResponse(
-            "LibreOffice was not found.",
-            status=500,
-        )
-
-    # ==========================================================
-    # EXCEL → PDF
-    # ==========================================================
-
-    command = [
-        libreoffice_path,
-        "--headless",
-        "--convert-to",
-        "pdf",
-        "--outdir",
-        pdf_dir,
-        output_xlsx,
-    ]
-
-    try:
-
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            timeout=120,
-            creationflags=getattr(
-                subprocess,
-                "CREATE_NO_WINDOW",
-                0,
-            ),
-        )
-
-    except subprocess.TimeoutExpired:
-
-        shutil.rmtree(
-            temp_dir,
-            ignore_errors=True,
-        )
-
-        return HttpResponse(
-            "Excel-to-PDF conversion timed out.",
-            status=500,
-        )
-
-    # ==========================================================
-    # FIND PDF
-    # ==========================================================
-
-    pdf_path = os.path.join(
-        pdf_dir,
-        "Monitoring_Report.pdf",
-    )
-
-    if not os.path.exists(pdf_path):
-
-        shutil.rmtree(
-            temp_dir,
-            ignore_errors=True,
-        )
-
-        return HttpResponse(
-            (
-                "LibreOffice could not create the PDF.\n\n"
-                f"Output:\n{result.stdout}\n\n"
-                f"Error:\n{result.stderr}"
-            ),
-            status=500,
-        )
-
-    # ==========================================================
-    # RETURN PDF
-    # ==========================================================
-
-    response = FileResponse(
-        open(
-            pdf_path,
-            "rb",
-        ),
-        content_type="application/pdf",
-    )
-
-    response["Content-Disposition"] = (
-        "attachment; "
-        f'filename="Monitoring_Report_'
-        f'{week_start.strftime("%Y-%m-%d")}.pdf"'
-    )
-
-    return response
-
-# ==========================================
-# REPORT DOCX
-# ==========================================
-
-@login_required
-def report_docx(request):
-
-    week_start, week_end, _ = _report_week_range(request)
-
-    records, _ = _report_records(
-        request,
-        week_start,
-        week_end,
-    )
-
-    output_path, temp_dir, template = (
-        _build_report_docx_file(
-            records,
-            week_start,
-            week_end,
-        )
-    )
-
-    with open(output_path, "rb") as file:
-
-        response = HttpResponse(
-            file.read(),
-            content_type=(
-                "application/"
-                "vnd.openxmlformats-officedocument."
-                "wordprocessingml.document"
-            ),
-        )
-
-    response["Content-Disposition"] = (
-        "attachment; "
-        f'filename="Monitoring_Report_'
-        f'{week_start.strftime("%Y-%m-%d")}.docx"'
-    )
-
-    shutil.rmtree(
-        temp_dir,
-        ignore_errors=True,
-    )
-
-    return response
-
-
-# ==========================================
-# REPORT EXCEL
-# ==========================================
-@login_required
-def report_excel(request):
-
-    week_start, week_end, _ = (
-        _report_week_range(request)
-    )
-
-    records, _ = _report_records(
-        request,
-        week_start,
-        week_end,
-    )
-
-    # ==========================================================
-    # SELECT TEMPLATE
-    # ==========================================================
-
-    template_id = request.GET.get(
-        "template_id",
-        "",
-    ).strip()
-
-    if not template_id:
-
-        template_id = request.POST.get(
-            "template_id",
-            "",
-        ).strip()
-
-    if not template_id:
-
-        return HttpResponse(
-            (
-                "Please choose a report layout "
-                "before generating the Excel report."
-            ),
-            status=400,
-        )
-
-    # ==========================================================
-    # BUILD REPORT
-    # ==========================================================
-
-    try:
-
-        output_path, temp_dir, template = (
-            _build_report_excel_file(
-                records,
-                week_start,
-                week_end,
-                template_id,
-            )
-        )
-
-    except Exception as exc:
-
-        return HttpResponse(
-            (
-                "Report could not be generated: "
-                f"{exc}"
-            ),
-            status=500,
-        )
-
-    # ==========================================================
-    # RETURN EXCEL
-    # ==========================================================
-
-    response = FileResponse(
-        open(
-            output_path,
-            "rb",
-        ),
-        content_type=(
-            "application/vnd.openxmlformats-officedocument."
-            "spreadsheetml.sheet"
-        ),
-    )
-
-    response["Content-Disposition"] = (
-        "attachment; "
-        f'filename="Monitoring_Report_'
-        f'{week_start.strftime("%Y-%m-%d")}.xlsx"'
-    )
-
-    return response
 # UNIVERSAL SCHEDULE IMPORTER
 # Supports Excel, XLSM, XLS, CSV, PDF, DOCX, PPTX, TXT and images.
 # ============================================================

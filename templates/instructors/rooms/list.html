@@ -988,6 +988,17 @@
 </main>
 
 
+<!-- Hidden form to provide Django's CSRF token for bulk deletion -->
+<form
+    id="csrf-token-form"
+    method="POST"
+    action="{% url 'room_bulk_delete' %}"
+    style="display: none;"
+>
+    {% csrf_token %}
+</form>
+
+
 <!-- ==============================
      DELETE CONFIRMATION MODAL
 ============================== -->
@@ -1365,10 +1376,11 @@
 
                 /* CSRF TOKEN */
 
-                const csrfToken =
-                    document.querySelector(
-                        '[name="csrfmiddlewaretoken"]'
-                    );
+
+                const csrfToken = document.querySelector(
+                    '#csrf-token-form [name="csrfmiddlewaretoken"]'
+                );
+
 
                 if (!csrfToken) {
 
