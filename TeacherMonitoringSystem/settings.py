@@ -149,3 +149,26 @@ LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"
 
 LOGOUT_REDIRECT_URL = "/login/"
+
+# =========================================================
+# DAILY LOGIN SESSION
+# =========================================================
+
+# Require login again after 24 hours.
+SESSION_COOKIE_AGE = 60 * 60 * 24
+
+# Do not extend the 24-hour period with every request.
+SESSION_SAVE_EVERY_REQUEST = False
+
+# The session can survive closing the browser, but expires
+# when its configured 24-hour period ends.
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# Use secure cookies on HTTPS production hosting.
+SESSION_COOKIE_SECURE = not DEBUG
+
+# Protect the session cookie from JavaScript access.
+SESSION_COOKIE_HTTPONLY = True
+
+# Add a useful default protection against cross-site requests.
+SESSION_COOKIE_SAMESITE = "Lax"

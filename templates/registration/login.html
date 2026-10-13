@@ -190,9 +190,14 @@
 
         <input type="hidden" name="next" value="{{ next }}">
 
-        <a class="forgot" href="{% url 'password_reset' %}">
-            Forgot Password?
-        </a>
+        <p style="text-align: center; margin-top: 15px;">
+            <a
+                href="{% url 'password_reset' %}"
+                style="color: #198754; text-decoration: none;"
+            >
+                Forgot your password?
+            </a>
+        </p>
 
         <button type="submit">Log In</button>
     </form>
@@ -201,6 +206,8 @@
         Main Administrator registration is available only when
         the system has no active administrator account.
     </div>
+
+
 
 </main>
 </body>

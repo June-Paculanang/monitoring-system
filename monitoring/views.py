@@ -90,7 +90,10 @@ from .models import (
     ReportTemplate,
     SystemAdministrator,
 )
-
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.views import PasswordResetView
+from django.core.exceptions import ValidationError
+from django.urls import reverse_lazy
 
 # ==========================================
 # DASHBOARD
@@ -8367,3 +8370,45 @@ def schedule_import_confirm(request):
     return redirect(
         "schedule_list"
     )
+
+class RegisteredMainAdminPasswordResetForm(PasswordResetForm):
+    """
+    Allow password reset only when the email matches the
+    registered email of the active Main Administrator.
+    """
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip()
+
+        registered_email_exists = (
+            SystemAdministrator.objects.filter(
+                is_main_admin=True,
+                user__is_active=True,
+                user__email__iexact=email,
+            ).exists()
+        )
+
+        if not registered_email_exists:
+            raise ValidationError(
+                "The email address does not match the email "
+                "you used when registering the Main Administrator "
+                "account. Please enter your registered email address."
+            )
+
+        return email
+
+
+class RegisteredMainAdminPasswordResetView(PasswordResetView):
+    form_class = RegisteredMainAdminPasswordResetForm
+
+    template_name = "registration/password_reset_form.html"
+
+    email_template_name = (
+        "registration/password_reset_email.html"
+    )
+
+    subject_template_name = (
+        "registration/password_reset_subject.txt"
+    )
+
+    success_url = reverse_lazy("password_reset_done")
