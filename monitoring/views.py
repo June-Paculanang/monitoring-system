@@ -2750,36 +2750,52 @@ def _update_template_classification_heading(
     classification="ALL",
 ):
     """
-    Update the existing classification heading in the uploaded template.
+    Update the existing classification heading in the uploaded
+    Excel template according to the dean's selected classification.
 
-    Examples:
+    ALL:
+        PART-TIME AND FULL-TIME INSTRUCTORS
+
+    PART_TIME:
         PART-TIME INSTRUCTORS
-            -> REGULAR AND PART-TIME INSTRUCTORS (ALL)
 
-        PART-TIME INSTRUCTORS
-            -> PART-TIME INSTRUCTORS (PART_TIME)
+    REGULAR:
+        FULL-TIME INSTRUCTORS
 
-        PART-TIME INSTRUCTORS
-            -> REGULAR INSTRUCTORS (REGULAR)
-
-    Existing wording, capitalization style, surrounding heading text,
-    and cell formatting are retained as far as possible.
-
-    This function does not create a new report title.
+    Preserves the existing heading cell, surrounding text, and
+    formatting. Does not create a new title or hard-code the
+    school's other heading lines.
     """
 
     import re
 
-    classification = (
-        classification or "ALL"
-    ).strip().upper()
+    # ---------------------------------------------------------
+    # NORMALIZE THE SELECTED CLASSIFICATION
+    # ---------------------------------------------------------
 
-    if classification not in {
-        "ALL",
+    classification = str(
+        classification or "ALL"
+    ).strip().upper().replace("-", "_").replace(" ", "_")
+
+    if classification in {
         "PART_TIME",
-        "REGULAR",
+        "PARTTIME",
     }:
+        classification = "PART_TIME"
+
+    elif classification in {
+        "REGULAR",
+        "FULL_TIME",
+        "FULLTIME",
+    }:
+        classification = "REGULAR"
+
+    else:
         classification = "ALL"
+
+    # ---------------------------------------------------------
+    # RECOGNIZE THE EXISTING HEADING
+    # ---------------------------------------------------------
 
     category_pattern = (
         r"(?:PART[\s-]*TIME|FULL[\s-]*TIME|REGULAR)"
@@ -2797,6 +2813,10 @@ def _update_template_classification_heading(
         re.IGNORECASE,
     )
 
+    # ---------------------------------------------------------
+    # MATCH THE TEMPLATE'S CAPITALIZATION STYLE
+    # ---------------------------------------------------------
+
     def match_case(value, reference):
         if reference.isupper():
             return value.upper()
@@ -2804,18 +2824,22 @@ def _update_template_classification_heading(
         if reference.islower():
             return value.lower()
 
-        # For headings such as "Part-Time Instructors".
         return value.title()
 
-    def get_category_details(category_text):
+    # ---------------------------------------------------------
+    # CREATE PART-TIME AND FULL-TIME LABELS
+    # ---------------------------------------------------------
+
+    def get_category_labels(category_text):
         tokens = category_token_pattern.findall(
             category_text or ""
         )
 
         part_token = next(
             (
-                token for token in tokens
-                if re.match(
+                token
+                for token in tokens
+                if re.fullmatch(
                     r"PART[\s-]*TIME",
                     token,
                     re.IGNORECASE,
@@ -2826,8 +2850,9 @@ def _update_template_classification_heading(
 
         full_token = next(
             (
-                token for token in tokens
-                if re.match(
+                token
+                for token in tokens
+                if re.fullmatch(
                     r"FULL[\s-]*TIME",
                     token,
                     re.IGNORECASE,
@@ -2836,91 +2861,79 @@ def _update_template_classification_heading(
             None,
         )
 
-        regular_token = next(
-            (
-                token for token in tokens
-                if token.upper() == "REGULAR"
-            ),
-            None,
+        reference = (
+            tokens[0]
+            if tokens
+            else "PART-TIME"
         )
 
-        reference = tokens[0] if tokens else "PART-TIME"
-
-        # Retain the template's existing spelling where available.
+        # Prefer the spelling already present in the template.
+        # If no spelling exists, use the standard hyphenated labels.
         if part_token:
             part_label = part_token
         else:
-            separator = (
+            part_separator = (
                 "-"
-                if any("-" in token for token in tokens)
+                if not tokens or "-" in reference
                 else " "
             )
 
             part_label = match_case(
-                f"PART{separator}TIME",
+                f"PART{part_separator}TIME",
                 reference,
             )
 
-        if regular_token:
-            regular_label = regular_token
-        elif full_token:
-            regular_label = full_token
+        if full_token:
+            full_label = full_token
         else:
-            regular_label = match_case(
-                "REGULAR",
+            full_separator = (
+                "-"
+                if (
+                    not tokens
+                    or "-" in reference
+                    or part_token is None
+                )
+                else " "
+            )
+
+            full_label = match_case(
+                f"FULL{full_separator}TIME",
                 reference,
             )
 
-        return {
-            "part_label": part_label,
-            "regular_label": regular_label,
-            "reference": reference,
-            "tokens": tokens,
-        }
+        # Make both labels follow the same capitalization style.
+        part_label = match_case(
+            part_label,
+            reference,
+        )
+
+        full_label = match_case(
+            full_label,
+            reference,
+        )
+
+        return part_label, full_label, reference
+
+    # ---------------------------------------------------------
+    # BUILD THE CORRECT HEADING
+    # ---------------------------------------------------------
 
     def build_new_label(match):
         category_text = match.group("categories")
         noun = match.group("noun")
 
-        details = get_category_details(category_text)
-
-        part_label = details["part_label"]
-        regular_label = details["regular_label"]
-        reference = details["reference"]
-        tokens = details["tokens"]
+        part_label, full_label, reference = (
+            get_category_labels(category_text)
+        )
 
         if classification == "PART_TIME":
             new_categories = part_label
 
         elif classification == "REGULAR":
-            new_categories = regular_label
+            new_categories = full_label
 
         else:
-            # If the uploaded template already contains both types,
-            # retain its existing category wording.
-            has_part_time = any(
-                re.match(
-                    r"PART[\s-]*TIME",
-                    token,
-                    re.IGNORECASE,
-                )
-                for token in tokens
-            )
-
-            has_regular_type = any(
-                re.match(
-                    r"(?:FULL[\s-]*TIME|REGULAR)",
-                    token,
-                    re.IGNORECASE,
-                )
-                for token in tokens
-            )
-
-            if has_part_time and has_regular_type:
-                return match.group(0)
-
-            # Otherwise, form the combined heading using the wording
-            # available in the uploaded template.
+            # Standard combined heading when ALL is selected.
             if reference.isupper():
                 conjunction = " AND "
             elif reference.islower():
@@ -2929,15 +2942,17 @@ def _update_template_classification_heading(
                 conjunction = " and "
 
             new_categories = (
-                regular_label
+                part_label
                 + conjunction
-                + part_label
+                + full_label
             )
 
         return f"{new_categories} {noun}"
 
-    # Locate a classification heading above the table's column headings.
-    # This avoids changing arbitrary text throughout the workbook.
+    # ---------------------------------------------------------
+    # FIND THE EXISTING CLASSIFICATION HEADING
+    # ---------------------------------------------------------
+
     if not header_rows:
         return
 
@@ -2956,13 +2971,14 @@ def _update_template_classification_heading(
             if not match:
                 continue
 
-            # Prefer the closest matching heading above the table header.
+            # Prefer the nearest classification heading above
+            # the report's column headings.
             if cell.row <= table_header_row:
-                distance = table_header_row - cell.row
                 priority = 0
+                distance = table_header_row - cell.row
             else:
-                distance = cell.row - table_header_row
                 priority = 1
+                distance = cell.row - table_header_row
 
             candidates.append(
                 (
@@ -2974,8 +2990,8 @@ def _update_template_classification_heading(
             )
 
     if not candidates:
-        # The uploaded template has no recognisable classification
-        # heading, so leave its existing layout and title untouched.
+        # Do not invent a classification title if the template
+        # doesn't contain an existing, recognizable heading.
         return
 
     candidates.sort(
@@ -2990,6 +3006,8 @@ def _update_template_classification_heading(
     original_text = target_cell.value
     new_label = build_new_label(match)
 
+    # Change only the classification phrase within the cell.
+    # Keep the rest of the cell text unchanged.
     target_cell.value = (
         original_text[:match.start()]
         + new_label
@@ -3381,6 +3399,13 @@ def _build_report_excel_file(
                 + " || ".join(sheet_details)
             )
 
+        # Update the classification heading before generating the exports.
+        _update_template_classification_heading(
+            worksheet,
+            header_rows,
+            classification=classification,
+        )
+
         # Keep the title and headings exactly as they appear in the
         # uploaded Excel template. Do not hard-code title text here.
         data_start = header_row + 1
@@ -3709,6 +3734,10 @@ def _build_report_excel_file(
             data_start + total_records - 1,
         )
 
+        # Only print the columns actually used by the report.
+        # Ignore unused formatted columns outside the actual template.
+        final_last_column = max(header_map.values())
+
         final_last_column = max(
             worksheet.max_column,
             max(header_map.values()),
@@ -3720,6 +3749,8 @@ def _build_report_excel_file(
 
         worksheet.print_title_rows = f"1:{header_row}"
 
+        # Automatically scale the report to the selected paper size.
+        worksheet.page_setup.scale = None
         worksheet.page_setup.fitToWidth = 1
         worksheet.page_setup.fitToHeight = 0
         worksheet.sheet_properties.pageSetUpPr.fitToPage = True
@@ -3786,7 +3817,6 @@ def _build_report_excel_file(
 # =============================================================
 # DOCX REPORT BUILDER
 # =============================================================
-
 def _build_report_docx_file(
     records,
     week_start,
@@ -3795,29 +3825,30 @@ def _build_report_docx_file(
     classification="ALL",
     settings=None,
 ):
-    """
-    Build an editable Word report from the generated Excel report.
-
-    Copies worksheet values, merges, fonts, fill colors, borders,
-    alignment, images where possible, and page layout.
-    """
+    """Create an editable DOCX using the selected Excel template's layout."""
 
     import os
     import shutil
     from io import BytesIO
+    from xml.etree import ElementTree as ET
 
     from openpyxl import load_workbook
-    from openpyxl.utils.cell import range_boundaries
+    from openpyxl.styles.colors import COLOR_INDEX
     from openpyxl.utils import get_column_letter
+    from openpyxl.utils.cell import range_boundaries
 
     from docx import Document
-    from docx.shared import Inches, Pt, RGBColor
+    from docx.enum.table import (
+        WD_CELL_VERTICAL_ALIGNMENT,
+        WD_ROW_HEIGHT_RULE,
+        WD_TABLE_ALIGNMENT,
+    )
     from docx.enum.text import WD_ALIGN_PARAGRAPH
-    from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
     from docx.oxml import OxmlElement
     from docx.oxml.ns import qn
+    from docx.shared import Inches, Pt, RGBColor
 
-    # Use exactly the same Excel builder, template, records, and settings.
+    # Generate the Excel report using the selected uploaded template.
     result = _build_report_excel_file(
         records,
         week_start,
@@ -3841,15 +3872,120 @@ def _build_report_docx_file(
         )
 
         worksheet = workbook.active
+        settings = settings or {}
+
+        # ---------------------------------------------------------
+        # READ EXCEL THEME COLORS
+        # ---------------------------------------------------------
+
+        theme_rgb = {}
+
+        try:
+            theme_root = ET.fromstring(workbook.loaded_theme)
+
+            namespace = {
+                "a": "http://schemas.openxmlformats.org/drawingml/2006/main"
+            }
+
+            scheme = theme_root.find(
+                ".//a:clrScheme",
+                namespace,
+            )
+
+            if scheme is not None:
+                for index, theme_color in enumerate(list(scheme)):
+                    children = list(theme_color)
+
+                    if children:
+                        raw = (
+                            children[0].attrib.get("lastClr")
+                            or children[0].attrib.get("val")
+                        )
+
+                        if raw and len(raw) >= 6:
+                            theme_rgb[index] = raw[-6:].upper()
+
+        except Exception:
+            theme_rgb = {}
+
+        def excel_color_to_hex(color):
+            """Convert Excel RGB, theme, or indexed colors to HEX."""
+
+            if color is None:
+                return None
+
+            raw = None
+
+            if color.type == "rgb" and color.rgb:
+                raw = str(color.rgb)[-6:]
+
+            elif color.type == "theme" and color.theme is not None:
+                raw = theme_rgb.get(int(color.theme))
+
+            elif color.type == "indexed" and color.indexed is not None:
+                try:
+                    raw = str(
+                        COLOR_INDEX[int(color.indexed)]
+                    )[-6:]
+
+                except (IndexError, TypeError, ValueError):
+                    raw = None
+
+            if not raw:
+                return None
+
+            raw = raw.upper()
+
+            try:
+                tint = float(
+                    getattr(color, "tint", 0) or 0
+                )
+            except (TypeError, ValueError):
+                tint = 0
+
+            if tint:
+                channels = []
+
+                for offset in (0, 2, 4):
+                    channel = int(
+                        raw[offset:offset + 2],
+                        16,
+                    )
+
+                    if tint < 0:
+                        channel = round(
+                            channel * (1 + tint)
+                        )
+                    else:
+                        channel = round(
+                            channel * (1 - tint)
+                            + 255 * tint
+                        )
+
+                    channels.append(
+                        max(0, min(255, channel))
+                    )
+
+                raw = "".join(
+                    f"{value:02X}"
+                    for value in channels
+                )
+
+            return raw
+
+        # ---------------------------------------------------------
+        # READ THE EXCEL PRINT AREA
+        # ---------------------------------------------------------
 
         min_col, min_row = 1, 1
-        max_col, max_row = worksheet.max_column, worksheet.max_row
+        max_col = worksheet.max_column
+        max_row = worksheet.max_row
 
-        print_area = worksheet.print_area
-
-        if print_area:
+        if worksheet.print_area:
             try:
-                area = str(print_area).split(",")[0].strip()
+                area = str(
+                    worksheet.print_area
+                ).split(",")[0].strip()
 
                 if "!" in area:
                     area = area.rsplit("!", 1)[1]
@@ -3865,98 +4001,802 @@ def _build_report_docx_file(
 
             except (ValueError, TypeError):
                 min_col, min_row = 1, 1
-                max_col, max_row = worksheet.max_column, worksheet.max_row
+                max_col = worksheet.max_column
+                max_row = worksheet.max_row
 
-        # Include merged ranges that overlap the print area.
-        for merged in worksheet.merged_cells.ranges:
-            if (
-                merged.min_row <= max_row
-                and merged.max_row >= min_row
-                and merged.min_col <= max_col
-                and merged.max_col >= min_col
+        # ---------------------------------------------------------
+        # DETECT THE LAST REAL REPORT COLUMN
+        # ---------------------------------------------------------
+        # Some templates contain extra formatted columns after the
+        # real table. For example, the Regular template may extend
+        # to column K although its actual report headings end at G.
+        # These unused columns must not be included in the DOCX table.
+
+        name_labels = {
+            "NAME",
+            "INSTRUCTOR",
+            "INSTRUCTOR NAME",
+            "FACULTY NAME",
+        }
+
+        report_header_labels = {
+            "NAME",
+            "INSTRUCTOR",
+            "INSTRUCTOR NAME",
+            "FACULTY NAME",
+            "SUBJECT",
+            "SUBJECT CODE",
+            "TIME",
+            "CLASS TIME",
+            "ORIGINAL TIME",
+            "DAY",
+            "ROOM",
+            "SIGNATURE",
+            "REMARKS",
+            "MONITORING TIME",
+            "DATE & TIME",
+            "DATE AND TIME",
+            "ASSIGNED ROOM",
+            "ACTUAL ROOM",
+            "ACTUAL ROOM USED",
+            "SCHEDULED CLASS TIME",
+            "DATE MONITORED",
+        }
+
+        detected_header_row = None
+
+        for candidate_row in range(
+            min_row,
+            min(max_row, min_row + 12) + 1,
+        ):
+            for candidate_col in range(
+                1,
+                worksheet.max_column + 1,
             ):
-                max_row = max(max_row, merged.max_row)
-                max_col = max(max_col, merged.max_col)
+                raw_value = worksheet.cell(
+                    candidate_row,
+                    candidate_col,
+                ).value
+
+                normalized = " ".join(
+                    str(raw_value or "").upper().split()
+                )
+
+                if normalized in name_labels:
+                    detected_header_row = candidate_row
+                    break
+
+            if detected_header_row is not None:
+                break
+
+        if detected_header_row is not None:
+            header_columns = []
+
+            scan_end_row = min(
+                max_row,
+                detected_header_row + 2,
+            )
+
+            for scan_row in range(
+                detected_header_row,
+                scan_end_row + 1,
+            ):
+                for scan_col in range(
+                    1,
+                    worksheet.max_column + 1,
+                ):
+                    raw_value = worksheet.cell(
+                        scan_row,
+                        scan_col,
+                    ).value
+
+                    normalized = " ".join(
+                        str(raw_value or "").upper().split()
+                    )
+
+                    if normalized in report_header_labels:
+                        header_columns.append(scan_col)
+
+                        # Include the complete width of a merged header.
+                        for merged_range in worksheet.merged_cells.ranges:
+                            if (
+                                merged_range.min_row
+                                <= scan_row
+                                <= merged_range.max_row
+                                and merged_range.min_col
+                                <= scan_col
+                                <= merged_range.max_col
+                            ):
+                                header_columns.append(
+                                    merged_range.max_col
+                                )
+
+            if header_columns:
+                max_col = max(header_columns)
+
+        # ---------------------------------------------------------
+        # DETECT TEMPLATE IMAGES
+        # ---------------------------------------------------------
+
+        excel_images = list(
+            getattr(worksheet, "_images", []) or []
+        )
+
+        has_image_on_first_row = any(
+            getattr(
+                getattr(image, "anchor", None),
+                "_from",
+                None,
+            ) is not None
+            and image.anchor._from.row == 0
+            for image in excel_images
+        )
+
+        first_row_has_text = any(
+            worksheet.cell(1, col).value not in (None, "")
+            for col in range(min_col, max_col + 1)
+        )
+
+        # Images anchored on an empty Excel row are handled in the
+        # separate Word header block below.
+        if (
+            min_row <= 1
+            and has_image_on_first_row
+            and not first_row_has_text
+        ):
+            min_row = 2
+
+        row_count = max(
+            1,
+            max_row - min_row + 1,
+        )
+
+        col_count = max(
+            1,
+            max_col - min_col + 1,
+        )
+
+        # ---------------------------------------------------------
+        # SET PAPER SIZE, ORIENTATION, AND MARGINS
+        # ---------------------------------------------------------
+
+        paper_sizes = {
+            "A4": (8.27, 11.69),
+            "LETTER": (8.5, 11.0),
+            "LEGAL": (8.5, 14.0),
+            "FOLIO": (8.5, 13.0),
+        }
+
+        excel_paper_sizes = {
+            "1": (8.5, 11.0),
+            "2": (8.5, 11.0),
+            "3": (11.0, 17.0),
+            "4": (17.0, 11.0),
+            "5": (8.5, 14.0),
+            "6": (5.5, 8.5),
+            "7": (7.25, 10.5),
+            "8": (11.69, 16.54),
+            "9": (8.27, 11.69),
+            "10": (8.27, 11.69),
+            "11": (5.83, 8.27),
+            "12": (9.84, 13.90),
+            "13": (7.17, 10.12),
+            "14": (8.5, 13.0),
+            "15": (8.5, 10.83),
+            "16": (10.0, 14.0),
+            "17": (11.0, 17.0),
+        }
+
+        requested_paper = str(
+            settings.get("paper_size", "")
+        ).upper()
+
+        if requested_paper in paper_sizes:
+            page_width, page_height = paper_sizes[
+                requested_paper
+            ]
+        else:
+            page_width, page_height = excel_paper_sizes.get(
+                str(worksheet.page_setup.paperSize),
+                (8.27, 11.69),
+            )
+
+        orientation = str(
+            settings.get(
+                "orientation",
+                worksheet.page_setup.orientation or "portrait",
+            )
+        ).lower()
+
+        # Normalize dimensions to the requested orientation.
+        if orientation == "landscape":
+            page_width, page_height = (
+                max(page_width, page_height),
+                min(page_width, page_height),
+            )
+        else:
+            page_width, page_height = (
+                min(page_width, page_height),
+                max(page_width, page_height),
+            )
 
         document = Document()
         section = document.sections[0]
 
-        paper_dimensions = {
-            "1": (8.5, 11.0),
-            "2": (8.5, 11.0),
-            "5": (8.5, 14.0),
-            "9": (8.27, 11.69),
-            "14": (8.5, 13.0),
-        }
-
-        page_width, page_height = paper_dimensions.get(
-            str(worksheet.page_setup.paperSize),
-            (8.27, 11.69),
-        )
-
-        if worksheet.page_setup.orientation == "landscape":
-            page_width, page_height = page_height, page_width
-
         section.page_width = Inches(page_width)
         section.page_height = Inches(page_height)
 
-        for side in ("left", "right", "top", "bottom"):
-            value = getattr(
-                worksheet.page_margins,
-                side,
-                None,
+        if settings:
+            page_margin = (
+                0.30
+                if str(
+                    settings.get("margins", "normal")
+                ).lower() == "narrow"
+                else 0.50
             )
 
-            if value is not None:
-                setattr(
-                    section,
-                    f"{side}_margin",
-                    Inches(value),
+            margin_left = page_margin
+            margin_right = page_margin
+
+            section.left_margin = Inches(page_margin)
+            section.right_margin = Inches(page_margin)
+            section.top_margin = Inches(page_margin)
+            section.bottom_margin = Inches(page_margin)
+
+        else:
+            margin_left = float(
+                worksheet.page_margins.left or 0.5
+            )
+            margin_right = float(
+                worksheet.page_margins.right or 0.5
+            )
+
+            section.left_margin = Inches(margin_left)
+            section.right_margin = Inches(margin_right)
+
+            section.top_margin = Inches(
+                float(worksheet.page_margins.top or 0.5)
+            )
+            section.bottom_margin = Inches(
+                float(worksheet.page_margins.bottom or 0.5)
+            )
+
+        # Use the complete printable page width.
+        table_width = max(
+            1.0,
+            page_width - margin_left - margin_right,
+        )
+
+        total_table_twips = int(
+            round(table_width * 1440)
+        )
+
+        # ---------------------------------------------------------
+        # CALCULATE COLUMN WIDTHS
+        # ---------------------------------------------------------
+
+        def excel_col_width(col_number):
+            letter = get_column_letter(col_number)
+
+            dimension = worksheet.column_dimensions[letter]
+
+            if dimension.hidden:
+                return 0.01
+
+            return max(
+                0.01,
+                float(dimension.width or 8.43),
+            )
+
+        column_width_units = [
+            excel_col_width(col)
+            for col in range(min_col, max_col + 1)
+        ]
+
+        total_column_units = (
+            sum(column_width_units)
+            or float(col_count)
+        )
+
+        # Convert Excel's column proportions to Word twips.
+        # The widths add up to the full printable page width.
+
+        column_twips = []
+        used_twips = 0
+
+        for index, width_units in enumerate(column_width_units):
+            if index == col_count - 1:
+                width_twips = (
+                    total_table_twips - used_twips
+                )
+            else:
+                width_twips = int(
+                    round(
+                        total_table_twips
+                        * width_units
+                        / total_column_units
+                    )
                 )
 
-        row_count = max_row - min_row + 1
-        col_count = max_col - min_col + 1
+                used_twips += width_twips
+
+            column_twips.append(
+                max(1, width_twips)
+            )
+
+        column_twips[-1] += (
+            total_table_twips - sum(column_twips)
+        )
+
+        # ---------------------------------------------------------
+        # WORD TABLE WIDTH HELPER
+        # ---------------------------------------------------------
+
+        def set_table_width(word_table, widths_twips):
+            """Apply an exact width and fixed grid to a Word table."""
+
+            properties = word_table._tbl.tblPr
+
+            # Remove duplicate width definitions.
+            for existing in list(
+                properties.findall(qn("w:tblW"))
+            ):
+                properties.remove(existing)
+
+            width_element = OxmlElement("w:tblW")
+            width_element.set(
+                qn("w:w"),
+                str(sum(widths_twips)),
+            )
+            width_element.set(
+                qn("w:type"),
+                "dxa",
+            )
+            properties.append(width_element)
+
+            # Use a fixed table layout.
+            for existing in list(
+                properties.findall(qn("w:tblLayout"))
+            ):
+                properties.remove(existing)
+
+            layout = OxmlElement("w:tblLayout")
+            layout.set(
+                qn("w:type"),
+                "fixed",
+            )
+            properties.append(layout)
+
+            # Prevent an automatic Word table indent.
+            indent = properties.find(qn("w:tblInd"))
+
+            if indent is None:
+                indent = OxmlElement("w:tblInd")
+                properties.append(indent)
+
+            indent.set(qn("w:w"), "0")
+            indent.set(qn("w:type"), "dxa")
+
+            # Set the actual Word table grid columns.
+            grid_columns = word_table._tbl.tblGrid.gridCol_lst
+
+            for index, width_value in enumerate(widths_twips):
+                if index < len(grid_columns):
+                    grid_columns[index].set(
+                        qn("w:w"),
+                        str(width_value),
+                    )
+
+        # ---------------------------------------------------------
+        # RECREATE THE LETTERHEAD AND LOGOS
+        # ---------------------------------------------------------
+
+        banner_images = []
+        logo_images = []
+
+        for image in excel_images:
+            anchor = getattr(image, "anchor", None)
+
+            if anchor is not None and hasattr(anchor, "to"):
+                banner_images.append(image)
+            else:
+                logo_images.append(image)
+
+        if banner_images or logo_images:
+            banner = (
+                banner_images[0]
+                if banner_images
+                else None
+            )
+
+            banner_width = 0.0
+
+            if banner is not None:
+                anchor = banner.anchor
+
+                start_col = max(
+                    0,
+                    int(anchor._from.col),
+                )
+
+                end_col = max(
+                    start_col + 1,
+                    int(anchor.to.col),
+                )
+
+                span_units = sum(
+                    excel_col_width(col0 + 1)
+                    for col0 in range(
+                        start_col,
+                        end_col,
+                    )
+                    if min_col <= col0 + 1 <= max_col
+                )
+
+                span_ratio = min(
+                    0.92,
+                    max(
+                        0.30,
+                        span_units / total_column_units,
+                    ),
+                )
+
+                banner_width = (
+                    table_width * span_ratio
+                )
+
+            # Preserve each logo's aspect ratio.
+            logo_widths = []
+
+            for image in logo_images:
+                anchor = image.anchor
+                ext = getattr(anchor, "ext", None)
+
+                if (
+                    ext is not None
+                    and getattr(ext, "cx", None)
+                ):
+                    image_width = (
+                        float(ext.cx) / 914400.0
+                    )
+                else:
+                    image_width = (
+                        float(image.width or 80) / 96.0
+                    )
+
+                logo_widths.append(
+                    min(
+                        max(0.20, image_width),
+                        table_width * 0.14,
+                    )
+                )
+
+            logo_total = sum(logo_widths)
+
+            indent_left = (
+                0.20
+                if banner is not None
+                else 0.0
+            )
+
+            gap = (
+                0.10
+                if banner is not None and logo_images
+                else 0.0
+            )
+
+            if banner is not None:
+                banner_cell_width = min(
+                    table_width - logo_total - gap,
+                    banner_width + indent_left + gap,
+                )
+            else:
+                banner_cell_width = max(
+                    0.25,
+                    table_width - logo_total,
+                )
+
+            banner_cell_width = max(
+                0.25,
+                min(table_width, banner_cell_width),
+            )
+
+            if logo_images:
+                first_header_width = int(
+                    round(banner_cell_width * 1440)
+                )
+
+                header_widths = [
+                    first_header_width,
+                    total_table_twips - first_header_width,
+                ]
+            else:
+                header_widths = [
+                    total_table_twips
+                ]
+
+            header_table = document.add_table(
+                rows=1,
+                cols=len(header_widths),
+            )
+
+            header_table.alignment = WD_TABLE_ALIGNMENT.LEFT
+            header_table.autofit = False
+
+            set_table_width(
+                header_table,
+                header_widths,
+            )
+
+            for index, width_value in enumerate(header_widths):
+                cell_width = Inches(
+                    width_value / 1440.0
+                )
+
+                header_table.columns[index].width = cell_width
+                header_table.rows[0].cells[index].width = cell_width
+
+                header_table.rows[0].cells[
+                    index
+                ].vertical_alignment = (
+                    WD_CELL_VERTICAL_ALIGNMENT.CENTER
+                )
+
+            first_cell = header_table.cell(0, 0)
+            first_paragraph = first_cell.paragraphs[0]
+
+            first_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            first_paragraph.paragraph_format.space_before = Pt(0)
+            first_paragraph.paragraph_format.space_after = Pt(0)
+
+            if banner is not None:
+                first_paragraph.paragraph_format.left_indent = Inches(
+                    indent_left
+                )
+
+                max_banner_width = max(
+                    0.25,
+                    banner_cell_width
+                    - indent_left
+                    - gap
+                    - 0.10,
+                )
+
+                first_paragraph.add_run().add_picture(
+                    BytesIO(banner._data()),
+                    width=Inches(
+                        min(banner_width, max_banner_width)
+                    ),
+                )
+
+            elif logo_images:
+                first_paragraph.alignment = (
+                    WD_ALIGN_PARAGRAPH.CENTER
+                )
+
+                first_paragraph.add_run().add_picture(
+                    BytesIO(logo_images[0]._data()),
+                    width=Inches(logo_widths[0]),
+                )
+
+                logo_images = logo_images[1:]
+                logo_widths = logo_widths[1:]
+
+            if len(header_widths) > 1 and logo_images:
+                logo_cell = header_table.cell(0, 1)
+                logo_paragraph = logo_cell.paragraphs[0]
+
+                logo_paragraph.alignment = (
+                    WD_ALIGN_PARAGRAPH.LEFT
+                )
+                logo_paragraph.paragraph_format.left_indent = Inches(0.05)
+                logo_paragraph.paragraph_format.space_before = Pt(0)
+                logo_paragraph.paragraph_format.space_after = Pt(0)
+
+                available_logo_width = max(
+                    0.2,
+                    header_widths[1] / 1440.0 - 0.10,
+                )
+
+                for image, width_value in zip(
+                    logo_images,
+                    logo_widths,
+                ):
+                    logo_paragraph.add_run().add_picture(
+                        BytesIO(image._data()),
+                        width=Inches(
+                            min(
+                                width_value,
+                                available_logo_width,
+                            )
+                        ),
+                    )
+
+        # ---------------------------------------------------------
+        # CREATE THE REPORT TABLE AT THE FULL PAGE WIDTH
+        # ---------------------------------------------------------
 
         table = document.add_table(
             rows=row_count,
             cols=col_count,
         )
 
+        table.alignment = WD_TABLE_ALIGNMENT.LEFT
         table.autofit = False
 
-        table_layout = OxmlElement("w:tblLayout")
-        table_layout.set(qn("w:type"), "fixed")
-        table._tbl.tblPr.append(table_layout)
+        set_table_width(
+            table,
+            column_twips,
+        )
 
-        # Apply column widths based on the Excel template.
-        for excel_col in range(min_col, max_col + 1):
-            col_letter = get_column_letter(excel_col)
-
-            excel_width = (
-                worksheet.column_dimensions[col_letter].width or 8.43
+        for index, width_twips in enumerate(column_twips):
+            cell_width = Inches(
+                width_twips / 1440.0
             )
 
-            word_width = Inches(
-                max(0.25, min(excel_width * 0.095, 3.5))
+            table.columns[index].width = cell_width
+
+            for row in table.rows:
+                row.cells[index].width = cell_width
+
+        # ---------------------------------------------------------
+        # CELL MARGINS
+        # ---------------------------------------------------------
+
+        def set_cell_margins(
+            cell,
+            top=20,
+            start=35,
+            bottom=20,
+            end=35,
+        ):
+            tc_pr = cell._tc.get_or_add_tcPr()
+
+            tc_mar = tc_pr.find(
+                qn("w:tcMar")
             )
 
-            for word_row in table.rows:
-                word_row.cells[
-                    excel_col - min_col
-                ].width = word_width
+            if tc_mar is None:
+                tc_mar = OxmlElement("w:tcMar")
+                tc_pr.append(tc_mar)
 
-        # Copy cell data and visible formatting.
-        for excel_row in range(min_row, max_row + 1):
+            for edge, amount in (
+                ("top", top),
+                ("start", start),
+                ("bottom", bottom),
+                ("end", end),
+            ):
+                element = tc_mar.find(
+                    qn(f"w:{edge}")
+                )
+
+                if element is None:
+                    element = OxmlElement(
+                        f"w:{edge}"
+                    )
+                    tc_mar.append(element)
+
+                element.set(
+                    qn("w:w"),
+                    str(amount),
+                )
+
+                element.set(
+                    qn("w:type"),
+                    "dxa",
+                )
+
+        default_row_height = float(
+            getattr(
+                worksheet.sheet_format,
+                "defaultRowHeight",
+                None,
+            ) or 15.0
+        )
+
+        # ---------------------------------------------------------
+        # DETECT THE TABLE HEADER ROWS
+        # ---------------------------------------------------------
+
+        header_name_row = None
+        header_end_row = None
+
+        name_aliases = {
+            "NAME",
+            "INSTRUCTOR",
+            "INSTRUCTOR NAME",
+            "FACULTY NAME",
+        }
+
+        heading_aliases = {
+            "SUBJECT",
+            "TIME",
+            "DAY",
+            "ROOM",
+            "SIGNATURE",
+            "REMARKS",
+            "MONITORING TIME",
+            "DATE & TIME",
+            "DATE AND TIME",
+        }
+
+        for candidate_row in range(
+            min_row,
+            min(max_row, min_row + 10) + 1,
+        ):
+            values = [
+                " ".join(
+                    str(
+                        worksheet.cell(candidate_row, col).value
+                        or ""
+                    ).upper().split()
+                )
+                for col in range(
+                    min_col,
+                    max_col + 1,
+                )
+            ]
+
+            if any(
+                value in name_aliases
+                for value in values
+            ):
+                header_name_row = candidate_row
+                header_end_row = candidate_row
+
+                for next_row in range(
+                    candidate_row + 1,
+                    min(max_row, candidate_row + 2) + 1,
+                ):
+                    next_values = [
+                        " ".join(
+                            str(
+                                worksheet.cell(next_row, col).value
+                                or ""
+                            ).upper().split()
+                        )
+                        for col in range(
+                            min_col,
+                            max_col + 1,
+                        )
+                    ]
+
+                    if any(
+                        value in heading_aliases
+                        for value in next_values
+                    ):
+                        header_end_row = next_row
+
+                break
+
+        # ---------------------------------------------------------
+        # COPY EXCEL VALUES AND FORMATTING
+        # ---------------------------------------------------------
+
+        for excel_row in range(
+            min_row,
+            max_row + 1,
+        ):
             word_row_index = excel_row - min_row
 
             excel_height = worksheet.row_dimensions[
                 excel_row
             ].height
 
-            if excel_height:
-                table.rows[word_row_index].height = Pt(excel_height)
+            table.rows[word_row_index].height = Pt(
+                float(
+                    excel_height or default_row_height
+                )
+            )
 
-            for excel_col in range(min_col, max_col + 1):
+            table.rows[
+                word_row_index
+            ].height_rule = WD_ROW_HEIGHT_RULE.AT_LEAST
+
+            for excel_col in range(
+                min_col,
+                max_col + 1,
+            ):
                 source = worksheet.cell(
                     excel_row,
                     excel_col,
@@ -3977,15 +4817,23 @@ def _build_report_docx_file(
                     WD_CELL_VERTICAL_ALIGNMENT.CENTER
                 )
 
+                set_cell_margins(target)
+
                 paragraph = target.paragraphs[0]
+
                 horizontal = source.alignment.horizontal
 
-                if horizontal == "center":
-                    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                elif horizontal == "right":
-                    paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-                else:
-                    paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                paragraph.alignment = {
+                    "center": WD_ALIGN_PARAGRAPH.CENTER,
+                    "right": WD_ALIGN_PARAGRAPH.RIGHT,
+                }.get(
+                    horizontal,
+                    WD_ALIGN_PARAGRAPH.LEFT,
+                )
+
+                paragraph.paragraph_format.space_before = Pt(0)
+                paragraph.paragraph_format.space_after = Pt(0)
+                paragraph.paragraph_format.keep_together = True
 
                 run = (
                     paragraph.runs[0]
@@ -3997,50 +4845,67 @@ def _build_report_docx_file(
                     run.font.name = source.font.name
 
                 if source.font.sz:
-                    run.font.size = Pt(source.font.sz)
+                    run.font.size = Pt(
+                        source.font.sz
+                    )
 
                 run.bold = bool(source.font.bold)
                 run.italic = bool(source.font.italic)
                 run.underline = bool(source.font.underline)
 
+                # Preserve font colors.
                 if (
                     source.font.color
                     and source.font.color.type == "rgb"
                     and source.font.color.rgb
                 ):
                     try:
-                        run.font.color.rgb = RGBColor.from_string(
-                            str(source.font.color.rgb)[-6:]
+                        run.font.color.rgb = (
+                            RGBColor.from_string(
+                                str(source.font.color.rgb)[-6:]
+                            )
                         )
                     except ValueError:
                         pass
 
-                # Copy the cell fill.
+                # Preserve Excel fills, including green header cells.
                 if (
                     source.fill
                     and source.fill.fill_type
                     and source.fill.fgColor
                 ):
-                    color = source.fill.fgColor
+                    fill_color = excel_color_to_hex(
+                        source.fill.fgColor
+                    )
 
-                    if color.type == "rgb" and color.rgb:
+                    if fill_color:
                         tc_pr = target._tc.get_or_add_tcPr()
+
                         shading = OxmlElement("w:shd")
                         shading.set(
                             qn("w:fill"),
-                            str(color.rgb)[-6:],
+                            fill_color,
                         )
+
                         tc_pr.append(shading)
 
-                # Copy visible cell borders.
+                # Preserve visible borders.
                 tc_pr = target._tc.get_or_add_tcPr()
-                borders = tc_pr.find(qn("w:tcBorders"))
+
+                borders = tc_pr.find(
+                    qn("w:tcBorders")
+                )
 
                 if borders is None:
                     borders = OxmlElement("w:tcBorders")
                     tc_pr.append(borders)
 
-                for edge_name in ("top", "left", "bottom", "right"):
+                for edge_name in (
+                    "top",
+                    "left",
+                    "bottom",
+                    "right",
+                ):
                     edge = getattr(
                         source.border,
                         edge_name,
@@ -4050,70 +4915,110 @@ def _build_report_docx_file(
                     if edge is None or not edge.style:
                         continue
 
-                    border = OxmlElement(f"w:{edge_name}")
-                    border.set(qn("w:val"), "single")
-                    border.set(qn("w:sz"), "4")
+                    border = OxmlElement(
+                        f"w:{edge_name}"
+                    )
 
-                    if (
+                    border.set(
+                        qn("w:val"),
+                        "single",
+                    )
+
+                    border.set(
+                        qn("w:sz"),
+                        "4",
+                    )
+
+                    edge_color = excel_color_to_hex(
                         edge.color
-                        and edge.color.type == "rgb"
-                        and edge.color.rgb
-                    ):
+                    )
+
+                    if edge_color:
                         border.set(
                             qn("w:color"),
-                            str(edge.color.rgb)[-6:],
+                            edge_color,
                         )
 
                     borders.append(border)
 
-        # Recreate Excel merged cells in Word.
-        for merged in list(worksheet.merged_cells.ranges):
+        # ---------------------------------------------------------
+        # RESTORE MERGED CELLS FROM EXCEL
+        # ---------------------------------------------------------
+
+        for merged in list(
+            worksheet.merged_cells.ranges
+        ):
+            top_row = max(
+                min_row,
+                merged.min_row,
+            )
+
+            bottom_row = min(
+                max_row,
+                merged.max_row,
+            )
+
+            left_col = max(
+                min_col,
+                merged.min_col,
+            )
+
+            right_col = min(
+                max_col,
+                merged.max_col,
+            )
+
             if (
-                merged.min_row < min_row
-                or merged.max_row > max_row
-                or merged.min_col < min_col
-                or merged.max_col > max_col
+                top_row > bottom_row
+                or left_col > right_col
             ):
                 continue
 
-            table.cell(
-                merged.min_row - min_row,
-                merged.min_col - min_col,
-            ).merge(
+            if (
+                top_row == bottom_row
+                and left_col == right_col
+            ):
+                continue
+
+            anchor_cell = table.cell(
+                top_row - min_row,
+                left_col - min_col,
+            )
+
+            anchor_cell.merge(
                 table.cell(
-                    merged.max_row - min_row,
-                    merged.max_col - min_col,
+                    bottom_row - min_row,
+                    right_col - min_col,
                 )
             )
 
-        # Copy Excel logos/images into Word where possible.
-        for excel_image in getattr(worksheet, "_images", []):
-            try:
-                anchor = excel_image.anchor
-                image_row = anchor._from.row
-                image_col = anchor._from.col
-
-                if not (
-                    min_row - 1 <= image_row <= max_row - 1
-                    and min_col - 1 <= image_col <= max_col - 1
+            for extra_paragraph in list(
+                anchor_cell.paragraphs[1:]
+            ):
+                if (
+                    not extra_paragraph.text.strip()
+                    and not extra_paragraph._p.xpath(
+                        ".//w:drawing"
+                    )
                 ):
-                    continue
+                    extra_paragraph._element.getparent().remove(
+                        extra_paragraph._element
+                    )
 
-                cell = table.cell(
-                    image_row + 1 - min_row,
-                    image_col + 1 - min_col,
-                )
+        # ---------------------------------------------------------
+        # FINAL WIDTH ENFORCEMENT
+        # ---------------------------------------------------------
+        # Reapply the exact absolute table width after merged cells are
+        # reconstructed. This prevents Word Online from shrinking the grid.
 
-                cell.paragraphs[0].alignment = (
-                    WD_ALIGN_PARAGRAPH.CENTER
-                )
+        set_table_width(
+            table,
+            column_twips,
+        )
 
-                cell.paragraphs[0].add_run().add_picture(
-                    BytesIO(excel_image._data())
-                )
-
-            except Exception:
-                continue
+        # ---------------------------------------------------------
+        # SAVE THE DOCX FILE
+        # ---------------------------------------------------------
 
         output_path = os.path.join(
             temp_dir,
@@ -4134,9 +5039,12 @@ def _build_report_docx_file(
             except Exception:
                 pass
 
-        shutil.rmtree(temp_dir, ignore_errors=True)
-        raise
+        shutil.rmtree(
+            temp_dir,
+            ignore_errors=True,
+        )
 
+        raise
 
 # =============================================================
 # REPORT TEMPLATE EXTENSION
@@ -4177,7 +5085,6 @@ def _build_report_file(
 # =============================================================
 # BUILD PDF BYTES FROM EXCEL
 # =============================================================
-
 def _build_report_pdf_bytes(
     records,
     week_start,
@@ -4187,17 +5094,42 @@ def _build_report_pdf_bytes(
     settings=None,
 ):
     """
-    Convert the generated Excel report to PDF.
+    Generate PDF bytes from the selected uploaded Excel template.
 
-    Returns PDF bytes, not a file path.
+    Preserves the template's title, logos, table formatting, and merged
+    cells. Adjusts the report columns, wraps long text, centers the
+    header images, and enlarges the report title to 12-point font.
     """
 
     import os
     import shutil
     import subprocess
+    import textwrap
     from pathlib import Path
+    from copy import copy
 
-    result = _build_report_excel_file(
+    from openpyxl import load_workbook
+    from openpyxl.cell.cell import MergedCell
+    from openpyxl.drawing.spreadsheet_drawing import (
+        AnchorMarker,
+        OneCellAnchor,
+    )
+    from openpyxl.drawing.xdr import XDRPositiveSize2D
+    from openpyxl.styles import Alignment
+    from openpyxl.utils import get_column_letter
+    from openpyxl.utils.cell import range_boundaries
+    from openpyxl.worksheet.properties import PageSetupProperties
+
+    settings = settings or {}
+
+    EMU_PER_PIXEL = 9525
+    PIXELS_PER_INCH = 96
+
+    # =========================================================
+    # 1. GENERATE THE EXCEL REPORT FROM THE UPLOADED TEMPLATE
+    # =========================================================
+
+    build_result = _build_report_excel_file(
         records,
         week_start,
         week_end,
@@ -4206,18 +5138,866 @@ def _build_report_pdf_bytes(
         settings=settings,
     )
 
-    output_xlsx, temp_dir, _template = _checked_report_build_result(
-        result,
-        "_build_report_excel_file",
+    output_xlsx, temp_dir, _template = (
+        _checked_report_build_result(
+            build_result,
+            "_build_report_excel_file",
+        )
     )
 
     try:
+        workbook = load_workbook(
+            output_xlsx,
+            data_only=False,
+        )
+
+        try:
+            worksheet = workbook.active
+
+            # -------------------------------------------------
+            # NORMALIZE EXCEL HEADING TEXT
+            # -------------------------------------------------
+
+            def normalize_heading(value):
+                if value is None:
+                    return ""
+
+                return " ".join(
+                    str(value)
+                    .replace("\n", " ")
+                    .replace("\r", " ")
+                    .replace("–", "-")
+                    .replace("—", "-")
+                    .upper()
+                    .split()
+                )
+
+            # -------------------------------------------------
+            # DETECT THE REPORT TABLE HEADINGS
+            # -------------------------------------------------
+
+            aliases = {
+                "INSTRUCTOR": {
+                    "NAME",
+                    "INSTRUCTOR",
+                    "INSTRUCTOR NAME",
+                    "FACULTY NAME",
+                    "TEACHER NAME",
+                    "NAME OF INSTRUCTOR",
+                    "FACULTY",
+                },
+                "SUBJECT": {
+                    "SUBJECT",
+                    "SUBJECT CODE",
+                    "COURSE",
+                    "SUBJECT / COURSE",
+                },
+                "TIME": {
+                    "TIME",
+                    "CLASS TIME",
+                    "SCHEDULED TIME",
+                    "ORIGINAL TIME",
+                },
+                "DAY": {
+                    "DAY",
+                    "CLASS DAY",
+                },
+                "ROOM": {
+                    "ROOM",
+                    "ROOM USED",
+                    "ACTUAL ROOM",
+                    "ACTUAL ROOM USED",
+                },
+                "MONITORING_TIME": {
+                    "MONITORING TIME",
+                    "DATE & TIME",
+                    "DATE AND TIME",
+                    "DATE & TIME MONITORED",
+                    "ACTUAL TIME",
+                    "MONITORED AT",
+                },
+                "SIGNATURE": {
+                    "SIGNATURE",
+                    "INSTRUCTOR SIGNATURE",
+                },
+                "REMARKS": {
+                    "REMARKS",
+                    "REMARK",
+                    "STATUS",
+                },
+            }
+
+            header_map = {}
+            header_rows = set()
+            best_score = 0
+
+            for candidate_row in range(
+                1,
+                min(worksheet.max_row, 15) + 1,
+            ):
+                candidate_map = {}
+                candidate_rows = set()
+
+                scan_end = min(
+                    worksheet.max_row,
+                    candidate_row + 2,
+                )
+
+                for scan_row in range(
+                    candidate_row,
+                    scan_end + 1,
+                ):
+                    for cell in worksheet[scan_row]:
+                        heading = normalize_heading(
+                            cell.value
+                        )
+
+                        if not heading:
+                            continue
+
+                        for field, choices in aliases.items():
+                            if (
+                                heading in choices
+                                and field not in candidate_map
+                            ):
+                                candidate_map[field] = cell.column
+                                candidate_rows.add(scan_row)
+
+                score = len(candidate_map)
+
+                if (
+                    "INSTRUCTOR" in candidate_map
+                    and score >= 3
+                    and score > best_score
+                ):
+                    header_map = candidate_map
+                    header_rows = candidate_rows
+                    best_score = score
+
+            if (
+                not header_map
+                or "INSTRUCTOR" not in header_map
+            ):
+                raise ValueError(
+                    "The report headings could not be identified "
+                    "in the selected Excel template."
+                )
+
+            header_row = max(header_rows)
+            data_start = header_row + 1
+
+            # -------------------------------------------------
+            # ENLARGE THE FOUR REPORT TITLE LINES TO 12 POINTS
+            # -------------------------------------------------
+
+            title_phrases = {
+                "OFFICE OF THE DEAN, COLLEGE OF ARTS AND SCIENCES",
+                "OFFICE OF THE DEAN",
+                "MONITORING OF CLASSES",
+                "PART-TIME INSTRUCTORS",
+                "2ND SEMESTER, SCHOOL YEAR 2026-2027",
+            }
+
+            for row in worksheet.iter_rows(
+                min_row=1,
+                max_row=max(1, header_row - 1),
+            ):
+                for cell in row:
+                    if not isinstance(cell.value, str):
+                        continue
+
+                    title_text = normalize_heading(
+                        cell.value
+                    )
+
+                    if any(
+                        phrase in title_text
+                        for phrase in title_phrases
+                    ):
+                        title_font = copy(cell.font)
+                        title_font.sz = 12
+                        cell.font = title_font
+
+            # -------------------------------------------------
+            # DETERMINE THE ACTUAL LAST REPORT COLUMN
+            # -------------------------------------------------
+
+            final_last_column = max(
+                header_map.values()
+            )
+
+            # -------------------------------------------------
+            # DETERMINE THE LAST PRINTED ROW
+            # -------------------------------------------------
+
+            final_last_row = None
+
+            if worksheet.print_area:
+                try:
+                    area = str(
+                        worksheet.print_area
+                    ).split(",")[0].strip()
+
+                    if "!" in area:
+                        area = area.rsplit("!", 1)[1]
+
+                    (
+                        _first_col,
+                        _first_row,
+                        _last_col,
+                        final_last_row,
+                    ) = range_boundaries(
+                        area.replace("$", "")
+                    )
+
+                except (ValueError, TypeError):
+                    final_last_row = None
+
+            if not final_last_row:
+                for row_number in range(
+                    1,
+                    worksheet.max_row + 1,
+                ):
+                    if any(
+                        not isinstance(cell, MergedCell)
+                        and cell.value not in (None, "")
+                        for cell in worksheet[row_number]
+                    ):
+                        final_last_row = row_number
+
+            final_last_row = max(
+                header_row,
+                final_last_row or worksheet.max_row,
+            )
+
+            # -------------------------------------------------
+            # WIDEN THE TABLE COLUMNS
+            # -------------------------------------------------
+
+            preferred_widths = {
+                "INSTRUCTOR": 24.0,
+                "SUBJECT": 21.0,
+                "TIME": 20.0,
+                "DAY": 13.0,
+                "ROOM": 16.0,
+                "MONITORING_TIME": 23.0,
+                "SIGNATURE": 16.0,
+                "REMARKS": 31.0,
+            }
+
+            field_by_column = {
+                column: field
+                for field, column in header_map.items()
+            }
+
+            for column in range(
+                1,
+                final_last_column + 1,
+            ):
+                column_letter = get_column_letter(
+                    column
+                )
+
+                field = field_by_column.get(column)
+
+                if field:
+                    worksheet.column_dimensions[
+                        column_letter
+                    ].width = preferred_widths.get(
+                        field,
+                        16.0,
+                    )
+                else:
+                    # Keep intentional spacer columns narrow.
+                    worksheet.column_dimensions[
+                        column_letter
+                    ].width = 3.5
+
+            # -------------------------------------------------
+            # PAPER SIZE, ORIENTATION, AND MARGINS
+            # -------------------------------------------------
+
+            paper_sizes = {
+                "A4": (8.27, 11.69),
+                "LETTER": (8.5, 11.0),
+                "LEGAL": (8.5, 14.0),
+                "FOLIO": (8.5, 13.0),
+            }
+
+            excel_paper_sizes = {
+                "1": (8.5, 11.0),
+                "2": (8.5, 11.0),
+                "3": (11.0, 17.0),
+                "4": (17.0, 11.0),
+                "5": (8.5, 14.0),
+                "6": (5.5, 8.5),
+                "7": (7.25, 10.5),
+                "8": (11.69, 16.54),
+                "9": (8.27, 11.69),
+                "10": (8.27, 11.69),
+                "11": (5.83, 8.27),
+                "12": (9.84, 13.90),
+                "13": (7.17, 10.12),
+                "14": (8.5, 13.0),
+                "15": (8.5, 10.83),
+                "16": (10.0, 14.0),
+                "17": (11.0, 17.0),
+            }
+
+            requested_paper = str(
+                settings.get("paper_size", "")
+            ).upper()
+
+            if requested_paper in paper_sizes:
+                page_width, page_height = paper_sizes[
+                    requested_paper
+                ]
+            else:
+                page_width, page_height = (
+                    excel_paper_sizes.get(
+                        str(worksheet.page_setup.paperSize),
+                        (8.27, 11.69),
+                    )
+                )
+
+            orientation = str(
+                settings.get(
+                    "orientation",
+                    worksheet.page_setup.orientation or "landscape",
+                )
+            ).lower()
+
+            if orientation == "landscape":
+                page_width, page_height = (
+                    max(page_width, page_height),
+                    min(page_width, page_height),
+                )
+                worksheet.page_setup.orientation = "landscape"
+            else:
+                page_width, page_height = (
+                    min(page_width, page_height),
+                    max(page_width, page_height),
+                )
+                worksheet.page_setup.orientation = "portrait"
+
+            paper_codes = {
+                "A4": "9",
+                "LETTER": "1",
+                "LEGAL": "5",
+                "FOLIO": "14",
+            }
+
+            if requested_paper in paper_codes:
+                worksheet.page_setup.paperSize = (
+                    paper_codes[requested_paper]
+                )
+
+            margin_mode = str(
+                settings.get("margins", "normal")
+            ).lower()
+
+            margin = (
+                0.30
+                if margin_mode == "narrow"
+                else 0.50
+            )
+
+            worksheet.page_margins.left = margin
+            worksheet.page_margins.right = margin
+            worksheet.page_margins.top = margin
+            worksheet.page_margins.bottom = margin
+
+            printable_width = max(
+                1.0,
+                page_width - (margin * 2),
+            )
+
+            # -------------------------------------------------
+            # WRAP THE TABLE HEADINGS
+            # -------------------------------------------------
+
+            for row_number in header_rows:
+                has_long_heading = False
+
+                for column in range(
+                    1,
+                    final_last_column + 1,
+                ):
+                    cell = worksheet.cell(
+                        row_number,
+                        column,
+                    )
+
+                    if isinstance(cell, MergedCell):
+                        continue
+
+                    if cell.value in (None, ""):
+                        continue
+
+                    cell.alignment = Alignment(
+                        horizontal="center",
+                        vertical="center",
+                        wrap_text=True,
+                        text_rotation=cell.alignment.textRotation,
+                        indent=cell.alignment.indent,
+                    )
+
+                    if len(str(cell.value)) > 10:
+                        has_long_heading = True
+
+                old_height = (
+                    worksheet.row_dimensions[
+                        row_number
+                    ].height or 15.0
+                )
+
+                worksheet.row_dimensions[
+                    row_number
+                ].height = max(
+                    float(old_height),
+                    30.0 if has_long_heading else 24.0,
+                )
+
+            # -------------------------------------------------
+            # WRAP REMARKS AND PREVENT TEXT OVERLAPPING
+            # -------------------------------------------------
+
+            total_column_width_units = sum(
+                float(
+                    worksheet.column_dimensions[
+                        get_column_letter(column)
+                    ].width or 8.43
+                )
+                for column in range(
+                    1,
+                    final_last_column + 1,
+                )
+            )
+
+            approximate_content_width = (
+                total_column_width_units * 7.0 / 96.0
+            )
+
+            estimated_print_scale = min(
+                1.0,
+                printable_width
+                / max(
+                    1.0,
+                    approximate_content_width,
+                ),
+            )
+
+            for row_number in range(
+                data_start,
+                final_last_row + 1,
+            ):
+                max_lines = 1
+                largest_font_size = 10.0
+
+                for field, column in header_map.items():
+                    cell = worksheet.cell(
+                        row_number,
+                        column,
+                    )
+
+                    if isinstance(cell, MergedCell):
+                        continue
+
+                    value = str(cell.value or "")
+                    previous_alignment = cell.alignment
+
+                    if field == "REMARKS":
+                        horizontal = "left"
+                        vertical = "top"
+                    else:
+                        horizontal = (
+                            previous_alignment.horizontal
+                            or "center"
+                        )
+                        vertical = "center"
+
+                    cell.alignment = Alignment(
+                        horizontal=horizontal,
+                        vertical=vertical,
+                        wrap_text=True,
+                        text_rotation=previous_alignment.textRotation,
+                        indent=previous_alignment.indent,
+                        shrink_to_fit=False,
+                    )
+
+                    if cell.font and cell.font.sz:
+                        largest_font_size = max(
+                            largest_font_size,
+                            float(cell.font.sz),
+                        )
+
+                    if not value:
+                        continue
+
+                    # Don't count merged instructor names as if they
+                    # must fit inside a single short row.
+                    if field == "INSTRUCTOR":
+                        vertically_merged = any(
+                            merged.min_col == column
+                            and merged.max_col == column
+                            and merged.min_row == row_number
+                            and merged.max_row > row_number
+                            for merged in worksheet.merged_cells.ranges
+                        )
+
+                        if vertically_merged:
+                            continue
+
+                    column_width = float(
+                        worksheet.column_dimensions[
+                            get_column_letter(column)
+                        ].width or 8.43
+                    )
+
+                    approximate_characters_per_line = max(
+                        5,
+                        int(
+                            column_width
+                            * max(
+                                0.35,
+                                estimated_print_scale,
+                            )
+                            * 0.90
+                        ),
+                    )
+
+                    required_lines = 0
+
+                    for paragraph_text in value.splitlines() or [value]:
+                        wrapped_text = textwrap.wrap(
+                            paragraph_text,
+                            width=approximate_characters_per_line,
+                            break_long_words=True,
+                            break_on_hyphens=True,
+                        )
+
+                        required_lines += max(
+                            1,
+                            len(wrapped_text),
+                        )
+
+                    max_lines = max(
+                        max_lines,
+                        required_lines,
+                    )
+
+                needed_height = (
+                    max_lines * largest_font_size * 1.35 + 6
+                )
+
+                current_height = (
+                    worksheet.row_dimensions[
+                        row_number
+                    ].height or 18.0
+                )
+
+                worksheet.row_dimensions[
+                    row_number
+                ].height = max(
+                    float(current_height),
+                    float(needed_height),
+                )
+
+            # -------------------------------------------------
+            # KEEP TITLE MERGES INSIDE THE REPORT WIDTH
+            # -------------------------------------------------
+
+            for merged_range in list(
+                worksheet.merged_cells.ranges
+            ):
+                if (
+                    merged_range.min_row < data_start
+                    and merged_range.min_col <= final_last_column
+                    < merged_range.max_col
+                ):
+                    start_row = merged_range.min_row
+                    end_row = merged_range.max_row
+                    start_col = merged_range.min_col
+
+                    worksheet.unmerge_cells(
+                        str(merged_range)
+                    )
+
+                    worksheet.merge_cells(
+                        start_row=start_row,
+                        start_column=start_col,
+                        end_row=end_row,
+                        end_column=final_last_column,
+                    )
+
+            # -------------------------------------------------
+            # CENTER THE UNIVERSITY HEADER AND COLLEGE LOGO
+            # -------------------------------------------------
+
+            excel_images = list(
+                getattr(worksheet, "_images", []) or []
+            )
+
+            banner_images = []
+            logo_images = []
+
+            for image in excel_images:
+                anchor = getattr(image, "anchor", None)
+
+                if anchor is not None and hasattr(anchor, "to"):
+                    banner_images.append(image)
+                else:
+                    logo_images.append(image)
+
+            def column_width_pixels(column):
+                width = float(
+                    worksheet.column_dimensions[
+                        get_column_letter(column)
+                    ].width or 8.43
+                )
+
+                return max(
+                    1,
+                    int(round(width * 7 + 5)),
+                )
+
+            column_pixels = {
+                column: column_width_pixels(column)
+                for column in range(
+                    1,
+                    final_last_column + 1,
+                )
+            }
+
+            total_grid_pixels = sum(
+                column_pixels.values()
+            )
+
+            print_scale = min(
+                1.0,
+                printable_width
+                * PIXELS_PER_INCH
+                / max(1, total_grid_pixels),
+            )
+
+            # Center the entire header image group over the report.
+            group_width_pixels = int(
+                total_grid_pixels * 0.88
+            )
+
+            group_start_pixels = (
+                total_grid_pixels - group_width_pixels
+            ) / 2
+
+            if banner_images and logo_images:
+                banner_group_width = int(
+                    group_width_pixels * 0.85
+                )
+                logo_group_width = int(
+                    group_width_pixels * 0.10
+                )
+                group_gap = (
+                    group_width_pixels
+                    - banner_group_width
+                    - logo_group_width
+                )
+            elif banner_images:
+                banner_group_width = group_width_pixels
+                logo_group_width = 0
+                group_gap = 0
+            else:
+                banner_group_width = 0
+                logo_group_width = group_width_pixels
+                group_gap = 0
+
+            def horizontal_anchor(position_pixels):
+                remaining = max(
+                    0.0,
+                    float(position_pixels),
+                )
+
+                for column in range(
+                    1,
+                    final_last_column + 1,
+                ):
+                    width_pixels = column_pixels[column]
+
+                    if remaining < width_pixels:
+                        return AnchorMarker(
+                            col=column - 1,
+                            colOff=int(
+                                remaining * EMU_PER_PIXEL
+                            ),
+                            row=0,
+                            rowOff=0,
+                        )
+
+                    remaining -= width_pixels
+
+                return AnchorMarker(
+                    col=final_last_column - 1,
+                    colOff=int(
+                        remaining * EMU_PER_PIXEL
+                    ),
+                    row=0,
+                    rowOff=0,
+                )
+
+            largest_image_height_pixels = 0.0
+
+            for banner in banner_images:
+                source_width = float(
+                    banner.width or 900
+                )
+                source_height = float(
+                    banner.height or 155
+                )
+
+                image_width = max(
+                    1,
+                    int(banner_group_width),
+                )
+
+                image_height = (
+                    image_width
+                    * source_height
+                    / max(1.0, source_width)
+                )
+
+                banner.anchor = OneCellAnchor(
+                    _from=horizontal_anchor(
+                        group_start_pixels
+                    ),
+                    ext=XDRPositiveSize2D(
+                        cx=int(
+                            image_width * EMU_PER_PIXEL
+                        ),
+                        cy=int(
+                            image_height * EMU_PER_PIXEL
+                        ),
+                    ),
+                )
+
+                largest_image_height_pixels = max(
+                    largest_image_height_pixels,
+                    image_height,
+                )
+
+            if logo_images:
+                logo_width = max(
+                    1,
+                    int(
+                        logo_group_width
+                        / len(logo_images)
+                    ),
+                )
+
+                logo_position = (
+                    group_start_pixels
+                    + banner_group_width
+                    + group_gap
+                )
+
+                for logo in logo_images:
+                    source_width = float(
+                        logo.width or 186
+                    )
+                    source_height = float(
+                        logo.height or 156
+                    )
+
+                    image_width = logo_width
+
+                    image_height = (
+                        image_width
+                        * source_height
+                        / max(1.0, source_width)
+                    )
+
+                    logo.anchor = OneCellAnchor(
+                        _from=horizontal_anchor(
+                            logo_position
+                        ),
+                        ext=XDRPositiveSize2D(
+                            cx=int(
+                                image_width * EMU_PER_PIXEL
+                            ),
+                            cy=int(
+                                image_height * EMU_PER_PIXEL
+                            ),
+                        ),
+                    )
+
+                    largest_image_height_pixels = max(
+                        largest_image_height_pixels,
+                        image_height,
+                    )
+
+                    logo_position += image_width
+
+            if largest_image_height_pixels > 0:
+                required_header_height = (
+                    largest_image_height_pixels
+                    * 72
+                    / PIXELS_PER_INCH
+                    / max(0.01, print_scale)
+                    + 2
+                )
+
+                current_header_height = (
+                    worksheet.row_dimensions[1].height
+                    or 15.0
+                )
+
+                worksheet.row_dimensions[1].height = max(
+                    float(current_header_height),
+                    float(required_header_height),
+                )
+
+            # -------------------------------------------------
+            # FINAL PRINT SETTINGS
+            # -------------------------------------------------
+
+            worksheet.print_area = (
+                f"A1:"
+                f"{get_column_letter(final_last_column)}"
+                f"{final_last_row}"
+            )
+
+            worksheet.page_setup.scale = None
+            worksheet.page_setup.fitToWidth = 1
+            worksheet.page_setup.fitToHeight = 0
+
+            if worksheet.sheet_properties.pageSetUpPr is None:
+                worksheet.sheet_properties.pageSetUpPr = (
+                    PageSetupProperties(
+                        fitToPage=True,
+                    )
+                )
+            else:
+                worksheet.sheet_properties.pageSetUpPr.fitToPage = True
+
+            worksheet.sheet_properties.pageSetUpPr.autoPageBreaks = False
+
+            # Save the temporary report, not the original uploaded template.
+            workbook.save(output_xlsx)
+
+        finally:
+            workbook.close()
+
+        # =====================================================
+        # 2. CONVERT THE ADJUSTED EXCEL REPORT INTO PDF
+        # =====================================================
+
         pdf_dir = os.path.join(
             temp_dir,
             "pdf",
         )
 
-        os.makedirs(pdf_dir, exist_ok=True)
+        os.makedirs(
+            pdf_dir,
+            exist_ok=True,
+        )
 
         candidates = [
             os.environ.get("LIBREOFFICE_PATH", ""),
@@ -4251,11 +6031,17 @@ def _build_report_pdf_bytes(
             "libreoffice_profile",
         )
 
-        os.makedirs(profile_dir, exist_ok=True)
+        os.makedirs(
+            profile_dir,
+            exist_ok=True,
+        )
 
         command = [
             office,
-            f"-env:UserInstallation={Path(profile_dir).resolve().as_uri()}",
+            (
+                f"-env:UserInstallation="
+                f"{Path(profile_dir).resolve().as_uri()}"
+            ),
             "--headless",
             "--convert-to",
             "pdf",
@@ -4265,7 +6051,7 @@ def _build_report_pdf_bytes(
         ]
 
         try:
-            result = subprocess.run(
+            conversion_result = subprocess.run(
                 command,
                 capture_output=True,
                 text=True,
@@ -4288,14 +6074,14 @@ def _build_report_pdf_bytes(
         )
 
         if (
-            result.returncode != 0
+            conversion_result.returncode != 0
             or not os.path.isfile(pdf_path)
             or os.path.getsize(pdf_path) == 0
         ):
             raise RuntimeError(
                 "LibreOffice could not create the PDF. "
-                f"Output: {result.stdout.strip()} "
-                f"Error: {result.stderr.strip()}"
+                f"Output: {conversion_result.stdout.strip()} "
+                f"Error: {conversion_result.stderr.strip()}"
             )
 
         with open(pdf_path, "rb") as pdf_file:
@@ -4309,8 +6095,10 @@ def _build_report_pdf_bytes(
         return pdf_bytes
 
     finally:
-        shutil.rmtree(temp_dir, ignore_errors=True)
-
+        shutil.rmtree(
+            temp_dir,
+            ignore_errors=True,
+        )
 
 # =============================================================
 # REPORTS PAGE
