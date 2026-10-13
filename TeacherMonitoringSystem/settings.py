@@ -123,14 +123,42 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Email configuration
-# Console backend allows local testing without sending real emails.
-# Password-reset emails will appear in the PyCharm terminal.
+# =========================================================
+# EMAIL CONFIGURATION - DJANGO 6.1
+# =========================================================
+
+# Keep the existing environment variable names in Render.
+# Django's email connection settings now go inside MAILERS.
+
+_mail_host = os.environ.get("EMAIL_HOST", "").strip()
+
 MAILERS = {
     "default": {
-        "BACKEND": "django.core.mail.backends.console.EmailBackend",
-    },
+        "BACKEND": (
+            "django.core.mail.backends.smtp.EmailBackend"
+            if _mail_host
+            else "django.core.mail.backends.console.EmailBackend"
+        ),
+        "HOST": _mail_host or "smtp.gmail.com",
+        "PORT": int(os.environ.get("EMAIL_PORT", "587")),
+        "USERNAME": os.environ.get("EMAIL_HOST_USER", ""),
+        "PASSWORD": os.environ.get("EMAIL_HOST_PASSWORD", ""),
+        "USE_TLS": (
+            os.environ.get("EMAIL_USE_TLS", "True").strip().lower()
+            == "true"
+        ),
+        "USE_SSL": (
+            os.environ.get("EMAIL_USE_SSL", "False").strip().lower()
+            == "true"
+        ),
+        "TIMEOUT": 20,
+    }
 }
+
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL",
+    os.environ.get("EMAIL_HOST_USER", "monitoringfaculty@gmail.com"),
+)
 
 
 # Static files

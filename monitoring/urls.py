@@ -2,8 +2,6 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 
-
-
 urlpatterns = [
 
     # Homepage decides between first-time setup, login, and dashboard.
@@ -373,7 +371,10 @@ urlpatterns = [
         name="password_reset_complete"
     ),
 
-    # Password reset
+    # =====================================================
+    # PASSWORD RESET
+    # =====================================================
+
     path(
         "password-reset/",
         views.RegisteredMainAdminPasswordResetView.as_view(),
@@ -383,7 +384,7 @@ urlpatterns = [
     path(
         "password-reset/done/",
         auth_views.PasswordResetDoneView.as_view(
-            template_name="registration/password_reset_done.html",
+            template_name="registration/password_reset_done.html"
         ),
         name="password_reset_done",
     ),
@@ -399,11 +400,10 @@ urlpatterns = [
     path(
         "reset/done/",
         auth_views.PasswordResetCompleteView.as_view(
-            template_name="registration/password_reset_complete.html",
+            template_name="registration/password_reset_complete.html"
         ),
         name="password_reset_complete",
     ),
-
 
     # Logout
     path(
