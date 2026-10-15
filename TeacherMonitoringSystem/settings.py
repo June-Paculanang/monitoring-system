@@ -192,7 +192,7 @@ EMAIL_TIMEOUT = 20
 
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL",
-    EMAIL_HOST_USER or "webmaster@localhost",
+    EMAIL_HOST_USER or "monitoringfaculty@gmail.com",
 ).strip()
 
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
