@@ -8512,6 +8512,7 @@ class MainAdminOnlyPasswordResetForm(PasswordResetForm):
                 yield user
 
 
+
 def main_admin_password_reset(request):
     logger.warning(
         "PASSWORD RESET VIEW REACHED: method=%s path=%s",
@@ -8524,13 +8525,15 @@ def main_admin_password_reset(request):
     )
 
     if request.method == "POST":
+        logger.warning("PASSWORD RESET: POST received.")
+
         if form.is_valid():
-            logger.info(
-                "Main Administrator password-reset form validation passed."
+            logger.warning(
+                "PASSWORD RESET: form validation passed."
             )
 
             try:
-                form.save(
+                sent_count = form.save(
                     request=request,
                     use_https=request.is_secure(),
                     from_email=settings.DEFAULT_FROM_EMAIL,
@@ -8542,20 +8545,22 @@ def main_admin_password_reset(request):
                     ),
                 )
 
-                logger.info(
-                    "Main Administrator password-reset processing completed."
+                logger.warning(
+                    "PASSWORD RESET: save() completed; "
+                    "email backend returned %s.",
+                    sent_count,
                 )
 
             except Exception:
                 logger.exception(
-                    "Main Administrator password-reset email processing failed."
+                    "PASSWORD RESET: email processing raised an exception."
                 )
                 raise
 
             return redirect("password_reset_done")
 
         logger.warning(
-            "Main Administrator password-reset form validation failed: %s",
+            "PASSWORD RESET: form validation failed. Errors: %s",
             form.errors.as_json(),
         )
 
