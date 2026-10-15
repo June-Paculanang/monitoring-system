@@ -155,8 +155,9 @@ USE_TZ = True
 # =========================================================
 
 EMAIL_BACKEND = (
-    "django.core.mail.backends.smtp.EmailBackend"
+    "monitoring.email_backend.LoggingSMTPEmailBackend"
 )
+
 
 EMAIL_HOST = os.environ.get(
     "EMAIL_HOST", "smtp.gmail.com"
