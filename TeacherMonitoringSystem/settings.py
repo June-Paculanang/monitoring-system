@@ -126,12 +126,59 @@ USE_I18N = True
 USE_TZ = True
 
 
+
 # =========================================================
-# EMAIL CONFIGURATION
+# EMAIL CONFIGURATION - DJANGO 6.1
 # =========================================================
 
-if DEBUG:
-    # Local development: print emails in the terminal.
+_email_host = os.environ.get(
+    "EMAIL_HOST", "smtp.gmail.com"
+).strip()
+
+_email_username = os.environ.get(
+    "EMAIL_HOST_USER", ""
+).strip()
+
+_email_password = os.environ.get(
+    "EMAIL_HOST_PASSWORD", ""
+).strip().replace(" ", "")
+
+_email_use_tls = (
+    os.environ.get("EMAIL_USE_TLS", "True").strip().lower()
+    == "true"
+)
+
+_email_use_ssl = (
+    os.environ.get("EMAIL_USE_SSL", "False").strip().lower()
+    == "true"
+)
+
+if _email_username and _email_password:
+    # Use Gmail SMTP when credentials are configured.
+    MAILERS = {
+        "default": {
+            "BACKEND": (
+                "django.core.mail.backends.smtp.EmailBackend"
+            ),
+            "OPTIONS": {
+                "host": _email_host,
+                "port": int(os.environ.get("EMAIL_PORT", "587")),
+                "username": _email_username,
+                "password": _email_password,
+                "use_tls": _email_use_tls,
+                "use_ssl": _email_use_ssl,
+                "timeout": 20,
+            },
+        }
+    }
+else:
+    # Without credentials, use the console only for development.
+    if not DEBUG:
+        raise RuntimeError(
+            "Email is not configured. Set EMAIL_HOST_USER "
+            "and EMAIL_HOST_PASSWORD in the environment."
+        )
+
     MAILERS = {
         "default": {
             "BACKEND": (
@@ -139,43 +186,11 @@ if DEBUG:
             ),
         }
     }
-else:
-    # Production: send email through Gmail SMTP.
-    MAILERS = {
-        "default": {
-            "BACKEND": (
-                "django.core.mail.backends.smtp.EmailBackend"
-            ),
-            "HOST": os.environ.get(
-                "EMAIL_HOST", "smtp.gmail.com"
-            ),
-            "PORT": int(
-                os.environ.get("EMAIL_PORT", "587")
-            ),
-            "USERNAME": os.environ.get(
-                "EMAIL_HOST_USER", ""
-            ),
-            "PASSWORD": os.environ.get(
-                "EMAIL_HOST_PASSWORD", ""
-            ),
-            "USE_TLS": (
-                os.environ.get(
-                    "EMAIL_USE_TLS", "True"
-                ).strip().lower() == "true"
-            ),
-            "USE_SSL": (
-                os.environ.get(
-                    "EMAIL_USE_SSL", "False"
-                ).strip().lower() == "true"
-            ),
-            "TIMEOUT": 20,
-        }
-    }
 
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL",
-    os.environ.get("EMAIL_HOST_USER", ""),
-)
+    _email_username or "webmaster@localhost",
+).strip()
 
 
 # Static files
