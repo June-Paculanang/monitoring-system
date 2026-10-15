@@ -12,6 +12,9 @@ import json
 import re
 import threading
 from openpyxl.utils import get_column_letter
+from django.conf import settings
+from django.contrib.auth.forms import PasswordResetForm
+from django.shortcuts import render, redirect
 
 from docx import Document
 from docx.enum.section import WD_ORIENT
@@ -8372,43 +8375,113 @@ def schedule_import_confirm(request):
     )
 
 class RegisteredMainAdminPasswordResetForm(PasswordResetForm):
-    """
-    Allow password reset only when the email matches the
-    registered email of the active Main Administrator.
-    """
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip()
 
-        registered_email_exists = (
-            SystemAdministrator.objects.filter(
-                is_main_admin=True,
-                user__is_active=True,
-                user__email__iexact=email,
-            ).exists()
-        )
+        exists = SystemAdministrator.objects.filter(
+            is_main_admin=True,
+            user__is_active=True,
+            user__email__iexact=email,
+        ).exists()
 
-        if not registered_email_exists:
+        if not exists:
             raise ValidationError(
-                "The email address does not match the email "
-                "you used when registering the Main Administrator "
-                "account. Please enter your registered email address."
+                "This email does not match the registered "
+                "Main Administrator email. Please use your "
+                "registered email address."
             )
 
         return email
 
+    def get_users(self, email):
+        admins = SystemAdministrator.objects.filter(
+            is_main_admin=True,
+            user__is_active=True,
+            user__email__iexact=email,
+        ).select_related("user")
+
+        for admin in admins:
+            user = admin.user
+
+            if user.has_usable_password() and user.email:
+                yield user
+
 
 class RegisteredMainAdminPasswordResetView(PasswordResetView):
     form_class = RegisteredMainAdminPasswordResetForm
-
     template_name = "registration/password_reset_form.html"
-
-    email_template_name = (
-        "registration/password_reset_email.html"
-    )
-
-    subject_template_name = (
-        "registration/password_reset_subject.txt"
-    )
-
+    email_template_name = "registration/password_reset_email.html"
+    subject_template_name = "registration/password_reset_subject.txt"
     success_url = reverse_lazy("password_reset_done")
+
+# =========================================================
+# EXPLICIT MAIN ADMINISTRATOR PASSWORD RESET
+# =========================================================
+
+class MainAdminOnlyPasswordResetForm(PasswordResetForm):
+    """
+    Generate reset emails only for an active Main Administrator.
+    """
+
+    def get_users(self, email):
+        admin_records = SystemAdministrator.objects.filter(
+            is_main_admin=True,
+            user__is_active=True,
+            user__email__iexact=email,
+        ).select_related("user")
+
+        for record in admin_records:
+            user = record.user
+
+            if (
+                user.is_active
+                and user.has_usable_password()
+                and user.email
+                and user.email.strip().casefold()
+                == email.strip().casefold()
+            ):
+                yield user
+
+
+def main_admin_password_reset(request):
+    form = MainAdminOnlyPasswordResetForm(
+        request.POST or None
+    )
+
+    if request.method == "POST" and form.is_valid():
+        email = form.cleaned_data["email"].strip()
+
+        registered_admin_exists = SystemAdministrator.objects.filter(
+            is_main_admin=True,
+            user__is_active=True,
+            user__email__iexact=email,
+        ).exists()
+
+        if not registered_admin_exists:
+            form.add_error(
+                "email",
+                "This email does not match the registered "
+                "Main Administrator email. Please use your "
+                "registered email address.",
+            )
+        else:
+            form.save(
+                request=request,
+                use_https=request.is_secure(),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                email_template_name=(
+                    "registration/password_reset_email.html"
+                ),
+                subject_template_name=(
+                    "registration/password_reset_subject.txt"
+                ),
+            )
+
+            return redirect("password_reset_done")
+
+    return render(
+        request,
+        "registration/password_reset_form.html",
+        {"form": form},
+    )
