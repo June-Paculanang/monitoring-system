@@ -8439,6 +8439,7 @@ class MainAdminOnlyPasswordResetForm(PasswordResetForm):
     Main Administrator account.
     """
 
+
     def send_mail(
         self,
         subject_template_name,
@@ -8448,25 +8449,32 @@ class MainAdminOnlyPasswordResetForm(PasswordResetForm):
         to_email,
         html_email_template_name=None,
     ):
-        logger.info(
-            "Attempting password-reset email delivery."
+        logger.warning(
+            "PASSWORD RESET: send_mail() called."
         )
 
-        result = super().send_mail(
-            subject_template_name,
-            email_template_name,
-            context,
-            from_email,
-            to_email,
-            html_email_template_name=html_email_template_name,
-        )
+        try:
+            result = super().send_mail(
+                subject_template_name,
+                email_template_name,
+                context,
+                from_email,
+                to_email,
+                html_email_template_name=html_email_template_name,
+            )
 
-        logger.info(
-            "Password-reset email backend returned: %s",
-            result,
-        )
+            logger.warning(
+                "PASSWORD RESET: send_mail() completed successfully."
+            )
 
-        return result
+            return result
+
+        except Exception:
+            logger.exception(
+                "PASSWORD RESET: send_mail() failed."
+            )
+            raise
+
 
 
     def clean_email(self):
