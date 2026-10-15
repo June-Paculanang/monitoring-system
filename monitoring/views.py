@@ -10,13 +10,13 @@ import tempfile
 from copy import deepcopy
 import json
 import re
-import logging
 import threading
 from openpyxl.utils import get_column_letter
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 from django.shortcuts import render, redirect
 
+import logging
 logger = logging.getLogger(__name__)
 
 from docx import Document
@@ -8487,31 +8487,41 @@ def main_admin_password_reset(request):
         request.POST or None
     )
 
-    if request.method == "POST" and form.is_valid():
-        try:
-            form.save(
-                request=request,
-                use_https=request.is_secure(),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                email_template_name=(
-                    "registration/password_reset_email.html"
-                ),
-                subject_template_name=(
-                    "registration/password_reset_subject.txt"
-                ),
-            )
-
+    if request.method == "POST":
+        if form.is_valid():
             logger.info(
-                "Main Administrator password-reset processing completed."
+                "Main Administrator password-reset form validation passed."
             )
 
-        except Exception:
-            logger.exception(
-                "Main Administrator password-reset email processing failed."
-            )
-            raise
+            try:
+                form.save(
+                    request=request,
+                    use_https=request.is_secure(),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    email_template_name=(
+                        "registration/password_reset_email.html"
+                    ),
+                    subject_template_name=(
+                        "registration/password_reset_subject.txt"
+                    ),
+                )
 
-        return redirect("password_reset_done")
+                logger.info(
+                    "Main Administrator password-reset processing completed."
+                )
+
+            except Exception:
+                logger.exception(
+                    "Main Administrator password-reset email processing failed."
+                )
+                raise
+
+            return redirect("password_reset_done")
+
+        logger.warning(
+            "Main Administrator password-reset form validation failed: %s",
+            form.errors.as_json(),
+        )
 
     return render(
         request,
