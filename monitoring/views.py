@@ -10,11 +10,14 @@ import tempfile
 from copy import deepcopy
 import json
 import re
+import logging
 import threading
 from openpyxl.utils import get_column_letter
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 from django.shortcuts import render, redirect
+
+logger = logging.getLogger(__name__)
 
 from docx import Document
 from docx.enum.section import WD_ORIENT
@@ -8485,17 +8488,28 @@ def main_admin_password_reset(request):
     )
 
     if request.method == "POST" and form.is_valid():
-        form.save(
-            request=request,
-            use_https=request.is_secure(),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            email_template_name=(
-                "registration/password_reset_email.html"
-            ),
-            subject_template_name=(
-                "registration/password_reset_subject.txt"
-            ),
-        )
+        try:
+            form.save(
+                request=request,
+                use_https=request.is_secure(),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                email_template_name=(
+                    "registration/password_reset_email.html"
+                ),
+                subject_template_name=(
+                    "registration/password_reset_subject.txt"
+                ),
+            )
+
+            logger.info(
+                "Main Administrator password-reset processing completed."
+            )
+
+        except Exception:
+            logger.exception(
+                "Main Administrator password-reset email processing failed."
+            )
+            raise
 
         return redirect("password_reset_done")
 
