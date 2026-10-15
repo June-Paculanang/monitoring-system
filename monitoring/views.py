@@ -8513,6 +8513,12 @@ class MainAdminOnlyPasswordResetForm(PasswordResetForm):
 
 
 def main_admin_password_reset(request):
+    logger.warning(
+        "PASSWORD RESET VIEW REACHED: method=%s path=%s",
+        request.method,
+        request.path,
+    )
+
     form = MainAdminOnlyPasswordResetForm(
         request.POST or None
     )
