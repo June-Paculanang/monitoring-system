@@ -217,56 +217,65 @@ def system_setup(request):
 # ADMIN ACCOUNT MANAGEMENT
 # =========================================================
 
-
-def is_system_admin(user):
-    if not user.is_authenticated:
+def is_main_admin(user):
+    """Only the designated Main Administrator may manage admin accounts."""
+    if not user.is_authenticated or not user.is_active:
         return False
 
-    # Technical Django superuser
-    if user.is_superuser:
-        return True
-
-    # Only the Dean/Main Administrator can manage admin accounts
     return SystemAdministrator.objects.filter(
         user=user,
         is_main_admin=True,
+        user__is_active=True,
     ).exists()
 
-@login_required
-@user_passes_test(is_system_admin)
-def admin_accounts(request):
-    User = get_user_model()
 
+@login_required
+@user_passes_test(is_main_admin)
+def admin_accounts(request):
     admin_group, _ = Group.objects.get_or_create(
         name="System Administrator"
     )
 
     admins = admin_group.user_set.all().order_by("username")
 
+    main_admin_ids = set(
+        SystemAdministrator.objects.filter(
+            is_main_admin=True
+        ).values_list("user_id", flat=True)
+    )
+
     return render(
         request,
         "registration/admin_accounts.html",
         {
             "admins": admins,
+            "main_admin_ids": main_admin_ids,
         }
     )
 
 
 @login_required
-@user_passes_test(is_system_admin)
+@user_passes_test(is_main_admin)
 def admin_account_create(request):
-    User = get_user_model()
-    admin_group, _ = Group.objects.get_or_create(name="System Administrator")
+    admin_group, _ = Group.objects.get_or_create(
+        name="System Administrator"
+    )
+
     form = AdminAccountForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
         user = form.save()
         admin_group.user_set.add(user)
+
         SystemAdministrator.objects.update_or_create(
             user=user,
             defaults={"is_main_admin": False},
         )
-        messages.success(request, f"Administrator account '{user.username}' created successfully.")
+
+        messages.success(
+            request,
+            f"Administrator account '{user.username}' created successfully.",
+        )
         return redirect("admin_accounts")
 
     return render(
@@ -275,187 +284,185 @@ def admin_account_create(request):
         {"form": form},
     )
 
-@login_required
-@user_passes_test(lambda user: user.is_superuser)
-def admin_account_password(request, user_id):
 
+
+@login_required
+@user_passes_test(is_main_admin)
+def admin_account_password(request, user_id):
     User = get_user_model()
 
-    admin_group, created = Group.objects.get_or_create(
-        name="System Administrator"
-    )
+    user = get_object_or_404(User, pk=user_id)
 
-    user = get_object_or_404(
-        User,
-        id=user_id
-    )
-
-    # Main Admin cannot change their own password here.
-    if user.id == request.user.id:
-
+    # Only the Main Administrator can change passwords
+    # for administrator accounts.
+    if not SystemAdministrator.objects.filter(
+        user=request.user,
+        is_main_admin=True,
+        user__is_active=True,
+    ).exists():
         messages.error(
             request,
-            "You cannot change the Main Administrator password from this page."
+            "Only the Main Administrator can manage administrator passwords."
         )
-
         return redirect("admin_accounts")
 
-    # Only System Administrators can be managed here.
+    # Do not allow changing another Main Administrator account.
+    # The Main Administrator may change their OWN password.
+    target_is_main_admin = SystemAdministrator.objects.filter(
+        user=user,
+        is_main_admin=True,
+    ).exists()
+
+    if target_is_main_admin and user.pk != request.user.pk:
+        messages.error(
+            request,
+            "You cannot change another Main Administrator's password here."
+        )
+        return redirect("admin_accounts")
+
+    # Only System Administrator accounts can be managed here.
     if not user.groups.filter(
         name="System Administrator"
     ).exists():
-
         messages.error(
             request,
             "That account is not a System Administrator account."
         )
-
         return redirect("admin_accounts")
 
     if request.method == "POST":
-
-        password = request.POST.get(
-            "password",
-            ""
-        )
-
-        confirm_password = request.POST.get(
-            "confirm_password",
-            ""
-        )
+        password = request.POST.get("password", "")
+        confirm_password = request.POST.get("confirm_password", "")
 
         if not password or not confirm_password:
-
             messages.error(
                 request,
                 "Please complete both password fields."
             )
 
         elif password != confirm_password:
-
             messages.error(
                 request,
                 "Passwords do not match."
             )
 
         elif len(password) < 8:
-
             messages.error(
                 request,
                 "Password must be at least 8 characters."
             )
 
         else:
-
             user.set_password(password)
-
             user.save()
+
+            # Keep the Main Administrator logged in after
+            # changing their own password.
+            if user.pk == request.user.pk:
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, user)
 
             messages.success(
                 request,
                 f"Password for administrator '{user.username}' was changed successfully."
             )
-
             return redirect("admin_accounts")
 
     return render(
         request,
         "registration/admin_account_password.html",
-        {
-            "admin": user,
-        }
+        {"admin": user},
     )
+
 @login_required
-@user_passes_test(lambda user: user.is_superuser)
+@user_passes_test(is_main_admin)
 def admin_account_deactivate(request, user_id):
-
     User = get_user_model()
 
     user = get_object_or_404(
         User,
-        id=user_id
+        pk=user_id,
     )
 
-    # Main Admin cannot deactivate themselves.
-    if user.id == request.user.id:
+    target_is_main_admin = SystemAdministrator.objects.filter(
+        user=user,
+        is_main_admin=True,
+    ).exists()
 
+    if user.pk == request.user.pk or target_is_main_admin:
         messages.error(
             request,
-            "You cannot deactivate the Main Administrator account."
+            "The Main Administrator account cannot be deactivated here.",
         )
-
         return redirect("admin_accounts")
 
-    # Only System Administrators can be managed.
     if not user.groups.filter(
         name="System Administrator"
     ).exists():
-
         messages.error(
             request,
-            "That account is not a System Administrator account."
+            "That account is not a System Administrator account.",
         )
-
         return redirect("admin_accounts")
 
-    if request.method == "POST":
+    if request.method != "POST":
+        return redirect("admin_accounts")
 
-        user.is_active = False
+    user.is_active = False
+    user.save(update_fields=["is_active"])
 
-        user.save()
-
-        messages.success(
-            request,
-            f"Administrator account '{user.username}' has been deactivated."
-        )
+    messages.success(
+        request,
+        f"Administrator account '{user.username}' has been deactivated.",
+    )
 
     return redirect("admin_accounts")
+
 
 @login_required
-@user_passes_test(lambda user: user.is_superuser)
+@user_passes_test(is_main_admin)
 def admin_account_delete(request, user_id):
-
     User = get_user_model()
 
     user = get_object_or_404(
         User,
-        id=user_id
+        pk=user_id,
     )
 
-    # Main Admin cannot delete themselves.
-    if user.id == request.user.id:
+    target_is_main_admin = SystemAdministrator.objects.filter(
+        user=user,
+        is_main_admin=True,
+    ).exists()
 
+    if user.pk == request.user.pk or target_is_main_admin:
         messages.error(
             request,
-            "You cannot delete the Main Administrator account."
+            "The Main Administrator account cannot be deleted here.",
         )
-
         return redirect("admin_accounts")
 
-    # Only System Administrators can be deleted.
     if not user.groups.filter(
         name="System Administrator"
     ).exists():
-
         messages.error(
             request,
-            "That account is not a System Administrator account."
+            "That account is not a System Administrator account.",
         )
-
         return redirect("admin_accounts")
 
-    if request.method == "POST":
+    if request.method != "POST":
+        return redirect("admin_accounts")
 
-        username = user.username
+    username = user.username
+    user.delete()
 
-        user.delete()
-
-        messages.success(
-            request,
-            f"Administrator account '{username}' was deleted successfully."
-        )
+    messages.success(
+        request,
+        f"Administrator account '{username}' was deleted successfully.",
+    )
 
     return redirect("admin_accounts")
+
 
 # ==========================================
 # INSTRUCTORS
@@ -8419,19 +8426,47 @@ class RegisteredMainAdminPasswordResetView(PasswordResetView):
 # EXPLICIT MAIN ADMINISTRATOR PASSWORD RESET
 # =========================================================
 
+# =========================================================
+# STRICT MAIN ADMINISTRATOR PASSWORD RESET
+# =========================================================
+
 class MainAdminOnlyPasswordResetForm(PasswordResetForm):
     """
-    Generate reset emails only for an active Main Administrator.
+    Accept only the email registered to the active
+    Main Administrator account.
     """
 
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip()
+
+        exists = SystemAdministrator.objects.filter(
+            is_main_admin=True,
+            user__is_active=True,
+            user__email__iexact=email,
+        ).exists()
+
+        if not exists:
+            raise ValidationError(
+                "Incorrect email address. Please enter the email "
+                "registered to your Main Administrator account.",
+                code="incorrect_admin_email",
+            )
+
+        return email
+
     def get_users(self, email):
-        admin_records = SystemAdministrator.objects.filter(
+        """
+        Only generate reset links for the registered
+        Main Administrator account.
+        """
+
+        records = SystemAdministrator.objects.filter(
             is_main_admin=True,
             user__is_active=True,
             user__email__iexact=email,
         ).select_related("user")
 
-        for record in admin_records:
+        for record in records:
             user = record.user
 
             if (
@@ -8450,35 +8485,19 @@ def main_admin_password_reset(request):
     )
 
     if request.method == "POST" and form.is_valid():
-        email = form.cleaned_data["email"].strip()
+        form.save(
+            request=request,
+            use_https=request.is_secure(),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            email_template_name=(
+                "registration/password_reset_email.html"
+            ),
+            subject_template_name=(
+                "registration/password_reset_subject.txt"
+            ),
+        )
 
-        registered_admin_exists = SystemAdministrator.objects.filter(
-            is_main_admin=True,
-            user__is_active=True,
-            user__email__iexact=email,
-        ).exists()
-
-        if not registered_admin_exists:
-            form.add_error(
-                "email",
-                "This email does not match the registered "
-                "Main Administrator email. Please use your "
-                "registered email address.",
-            )
-        else:
-            form.save(
-                request=request,
-                use_https=request.is_secure(),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                email_template_name=(
-                    "registration/password_reset_email.html"
-                ),
-                subject_template_name=(
-                    "registration/password_reset_subject.txt"
-                ),
-            )
-
-            return redirect("password_reset_done")
+        return redirect("password_reset_done")
 
     return render(
         request,

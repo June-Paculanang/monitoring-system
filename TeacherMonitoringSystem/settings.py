@@ -24,7 +24,10 @@ if not SECRET_KEY:
         "DJANGO_SECRET_KEY environment variable is not set."
     )
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "True") != "False"
+DEBUG = (
+    os.environ.get("DJANGO_DEBUG", "False").strip().lower()
+    in {"true", "1", "yes", "on"}
+)
 
 ALLOWED_HOSTS = ["*"]
 

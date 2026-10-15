@@ -1,21 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        Admin Accounts | Teacher Class Monitoring System
-    </title>
+    <title>Admin Accounts | Teacher Class Monitoring System</title>
 
     <style>
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -25,38 +16,25 @@
 
         body {
             min-height: 100vh;
-
             background: #f5f7f6;
-
             color: #333;
         }
 
         .header {
             width: 100%;
-
             background: #198754;
-
             color: white;
-
             padding: 14px 25px;
-
             position: sticky;
-
             top: 0;
-
             z-index: 1000;
-
-            box-shadow:
-                0 2px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
         .header-content {
             display: flex;
-
             justify-content: space-between;
-
             align-items: center;
-
             gap: 15px;
         }
 
@@ -66,79 +44,56 @@
 
         .back-button {
             color: white;
-
             text-decoration: none;
-
             font-weight: bold;
-
             font-size: 14px;
-
             padding: 8px 12px;
-
-            border: 1px solid rgba(255,255,255,0.7);
-
+            border: 1px solid rgba(255, 255, 255, 0.7);
             border-radius: 5px;
+            white-space: nowrap;
         }
 
         .back-button:hover {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .container {
             width: 100%;
-
-            max-width: 1000px;
-
+            max-width: 1100px;
             margin: 0 auto;
-
             padding: 35px 20px 60px;
         }
 
         .card {
             background: white;
-
             border-radius: 10px;
-
             padding: 30px;
-
-            box-shadow:
-                0 2px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
         }
 
         .title-row {
             display: flex;
-
             justify-content: space-between;
-
             align-items: center;
-
             gap: 15px;
-
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .title-row h2 {
             color: #198754;
-
             font-size: 24px;
         }
 
         .add-button {
             display: inline-block;
-
             background: #198754;
-
             color: white;
-
             text-decoration: none;
-
             padding: 10px 15px;
-
             border-radius: 5px;
-
             font-size: 14px;
-
             font-weight: bold;
+            white-space: nowrap;
         }
 
         .add-button:hover {
@@ -147,11 +102,8 @@
 
         .description {
             color: #6c757d;
-
             font-size: 14px;
-
             line-height: 1.6;
-
             margin-bottom: 25px;
         }
 
@@ -161,117 +113,112 @@
 
         .message {
             background: #d1e7dd;
-
             color: #0f5132;
-
-            padding: 10px 12px;
-
+            padding: 12px 14px;
             border-radius: 5px;
-
             margin-bottom: 8px;
-
             font-size: 14px;
         }
 
         .table-wrapper {
             width: 100%;
-
             overflow-x: auto;
         }
 
         table {
             width: 100%;
-
             border-collapse: collapse;
-
-            min-width: 600px;
+            min-width: 650px;
         }
 
         th {
             background: #198754;
-
             color: white;
-
-            padding: 12px;
-
+            padding: 13px 12px;
             text-align: left;
-
             font-size: 14px;
+            white-space: nowrap;
         }
 
         td {
-            padding: 12px;
-
+            padding: 13px 12px;
             border-bottom: 1px solid #e5e5e5;
-
             font-size: 14px;
+            vertical-align: middle;
         }
 
-        tr:hover td {
+        tbody tr:hover td {
             background: #f8faf9;
         }
 
         .status {
             display: inline-block;
-
             padding: 5px 9px;
-
             border-radius: 20px;
-
-            background: #d1e7dd;
-
-            color: #0f5132;
-
             font-size: 12px;
-
             font-weight: bold;
+            white-space: nowrap;
         }
 
-        .empty {
-            text-align: center;
+        .active-status {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
 
-            padding: 30px;
+        .inactive-status {
+            background: #f8d7da;
+            color: #842029;
+        }
 
-            color: #6c757d;
+        .main-admin-badge {
+            display: inline-block;
+            margin: 5px 0 0 5px;
+            padding: 4px 7px;
+            border-radius: 12px;
+            background: #198754;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
 
-            font-size: 14px;
+        .main-admin-label {
+            display: inline-block;
+            color: #198754;
+            background: #d1e7dd;
+            padding: 6px 9px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
         }
 
         .actions {
             display: flex;
-
             flex-wrap: wrap;
-
             gap: 6px;
-
             align-items: center;
         }
 
         .inline-form {
             display: inline;
+            margin: 0;
         }
 
         .action-button {
             display: inline-block;
-
             border: none;
-
             border-radius: 5px;
-
-            padding: 7px 10px;
-
+            padding: 8px 10px;
             font-size: 12px;
-
             font-weight: bold;
-
             text-decoration: none;
-
             cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s;
         }
 
         .password-button {
             background: #198754;
-
             color: white;
         }
 
@@ -281,7 +228,6 @@
 
         .deactivate-button {
             background: #ffc107;
-
             color: #212529;
         }
 
@@ -291,7 +237,6 @@
 
         .delete-button {
             background: #dc3545;
-
             color: white;
         }
 
@@ -299,53 +244,135 @@
             background: #bb2d3b;
         }
 
-        .main-admin-badge {
-            display: inline-block;
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #6c757d;
+            font-size: 14px;
+        }
 
-            margin-left: 7px;
+        /* CUSTOM ON-SCREEN CONFIRMATION POPUP */
 
-            padding: 4px 7px;
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            padding: 20px;
+            background: rgba(20, 30, 25, 0.55);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+        }
 
-            border-radius: 12px;
+        .confirm-overlay.show {
+            display: flex;
+        }
 
-            background: #198754;
+        .confirm-modal {
+            width: 100%;
+            max-width: 430px;
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 28px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+            animation: modalAppear 0.2s ease-out;
+        }
 
-            color: white;
-
-            font-size: 10px;
-
+        .confirm-icon {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #fff3cd;
+            color: #856404;
+            font-size: 28px;
             font-weight: bold;
+            margin-bottom: 18px;
         }
 
-        .main-admin-label {
-            color: #198754;
-
-            font-size: 12px;
-
-            font-weight: bold;
-        }
-
-        .active-status {
-            background: #d1e7dd;
-
-            color: #0f5132;
-        }
-
-        .inactive-status {
+        .confirm-icon.delete-icon {
             background: #f8d7da;
+            color: #dc3545;
+        }
 
-            color: #842029;
+        .confirm-modal h3 {
+            color: #212529;
+            font-size: 21px;
+            margin-bottom: 12px;
+        }
+
+        .confirm-modal p {
+            color: #6c757d;
+            font-size: 14px;
+            line-height: 1.7;
+            overflow-wrap: anywhere;
+            margin-bottom: 25px;
+        }
+
+        .confirm-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .confirm-actions button {
+            border: none;
+            border-radius: 6px;
+            padding: 11px 16px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .confirm-cancel {
+            background: #e9ecef;
+            color: #343a40;
+        }
+
+        .confirm-cancel:hover {
+            background: #dee2e6;
+        }
+
+        .confirm-proceed {
+            background: #198754;
+            color: white;
+        }
+
+        .confirm-proceed:hover {
+            background: #146c43;
+        }
+
+        .confirm-proceed.danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .confirm-proceed.danger:hover {
+            background: #bb2d3b;
+        }
+
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         @media (max-width: 600px) {
-
             .header {
                 padding: 12px 15px;
             }
 
             .header-content {
                 flex-direction: column;
-
                 align-items: flex-start;
             }
 
@@ -358,12 +385,11 @@
             }
 
             .card {
-                padding: 20px;
+                padding: 18px;
             }
 
             .title-row {
                 flex-direction: column;
-
                 align-items: stretch;
             }
 
@@ -375,172 +401,113 @@
                 text-align: center;
             }
 
+            .confirm-modal {
+                padding: 23px;
+            }
+
+            .confirm-actions {
+                flex-direction: column-reverse;
+            }
+
+            .confirm-actions button {
+                width: 100%;
+            }
         }
-
     </style>
-
 </head>
 
 <body>
 
 <header class="header">
-
     <div class="header-content">
+        <h1>CAS_Faculty Attendance Monitoring</h1>
 
-        <h1>
-            CAS_Faculty Attendance Monitoring
-        </h1>
-
-        <a
-            href="{% url 'dashboard' %}"
-            class="back-button"
-        >
+        <a href="{% url 'dashboard' %}" class="back-button">
             ← Back to Dashboard
         </a>
-
     </div>
-
 </header>
 
-
 <main class="container">
-
     <div class="card">
 
         <div class="title-row">
+            <h2>Administrator Accounts</h2>
 
-            <h2>
-                Administrator Accounts
-            </h2>
-
-            <a
-                href="{% url 'admin_account_create' %}"
-                class="add-button"
-            >
+            <a href="{% url 'admin_account_create' %}" class="add-button">
                 + Add Administrator
             </a>
-
         </div>
 
-
         <p class="description">
-
-            Manage the administrator accounts that are
-            authorized to access the Teacher Class Monitoring
-            System.
-
+            Manage the administrator accounts authorized to access the
+            Teacher Class Monitoring System. The Main Admin account is
+            protected from actions on this page.
         </p>
 
-
         {% if messages %}
-
             <div class="messages">
-
                 {% for message in messages %}
-
                     <div class="message">
                         {{ message }}
                     </div>
-
                 {% endfor %}
-
             </div>
-
         {% endif %}
 
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Username</th>
+                        <th>Status</th>
+                        <th>Staff Access</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
 
-        {% if admins %}
-
-            <div class="table-wrapper">
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                #
-                            </th>
-
-                            <th>
-                                Username
-                            </th>
-
-                            <th>
-                                Status
-                            </th>
-
-                            <th>
-                                Staff Access
-                            </th>
-
-                            <th>
-                                Actions
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
+                <tbody>
                     {% for admin in admins %}
-
                         <tr>
+                            <td>{{ forloop.counter }}</td>
 
                             <td>
-                                {{ forloop.counter }}
-                            </td>
+                                <strong>{{ admin.username }}</strong>
 
-                            <td>
-
-                                <strong>
-                                    {{ admin.username }}
-                                </strong>
-
-                                {% if admin.is_superuser %}
-
+                                {% if admin.id in main_admin_ids %}
                                     <span class="main-admin-badge">
                                         Main Admin
                                     </span>
-
                                 {% endif %}
-
                             </td>
 
                             <td>
-
                                 {% if admin.is_active %}
-
                                     <span class="status active-status">
                                         Active
                                     </span>
-
                                 {% else %}
-
                                     <span class="status inactive-status">
                                         Deactivated
                                     </span>
-
                                 {% endif %}
-
                             </td>
 
                             <td>
-
                                 {% if admin.is_staff %}
                                     Enabled
                                 {% else %}
                                     Disabled
                                 {% endif %}
-
                             </td>
 
                             <td>
-
-                                {% if not admin.is_superuser %}
-
+                                {% if admin.id in main_admin_ids %}
+                                    <span class="main-admin-label">
+                                        Protected
+                                    </span>
+                                {% else %}
                                     <div class="actions">
 
                                         <a
@@ -550,101 +517,214 @@
                                             🔑 Password
                                         </a>
 
-
                                         {% if admin.is_active %}
-
                                             <form
                                                 method="POST"
                                                 action="{% url 'admin_account_deactivate' admin.id %}"
-                                                class="inline-form"
+                                                class="inline-form confirm-form"
+                                                data-confirm-title="Deactivate Administrator"
+                                                data-confirm-message="Are you sure you want to deactivate the administrator account '{{ admin.username|escape }}'?"
+                                                data-confirm-button="Deactivate"
+                                                data-confirm-action="deactivate"
                                             >
-
                                                 {% csrf_token %}
 
                                                 <button
                                                     type="submit"
                                                     class="action-button deactivate-button"
-                                                    onclick="return confirm(
-                                                        'Are you sure you want to deactivate {{ admin.username }}?'
-                                                    );"
                                                 >
                                                     Deactivate
                                                 </button>
-
                                             </form>
-
                                         {% endif %}
-
 
                                         <form
                                             method="POST"
                                             action="{% url 'admin_account_delete' admin.id %}"
-                                            class="inline-form"
+                                            class="inline-form confirm-form"
+                                            data-confirm-title="Delete Administrator"
+                                            data-confirm-message="Are you sure you want to permanently delete the administrator account '{{ admin.username|escape }}'? This action cannot be undone."
+                                            data-confirm-button="Delete Permanently"
+                                            data-confirm-action="delete"
                                         >
-
                                             {% csrf_token %}
 
                                             <button
                                                 type="submit"
                                                 class="action-button delete-button"
-                                                onclick="return confirm(
-                                                    'Are you sure you want to permanently delete {{ admin.username }}? This cannot be undone.'
-                                                );"
                                             >
                                                 Delete
                                             </button>
-
                                         </form>
 
                                     </div>
-
-                                {% else %}
-
-                                    <span class="main-admin-label">
-                                        Protected
-                                    </span>
-
                                 {% endif %}
-
                             </td>
-
                         </tr>
 
                     {% empty %}
-
                         <tr>
-
-                            <td
-                                colspan="5"
-                                class="empty"
-                            >
+                            <td colspan="5" class="empty">
                                 No administrator accounts found.
                             </td>
-
                         </tr>
-
                     {% endfor %}
-
                 </tbody>
-
-                </table>
-
-            </div>
-
-        {% else %}
-
-            <div class="empty">
-
-                No administrator accounts found.
-
-            </div>
-
-        {% endif %}
+            </table>
+        </div>
 
     </div>
-
 </main>
 
-</body>
+<!-- CUSTOM CONFIRMATION MODAL -->
 
+<div
+    id="confirmOverlay"
+    class="confirm-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="confirmTitle"
+    aria-describedby="confirmMessage"
+    aria-hidden="true"
+>
+    <div class="confirm-modal">
+
+        <div class="confirm-icon" id="confirmIcon">?</div>
+
+        <h3 id="confirmTitle">Confirm Action</h3>
+
+        <p id="confirmMessage">
+            Are you sure you want to continue?
+        </p>
+
+        <div class="confirm-actions">
+
+            <button
+                type="button"
+                class="confirm-cancel"
+                id="confirmCancel"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="confirm-proceed"
+                id="confirmProceed"
+            >
+                Confirm
+            </button>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        "use strict";
+
+        const overlay = document.getElementById("confirmOverlay");
+        const title = document.getElementById("confirmTitle");
+        const message = document.getElementById("confirmMessage");
+        const icon = document.getElementById("confirmIcon");
+        const cancelButton = document.getElementById("confirmCancel");
+        const proceedButton = document.getElementById("confirmProceed");
+
+        let pendingForm = null;
+        let previousFocus = null;
+
+        function openModal(form) {
+            pendingForm = form;
+            previousFocus = document.activeElement;
+
+            title.textContent =
+                form.dataset.confirmTitle || "Confirm Action";
+
+            message.textContent =
+                form.dataset.confirmMessage ||
+                "Are you sure you want to continue?";
+
+            const action = form.dataset.confirmAction;
+
+            proceedButton.textContent =
+                form.dataset.confirmButton || "Confirm";
+
+            proceedButton.classList.toggle(
+                "danger",
+                action === "delete"
+            );
+
+            icon.classList.toggle(
+                "delete-icon",
+                action === "delete"
+            );
+
+            icon.textContent = action === "delete" ? "!" : "?";
+
+            overlay.classList.add("show");
+            overlay.setAttribute("aria-hidden", "false");
+
+            cancelButton.focus();
+        }
+
+        function closeModal() {
+            overlay.classList.remove("show");
+            overlay.setAttribute("aria-hidden", "true");
+
+            pendingForm = null;
+
+            if (previousFocus && typeof previousFocus.focus === "function") {
+                previousFocus.focus();
+            }
+        }
+
+        document.querySelectorAll(".confirm-form").forEach(function (form) {
+            form.addEventListener("submit", function (event) {
+                // Prevent the form from submitting immediately.
+                // A custom on-screen modal is shown instead.
+                event.preventDefault();
+
+                openModal(form);
+            });
+        });
+
+        cancelButton.addEventListener("click", function () {
+            closeModal();
+        });
+
+        proceedButton.addEventListener("click", function () {
+            if (!pendingForm) {
+                return;
+            }
+
+            const formToSubmit = pendingForm;
+
+            pendingForm = null;
+
+            overlay.classList.remove("show");
+            overlay.setAttribute("aria-hidden", "true");
+
+            // Submit the original POST form with its CSRF token.
+            // This avoids triggering the confirmation handler again.
+            HTMLFormElement.prototype.submit.call(formToSubmit);
+        });
+
+        overlay.addEventListener("click", function (event) {
+            if (event.target === overlay) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (
+                event.key === "Escape" &&
+                overlay.classList.contains("show")
+            ) {
+                closeModal();
+            }
+        });
+    })();
+</script>
+
+</body>
 </html>
