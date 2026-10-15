@@ -8488,29 +8488,35 @@ class MainAdminOnlyPasswordResetForm(PasswordResetForm):
         return email
 
     def get_users(self, email):
-        """
-        Only generate reset links for the registered
-        Main Administrator account.
-        """
-
         records = SystemAdministrator.objects.filter(
             is_main_admin=True,
             user__is_active=True,
             user__email__iexact=email,
         ).select_related("user")
 
+        logger.warning(
+            "PASSWORD RESET: matching Main Administrator records found: %s",
+            records.count(),
+        )
+
         for record in records:
             user = record.user
 
-            if (
-                user.is_active
-                and user.has_usable_password()
-                and user.email
-                and user.email.strip().casefold()
-                == email.strip().casefold()
-            ):
-                yield user
+            eligible = (
+                    user.is_active
+                    and user.has_usable_password()
+                    and bool(user.email)
+                    and user.email.strip().casefold()
+                    == email.strip().casefold()
+            )
 
+            logger.warning(
+                "PASSWORD RESET: account eligible for email delivery: %s",
+                eligible,
+            )
+
+            if eligible:
+                yield user
 
 
 def main_admin_password_reset(request):
