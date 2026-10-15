@@ -1,11 +1,18 @@
+
 #!/usr/bin/env bash
-# exit on error
-set -o errexit
 
-pip install -r requirements.txt
+set -e
 
-python manage.py collectstatic --no-input
-python manage.py migrate
+echo "Starting Django deployment..."
 
-# Create admin user automatically if it doesn't exist yet
-python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@example.com', 'AdminPass123!')"
+# Apply database migrations.
+python manage.py migrate --noinput
+
+# Collect static files.
+python manage.py collectstatic --noinput
+
+# Start Gunicorn on the port provided by Render.
+exec gunicorn TeacherMonitoringSystem.wsgi:application \
+    --bind "0.0.0.0:${PORT:-10000}" \
+    --workers 1 \
+    --timeout 120
