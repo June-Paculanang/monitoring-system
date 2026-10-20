@@ -178,13 +178,16 @@ DEFAULT_FROM_EMAIL = os.environ.get(
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Require the relay configuration in production.
-if not DEBUG:
-    if not GOOGLE_APPS_SCRIPT_URL or not EMAIL_RELAY_SECRET:
-        raise RuntimeError(
-            "Email relay is not configured. Set "
-            "GOOGLE_APPS_SCRIPT_URL and EMAIL_RELAY_SECRET "
-            "in the Render environment."
-        )
+IS_RENDER = bool(os.environ.get("RENDER", "").strip())
+
+if IS_RENDER and (
+    not GOOGLE_APPS_SCRIPT_URL or not EMAIL_RELAY_SECRET
+):
+    raise RuntimeError(
+        "Email relay is not configured. Set "
+        "GOOGLE_APPS_SCRIPT_URL and EMAIL_RELAY_SECRET "
+        "in the Render environment."
+    )
 
 
 # =========================================================

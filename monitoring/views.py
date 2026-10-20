@@ -2104,12 +2104,17 @@ def monitoring_create(request, schedule_id):
             record = form.save(commit=False)
             record.schedule = schedule
             record.record_datetime = timezone.now()
-            record.remarks = form.cleaned_data.get("remarks") or "Monitored"
+
+            record.remarks = (
+                    form.cleaned_data.get("remarks") or "Monitored"
+            )
+
             record.other_remarks = (
-                form.cleaned_data.get("other_remarks", "")
-                if record.remarks == "Not Monitored"
+                form.cleaned_data.get("other_remarks", "").strip()
+                if record.remarks == "Other"
                 else ""
             )
+
             # Signature is intentionally blank for physical signing.
             record.signature = ""
             record.save()

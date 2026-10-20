@@ -952,19 +952,27 @@
 
                             <td>{{ record.schedule.get_day_display }}</td>
 
+
                             <td>
-                                {% if record.other_remarks %}
-                                    {{ record.other_remarks }}
-                                {% elif record.remarks == "Other" or record.remarks == "Others" %}
-                                    —
-                                {% elif record.remarks == "Not Monitored" and record.missed_reason %}
-                                    {{ record.remarks }} - {{ record.missed_reason }}
-                                {% elif record.remarks == "Missed" and record.missed_reason %}
-                                    {{ record.remarks }} - {{ record.missed_reason }}
-                                {% else %}
-                                    {{ record.remarks|default:"—" }}
-                                {% endif %}
+                                {% with remarks=record.remarks|default_if_none:"" %}
+                                    {% if record.other_remarks %}
+                                        {% if remarks == "Other" or remarks == "Others" %}
+                                            Other - {{ record.other_remarks }}
+                                        {% else %}
+                                            {{ remarks }} - {{ record.other_remarks }}
+                                        {% endif %}
+                                    {% elif remarks == "Not Monitored" and record.missed_reason %}
+                                        {{ remarks }} - {{ record.missed_reason }}
+                                    {% elif remarks == "Missed" and record.missed_reason %}
+                                        {{ remarks }} - {{ record.missed_reason }}
+                                    {% elif remarks %}
+                                        {{ remarks }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                {% endwith %}
                             </td>
+
 
                             <td>&nbsp;</td>
 
