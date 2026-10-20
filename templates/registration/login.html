@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,6 +71,50 @@
             box-shadow: 0 0 0 2px #19875420;
         }
 
+        /* Password input and eye button */
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-wrapper input {
+            padding-right: 46px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: none;
+            border-radius: 4px;
+            background: transparent;
+            color: #6c757d;
+            cursor: pointer;
+        }
+
+        .toggle-password:hover {
+            background: #f0f7f3;
+            color: #198754;
+        }
+
+        .toggle-password:focus-visible {
+            outline: 2px solid #198754;
+            outline-offset: 1px;
+        }
+
+        .toggle-password svg {
+            width: 20px;
+            height: 20px;
+            display: block;
+        }
+
         .forgot {
             display: block;
             text-align: right;
@@ -88,7 +131,7 @@
             text-decoration: underline;
         }
 
-        button {
+        .login-button {
             width: 100%;
             border: 0;
             border-radius: 5px;
@@ -100,7 +143,7 @@
             cursor: pointer;
         }
 
-        button:hover {
+        .login-button:hover {
             background: #146c43;
         }
 
@@ -178,14 +221,40 @@
 
         <div class="field">
             <label for="id_password">Password</label>
-            <input
-                type="password"
-                name="password"
-                id="id_password"
-                placeholder="Enter your password"
-                autocomplete="current-password"
-                required
-            >
+
+            <div class="password-wrapper">
+                <input
+                    type="password"
+                    name="password"
+                    id="id_password"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    required
+                >
+
+                <button
+                    type="button"
+                    class="toggle-password"
+                    onclick="togglePassword('id_password', this)"
+                    aria-label="Show password"
+                    aria-pressed="false"
+                    title="Show password"
+                >
+                    <svg
+                        class="eye-icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <input type="hidden" name="next" value="{{ next }}">
@@ -199,7 +268,9 @@
             </a>
         </p>
 
-        <button type="submit">Log In</button>
+        <button type="submit" class="login-button">
+            Log In
+        </button>
     </form>
 
     <div class="setup-note">
@@ -207,8 +278,73 @@
         the system has no active administrator account.
     </div>
 
-
-
 </main>
+
+<script>
+    function togglePassword(inputId, button) {
+        const passwordInput = document.getElementById(inputId);
+
+        if (!passwordInput) {
+            return;
+        }
+
+        const isHidden = passwordInput.type === "password";
+
+        passwordInput.type = isHidden ? "text" : "password";
+
+        button.setAttribute(
+            "aria-pressed",
+            String(isHidden)
+        );
+
+        button.setAttribute(
+            "aria-label",
+            isHidden ? "Hide password" : "Show password"
+        );
+
+        button.setAttribute(
+            "title",
+            isHidden ? "Hide password" : "Show password"
+        );
+
+        if (isHidden) {
+            button.innerHTML = `
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+                    <path d="M3 3l18 18"/>
+                    <path d="M10.6 10.6a2 2 0 002.8 2.8"/>
+                    <path d="M9.9 5.2A11 11 0 0112 5
+                        c6.5 0 10 7 10 7a16 16 0 01-4 4.8"/>
+                    <path d="M6.2 6.2C3.5 8.1 2 12 2 12
+                        s3.5 7 10 7c1.2 0 2.3-.2 3.3-.6"/>
+                </svg>
+            `;
+        } else {
+            button.innerHTML = `
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7
+                        -3.5 7-10 7-10-7-10-7z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            `;
+        }
+    }
+</script>
+
 </body>
 </html>
