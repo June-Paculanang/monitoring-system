@@ -559,10 +559,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Show Other Remarks only when "Other" is selected
-    const remarksSelect = document.getElementById(
-        "{{ form.remarks.id_for_label }}"
-    );
-
+    const remarksSelect = document.getElementById("remarks-select");
     const otherRemarksContainer = document.getElementById(
         "other-remarks-container"
     );
@@ -572,29 +569,17 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function toggleOtherRemarks() {
-        const selectedOption =
-            remarksSelect.options[remarksSelect.selectedIndex];
+        const isOther = remarksSelect.value === "Other";
 
-        const selectedText = selectedOption
-            ? selectedOption.text.trim().toLowerCase()
-            : "";
-
-        const selectedValue = remarksSelect.value
-            .trim()
-            .toLowerCase();
-
-        const isOther =
-            selectedText === "other" ||
-            selectedValue === "other";
-
-        otherRemarksContainer.style.display =
-            isOther ? "block" : "none";
+        otherRemarksContainer.style.display = isOther ? "block" : "none";
     }
 
+    // Update visibility whenever the selected remark changes.
     remarksSelect.addEventListener("change", toggleOtherRemarks);
 
-    // Check the current selection when the page first loads.
+    // Set the correct visibility when the page first loads.
     toggleOtherRemarks();
+
 });
 </script>
 
