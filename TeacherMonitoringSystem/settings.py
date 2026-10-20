@@ -155,7 +155,7 @@ USE_TZ = True
 # =========================================================
 
 EMAIL_BACKEND = (
-    "monitoring.email_backend.LoggingSMTPEmailBackend"
+    "monitoring.email_backend.AppsScriptEmailBackend"
 )
 
 
