@@ -952,26 +952,18 @@
 
                             <td>{{ record.schedule.get_day_display }}</td>
 
-
                             <td>
-                                {% with remarks=record.remarks|default_if_none:"" %}
-                                    {% if record.other_remarks %}
-                                        {% if remarks == "Other" or remarks == "Others" %}
-                                            Other - {{ record.other_remarks }}
-                                        {% else %}
-                                            {{ remarks }} - {{ record.other_remarks }}
-                                        {% endif %}
-                                    {% elif remarks == "Not Monitored" and record.missed_reason %}
-                                        {{ remarks }} - {{ record.missed_reason }}
-                                    {% elif remarks == "Missed" and record.missed_reason %}
-                                        {{ remarks }} - {{ record.missed_reason }}
-                                    {% elif remarks %}
-                                        {{ remarks }}
-                                    {% else %}
-                                        —
-                                    {% endif %}
-                                {% endwith %}
+                                {% if record.other_remarks %}
+                                    {{ record.other_remarks }}
+                                {% elif record.missed_reason and record.remarks == "Missed" %}
+                                    {{ record.remarks }} - {{ record.missed_reason }}
+                                {% elif record.missed_reason and record.remarks == "Not Monitored" %}
+                                    {{ record.remarks }} - {{ record.missed_reason }}
+                                {% else %}
+                                    {{ record.remarks|default:"—" }}
+                                {% endif %}
                             </td>
+
 
 
                             <td>&nbsp;</td>
