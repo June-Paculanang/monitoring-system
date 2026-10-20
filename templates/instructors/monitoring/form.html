@@ -1,18 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        Monitor Class | Teacher Class Monitoring
-    </title>
+    <title>Monitor Class | Teacher Class Monitoring</title>
 
     <link
         href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css"
@@ -20,7 +13,6 @@
     >
 
     <style>
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -28,8 +20,7 @@
             font-family: Arial, sans-serif;
         }
 
-        html,
-        body {
+        html, body {
             width: 100%;
             min-height: 100%;
         }
@@ -37,43 +28,28 @@
         body {
             background: #f5f7f6;
             color: #333;
-
             min-height: 100vh;
-
             overflow-x: hidden;
             overflow-y: auto;
         }
 
-
-        /* =========================================
-           HEADER
-        ========================================= */
-
+        /* HEADER */
         .header {
             width: 100%;
-
             background: #198754;
             color: white;
-
             padding: 14px 25px;
-
             position: sticky;
             top: 0;
-
             z-index: 1000;
-
-            box-shadow:
-                0 2px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
         .header-content {
             width: 100%;
-
             display: flex;
-
             justify-content: space-between;
             align-items: center;
-
             gap: 20px;
         }
 
@@ -84,18 +60,12 @@
 
         .back-dashboard {
             color: white;
-
             text-decoration: none;
-
             font-weight: bold;
             font-size: 14px;
-
             padding: 8px 12px;
-
             border: 1px solid rgba(255, 255, 255, 0.7);
-
             border-radius: 5px;
-
             white-space: nowrap;
         }
 
@@ -103,82 +73,45 @@
             background: rgba(255, 255, 255, 0.15);
         }
 
-
-        /* =========================================
-           CONTAINER
-        ========================================= */
-
+        /* CONTAINER */
         .container {
             width: 100%;
-
             max-width: 750px;
-
             margin: 0 auto;
-
             padding: 35px 20px 70px;
         }
 
-
-        /* =========================================
-           CARD
-        ========================================= */
-
+        /* CARD */
         .form-card {
             width: 100%;
-
             background: white;
-
             padding: 30px;
-
             border-radius: 10px;
-
-            box-shadow:
-                0 2px 10px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
         }
-
-
-        /* =========================================
-           TITLE
-        ========================================= */
 
         .form-card h2 {
             color: #198754;
-
             margin-bottom: 8px;
-
             font-size: 24px;
-
             line-height: 1.3;
         }
 
         .form-description {
             color: #6c757d;
-
             font-size: 14px;
-
             margin-bottom: 25px;
-
             line-height: 1.6;
         }
 
-
-        /* =========================================
-           CLASS INFORMATION
-        ========================================= */
-
+        /* CLASS INFORMATION */
         .class-info {
             background: #f0f8f4;
-
             border-left: 4px solid #198754;
-
             padding: 15px;
-
             margin-bottom: 25px;
-
             border-radius: 5px;
-
             line-height: 1.7;
-
             font-size: 14px;
         }
 
@@ -194,104 +127,73 @@
             margin-bottom: 0;
         }
 
-
-        /* =========================================
-           FORM GROUP
-        ========================================= */
-
+        /* FORM */
         .form-group {
             width: 100%;
-
             margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-
             margin-bottom: 7px;
-
             font-weight: bold;
-
             font-size: 14px;
         }
 
-
-        /* =========================================
-           FORM CONTROL
-        ========================================= */
-
         .form-control,
-        .form-select {
+        .form-select,
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
             display: block;
-
             width: 100%;
-
             padding: 11px;
-
             border: 1px solid #ccc;
-
             border-radius: 5px;
-
             font-size: 15px;
-
             background: white;
         }
 
         .form-control:focus,
-        .form-select:focus {
+        .form-select:focus,
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
             outline: none;
-
             border-color: #198754;
-
-            box-shadow:
-                0 0 0 2px rgba(25, 135, 84, 0.12);
+            box-shadow: 0 0 0 2px rgba(25, 135, 84, 0.12);
         }
 
-        textarea.form-control {
+        textarea.form-control,
+        .form-group textarea {
             min-height: 110px;
-
             resize: vertical;
-
             line-height: 1.5;
         }
 
-
-        /* =========================================
-           TOM SELECT
-        ========================================= */
-
+        /* TOM SELECT */
         .ts-wrapper {
             width: 100%;
         }
 
         .ts-control {
             min-height: 44px;
-
             width: 100%;
-
             padding: 9px 12px;
-
             border: 1px solid #ccc;
-
             border-radius: 5px;
-
             background: white;
-
             font-size: 15px;
-
             box-shadow: none;
         }
 
         .ts-wrapper.focus .ts-control {
             border-color: #198754;
-
-            box-shadow:
-                0 0 0 2px rgba(25, 135, 84, 0.12);
+            box-shadow: 0 0 0 2px rgba(25, 135, 84, 0.12);
         }
 
         .ts-control input {
             font-size: 15px;
-
             color: #333;
         }
 
@@ -301,128 +203,78 @@
 
         .ts-dropdown {
             width: 100%;
-
             border: 1px solid #ccc;
-
             border-radius: 5px;
-
             margin-top: 3px;
-
             background: white;
-
-            box-shadow:
-                0 4px 12px rgba(0, 0, 0, 0.12);
-
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
             z-index: 2000;
         }
 
         .ts-dropdown .option {
             padding: 10px 12px;
-
             font-size: 14px;
-
             cursor: pointer;
         }
 
         .ts-dropdown .option:hover,
         .ts-dropdown .active {
             background: #e9f7ef;
-
             color: #198754;
         }
 
         .ts-dropdown .no-results {
             padding: 10px 12px;
-
             color: #6c757d;
-
             font-size: 14px;
         }
 
-
-        /* =========================================
-           HELP TEXT
-        ========================================= */
-
+        /* HELP TEXT */
         .help-text {
             display: block;
-
             margin-top: 6px;
-
             color: #6c757d;
-
             font-size: 12px;
-
             line-height: 1.5;
         }
 
-
-        /* =========================================
-           ERROR
-        ========================================= */
-
+        /* ERRORS */
         .errorlist {
             color: #dc3545;
-
             margin: 5px 0;
-
             padding-left: 20px;
-
             font-size: 13px;
         }
 
         .error-message {
             background: #f8d7da;
-
             color: #842029;
-
             padding: 10px 12px;
-
             border-radius: 5px;
-
             margin-bottom: 18px;
-
             font-size: 14px;
         }
 
-
-        /* =========================================
-           BUTTONS
-        ========================================= */
-
+        /* BUTTONS */
         .buttons {
             width: 100%;
-
             display: flex;
-
             align-items: center;
-
             gap: 10px;
-
             margin-top: 30px;
-
             padding-bottom: 5px;
         }
 
         .button {
             display: inline-block;
-
             padding: 11px 20px;
-
             border: none;
-
             border-radius: 5px;
-
             text-decoration: none;
-
             cursor: pointer;
-
             font-size: 15px;
-
             font-weight: bold;
-
             text-align: center;
-
             line-height: 1.4;
         }
 
@@ -444,22 +296,15 @@
             background: #565e64;
         }
 
-
-        /* =========================================
-           MOBILE
-        ========================================= */
-
+        /* MOBILE */
         @media (max-width: 600px) {
-
             .header {
                 padding: 12px 15px;
             }
 
             .header-content {
                 flex-direction: column;
-
                 align-items: flex-start;
-
                 gap: 10px;
             }
 
@@ -473,15 +318,12 @@
 
             .container {
                 width: 100%;
-
                 max-width: none;
-
                 padding: 20px 12px 60px;
             }
 
             .form-card {
                 padding: 20px;
-
                 border-radius: 8px;
             }
 
@@ -491,25 +333,17 @@
 
             .buttons {
                 flex-direction: column;
-
                 align-items: stretch;
-
                 width: 100%;
             }
 
             .button {
                 width: 100%;
             }
-
         }
 
-
-        /* =========================================
-           EXTRA SMALL PHONES
-        ========================================= */
-
+        /* EXTRA SMALL PHONES */
         @media (max-width: 400px) {
-
             .container {
                 padding-left: 8px;
                 padding-right: 8px;
@@ -522,194 +356,97 @@
             .header h1 {
                 font-size: 18px;
             }
-
         }
-
     </style>
-
 </head>
-
 
 <body>
 
-
-<!-- =========================================
-     HEADER
-========================================= -->
-
 <header class="header">
-
     <div class="header-content">
+        <h1>Teacher Class Monitoring System</h1>
 
-        <h1>
-            Teacher Class Monitoring System
-        </h1>
-
-        <a
-            href="{% url 'dashboard' %}"
-            class="back-dashboard"
-        >
+        <a href="{% url 'dashboard' %}" class="back-dashboard">
             ← Back to Dashboard
         </a>
-
     </div>
-
 </header>
 
-
-<!-- =========================================
-     MAIN
-========================================= -->
-
 <main class="container">
-
-
     <div class="form-card">
 
-
-        <h2>
-            Monitor Class
-        </h2>
-
+        <h2>Monitor Class</h2>
 
         <p class="form-description">
             Record the monitoring result for this scheduled class.
         </p>
 
-
-        <!-- =====================================
-             CLASS INFORMATION
-        ====================================== -->
-
         {% if schedule %}
-
             <div class="class-info">
 
-
                 <div class="info-row">
-
-                    <strong>
-                        Instructor:
-                    </strong>
-
+                    <strong>Instructor:</strong>
                     {{ schedule.instructor.name }}
-
                 </div>
 
-
                 <div class="info-row">
-
-                    <strong>
-                        Subject:
-                    </strong>
-
+                    <strong>Subject:</strong>
                     {{ schedule.subject.subject_code }}
 
                     {% if schedule.subject.subject_name %}
-
-                        -
-                        {{ schedule.subject.subject_name }}
-
+                        - {{ schedule.subject.subject_name }}
                     {% endif %}
-
                 </div>
 
-
                 <div class="info-row">
-
-                    <strong>
-                        Assigned Room:
-                    </strong>
-
+                    <strong>Assigned Room:</strong>
                     {{ schedule.room.room_name }}
-
                 </div>
 
-
                 <div class="info-row">
-
-                    <strong>
-                        Day:
-                    </strong>
+                    <strong>Day:</strong>
 
                     {% if schedule.day == "M" %}
                         Monday
-
                     {% elif schedule.day == "T" %}
                         Tuesday
-
                     {% elif schedule.day == "W" %}
                         Wednesday
-
                     {% elif schedule.day == "TH" %}
                         Thursday
-
                     {% elif schedule.day == "F" %}
                         Friday
-
                     {% elif schedule.day == "S" %}
                         Saturday
-
                     {% else %}
                         {{ schedule.day }}
                     {% endif %}
-
                 </div>
-
 
                 <div class="info-row">
-
-                    <strong>
-                        Scheduled Class Time:
-                    </strong>
-
+                    <strong>Scheduled Class Time:</strong>
                     {{ schedule.start_time|time:"h:i A" }}
-
                     -
-
                     {{ schedule.end_time|time:"h:i A" }}
-
                 </div>
 
-
             </div>
-
         {% endif %}
-
-
-        <!-- =====================================
-             ERRORS
-        ====================================== -->
 
         {% if form.non_field_errors %}
-
             <div class="error-message">
-
                 {{ form.non_field_errors }}
-
             </div>
-
         {% endif %}
 
-
-        <!-- =====================================
-             FORM
-        ====================================== -->
-
         <form method="POST">
-
             {% csrf_token %}
 
-
             <!-- ACTUAL ROOM -->
-
             {% if form.transfer_room %}
-
                 <div class="form-group">
 
-                    <label
-                        for="{{ form.transfer_room.id_for_label }}"
-                    >
+                    <label for="{{ form.transfer_room.id_for_label }}">
                         Actual Room Used
                     </label>
 
@@ -720,72 +457,53 @@
                     </span>
 
                     {% if form.transfer_room.errors %}
-
                         {{ form.transfer_room.errors }}
-
                     {% endif %}
 
                 </div>
-
             {% endif %}
 
-
             <!-- REMARKS -->
-
             {% if form.remarks %}
-
                 <div class="form-group">
 
-                    <label
-                        for="{{ form.remarks.id_for_label }}"
-                    >
+                    <label for="{{ form.remarks.id_for_label }}">
                         Remarks
                     </label>
 
                     {{ form.remarks }}
 
                     {% if form.remarks.errors %}
-
                         {{ form.remarks.errors }}
-
                     {% endif %}
 
                 </div>
-
             {% endif %}
 
-
-            <!-- OTHER REMARKS -->
-
+            <!-- OTHER REMARKS: HIDDEN UNTIL "OTHER" IS SELECTED -->
             {% if form.other_remarks %}
-
-                <div class="form-group">
-
-                    <label
-                        for="{{ form.other_remarks.id_for_label }}"
-                    >
+                <div
+                    class="form-group"
+                    id="other-remarks-container"
+                    style="display: none;"
+                >
+                    <label for="{{ form.other_remarks.id_for_label }}">
                         Other Remarks
                     </label>
 
                     {{ form.other_remarks }}
 
+                    {% if form.other_remarks.errors %}
+                        {{ form.other_remarks.errors }}
+                    {% endif %}
+
                     <span class="help-text">
                         Add additional information when needed.
                     </span>
-
-                    {% if form.other_remarks.errors %}
-
-                        {{ form.other_remarks.errors }}
-
-                    {% endif %}
-
                 </div>
-
             {% endif %}
 
-
             <!-- BUTTONS -->
-
             <div class="buttons">
 
                 <button
@@ -795,7 +513,6 @@
                     Save Monitoring
                 </button>
 
-
                 <a
                     href="{% url 'monitoring_list' %}"
                     class="button cancel-button"
@@ -804,101 +521,82 @@
                 </a>
 
             </div>
-
-
         </form>
 
-
     </div>
-
-
 </main>
 
-
-<script
-    src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"
-></script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
 
 <script>
+document.addEventListener("DOMContentLoaded", function () {
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
+    // Searchable Actual Room dropdown
+    const roomSelect = document.getElementById("transfer-room-select");
 
-            const roomSelect =
-                document.getElementById(
-                    "transfer-room-select"
-                );
+    if (roomSelect && !roomSelect.tomselect) {
+        new TomSelect(roomSelect, {
+            create: false,
+            allowEmptyOption: true,
+            placeholder: "Search actual room...",
+            searchField: ["text"],
+            maxOptions: 100,
+            closeAfterSelect: true,
+            hideSelected: false,
+            selectOnTab: true,
+            noResultsText: "No room found",
 
-            if (roomSelect) {
+            render: {
+                option: function (data, escape) {
+                    return "<div>" + escape(data.text) + "</div>";
+                },
 
-                new TomSelect(
-                    roomSelect,
-                    {
-                        create: false,
-
-                        allowEmptyOption: true,
-
-                        placeholder:
-                            "Search actual room...",
-
-                        searchField: [
-                            "text"
-                        ],
-
-                        maxOptions: 100,
-
-                        closeAfterSelect: true,
-
-                        hideSelected: false,
-
-                        selectOnTab: true,
-
-                        noResultsText:
-                            "No room found",
-
-                        render: {
-
-                            option: function (
-                                data,
-                                escape
-                            ) {
-
-                                return (
-                                    '<div>' +
-                                    escape(data.text) +
-                                    '</div>'
-                                );
-
-                            },
-
-                            item: function (
-                                data,
-                                escape
-                            ) {
-
-                                return (
-                                    '<div>' +
-                                    escape(data.text) +
-                                    '</div>'
-                                );
-
-                            }
-
-                        }
-
-                    }
-                );
-
+                item: function (data, escape) {
+                    return "<div>" + escape(data.text) + "</div>";
+                }
             }
+        });
+    }
 
-        }
-
+    // Show Other Remarks only when "Other" is selected
+    const remarksSelect = document.getElementById(
+        "{{ form.remarks.id_for_label }}"
     );
 
+    const otherRemarksContainer = document.getElementById(
+        "other-remarks-container"
+    );
+
+    if (!remarksSelect || !otherRemarksContainer) {
+        return;
+    }
+
+    function toggleOtherRemarks() {
+        const selectedOption =
+            remarksSelect.options[remarksSelect.selectedIndex];
+
+        const selectedText = selectedOption
+            ? selectedOption.text.trim().toLowerCase()
+            : "";
+
+        const selectedValue = remarksSelect.value
+            .trim()
+            .toLowerCase();
+
+        const isOther =
+            selectedText === "other" ||
+            selectedValue === "other";
+
+        otherRemarksContainer.style.display =
+            isOther ? "block" : "none";
+    }
+
+    remarksSelect.addEventListener("change", toggleOtherRemarks);
+
+    // Check the current selection when the page first loads.
+    toggleOtherRemarks();
+});
 </script>
 
-
 </body>
-
 </html>
