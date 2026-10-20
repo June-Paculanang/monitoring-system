@@ -953,12 +953,14 @@
                             <td>{{ record.schedule.get_day_display }}</td>
 
                             <td>
-                                {% if record.remarks %}{{ record.remarks }}{% endif %}
-                                {% if record.remarks == "Not Monitored" and record.other_remarks %}
-                                    - {{ record.other_remarks }}
-                                {% endif %}
-                                {% if record.remarks == "Missed" and record.missed_reason %}
-                                    - {{ record.missed_reason }}
+                                {% if record.remarks == "Other" and record.other_remarks %}
+                                    {{ record.other_remarks }}
+                                {% elif record.remarks == "Not Monitored" and record.other_remarks %}
+                                    {{ record.remarks }} - {{ record.other_remarks }}
+                                {% elif record.remarks == "Missed" and record.missed_reason %}
+                                    {{ record.remarks }} - {{ record.missed_reason }}
+                                {% else %}
+                                    {{ record.remarks|default:"—" }}
                                 {% endif %}
                             </td>
 
