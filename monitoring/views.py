@@ -2569,29 +2569,37 @@ def _report_actual_room(record):
 
 
 def _report_remarks(record):
-    remarks = (record.remarks or "").strip()
-    other = (record.other_remarks or "").strip()
-    missed = (record.missed_reason or "").strip()
+    remarks = str(
+        getattr(record, "remarks", "") or ""
+    ).strip()
 
+    other = str(
+        getattr(record, "other_remarks", "") or ""
+    ).strip()
+
+    missed = str(
+        getattr(record, "missed_reason", "") or ""
+    ).strip()
+
+    # If "Other" was selected, display the user's actual explanation
+    # instead of the literal word "Other".
+    if remarks.lower() in {"other", "others"}:
+        return other or "Other"
+
+    # Keep the explanation for records marked Not Monitored.
     if remarks == "Not Monitored" and other:
-        return f"Not Monitored - {other}"
+        return f"{remarks} - {other}"
 
+    # Keep the explanation for records marked Missed.
     if remarks == "Missed" and missed:
-        return f"Missed - {missed}"
+        return f"{remarks} - {missed}"
 
+    # Handle any other record that has additional remarks.
     if other:
-        return (
-            f"{remarks} - {other}"
-            if remarks
-            else other
-        )
+        return f"{remarks} - {other}" if remarks else other
 
     if missed:
-        return (
-            f"{remarks} - {missed}"
-            if remarks
-            else missed
-        )
+        return f"{remarks} - {missed}" if remarks else missed
 
     return remarks
 
