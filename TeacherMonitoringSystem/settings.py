@@ -154,62 +154,36 @@ USE_TZ = True
 # EMAIL CONFIGURATION - GMAIL SMTP
 # =========================================================
 
+# =========================================================
+# EMAIL CONFIGURATION - GOOGLE APPS SCRIPT
+# =========================================================
+
 EMAIL_BACKEND = (
     "monitoring.email_backend.AppsScriptEmailBackend"
 )
 
-
-EMAIL_HOST = os.environ.get(
-    "EMAIL_HOST", "smtp.gmail.com"
+GOOGLE_APPS_SCRIPT_URL = os.environ.get(
+    "GOOGLE_APPS_SCRIPT_URL", ""
 ).strip()
 
-EMAIL_PORT = int(
-    os.environ.get("EMAIL_PORT", "587")
-)
-
-EMAIL_HOST_USER = os.environ.get(
-    "EMAIL_HOST_USER", ""
+EMAIL_RELAY_SECRET = os.environ.get(
+    "EMAIL_RELAY_SECRET", ""
 ).strip()
-
-EMAIL_HOST_PASSWORD = os.environ.get(
-    "EMAIL_HOST_PASSWORD", ""
-).strip().replace(" ", "")
-
-EMAIL_USE_TLS = (
-    os.environ.get("EMAIL_USE_TLS", "True")
-    .strip()
-    .lower()
-    in {"true", "1", "yes", "on"}
-)
-
-EMAIL_USE_SSL = (
-    os.environ.get("EMAIL_USE_SSL", "False")
-    .strip()
-    .lower()
-    in {"true", "1", "yes", "on"}
-)
-
-EMAIL_TIMEOUT = 20
 
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL",
-    EMAIL_HOST_USER or "monitoringfaculty@gmail.com",
+    "monitoringfaculty@gmail.com",
 ).strip()
 
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-# Do not silently switch to console email in production.
-# This makes a missing SMTP configuration visible.
+# Require the relay configuration in production.
 if not DEBUG:
-    if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+    if not GOOGLE_APPS_SCRIPT_URL or not EMAIL_RELAY_SECRET:
         raise RuntimeError(
-            "Email is not configured. Set EMAIL_HOST_USER "
-            "and EMAIL_HOST_PASSWORD in the Render environment."
-        )
-
-    if EMAIL_USE_TLS and EMAIL_USE_SSL:
-        raise RuntimeError(
-            "EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be True."
+            "Email relay is not configured. Set "
+            "GOOGLE_APPS_SCRIPT_URL and EMAIL_RELAY_SECRET "
+            "in the Render environment."
         )
 
 
