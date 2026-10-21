@@ -1,0 +1,28 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Add Monitoring Staff</h2>
+
+    <p>
+        Create an account for a staff member who can access
+        monitoring records, schedules, and reports according
+        to their assigned permissions.
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-success">
+            Create Monitoring Staff
+        </button>
+
+        <a href="{% url 'admin_accounts' %}" class="btn btn-secondary">
+            Cancel
+        </a>
+    </form>
+</div>
+{% endblock %}

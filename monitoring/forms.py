@@ -708,3 +708,111 @@ class AdminAccountForm(forms.ModelForm):
             user.save()
 
         return user
+
+class MonitoringStaffAccountForm(forms.ModelForm):
+
+    email = forms.EmailField(
+        label="Email Address",
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Enter email address",
+                "autocomplete": "email",
+            }
+        ),
+    )
+
+    password = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Create a password",
+                "autocomplete": "new-password",
+            }
+        ),
+    )
+
+    confirm_password = forms.CharField(
+        label="Confirm Password",
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Confirm the password",
+                "autocomplete": "new-password",
+            }
+        ),
+    )
+
+    class Meta:
+        model = User
+        fields = ["username", "email"]
+
+        labels = {
+            "username": "Username",
+            "email": "Email Address",
+        }
+
+        widgets = {
+            "username": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Enter staff username",
+                    "autocomplete": "off",
+                }
+            ),
+        }
+
+    def clean_username(self):
+        username = self.cleaned_data["username"].strip()
+
+        if User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError(
+                "This username is already taken."
+            )
+
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError(
+                "This email address is already registered."
+            )
+
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password and confirm_password:
+            if password != confirm_password:
+                self.add_error(
+                    "confirm_password",
+                    "The passwords do not match.",
+                )
+            elif len(password) < 8:
+                self.add_error(
+                    "password",
+                    "Password must contain at least 8 characters.",
+                )
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+
+        user.email = self.cleaned_data["email"]
+        user.set_password(self.cleaned_data["password"])
+        user.is_active = True
+        user.is_staff = False
+        user.is_superuser = False
+
+        if commit:
+            user.save()
+
+        return user

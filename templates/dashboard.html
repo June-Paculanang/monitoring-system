@@ -12,8 +12,15 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Dashboard - Teacher Monitoring</title>
+    <title>Teacher Class Monitoring System</title>
 
+    <!-- Progressive Web App (PWA) -->
+    <link rel="manifest" href="{% static 'pwa/manifest.json' %}">
+    <meta name="theme-color" content="#198754">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Teacher Monitoring">
+    <link rel="apple-touch-icon" href="{% static 'pwa/icon-192.png' %}">
 
     <style>
 
@@ -1489,6 +1496,20 @@
 
 </script>
 
+<script>
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+            navigator.serviceWorker.register(
+                "{% static 'pwa/service-worker.js' %}"
+            ).catch(function (error) {
+                console.error(
+                    "Service worker registration failed:",
+                    error
+                );
+            });
+        });
+    }
+</script>
 
 </body>
 

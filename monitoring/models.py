@@ -170,6 +170,7 @@ class ReportTemplate(models.Model):
         return f"{self.name} - {self.school_year}"
 
 
+
 class SystemAdministrator(models.Model):
     """
     Identifies the administrators of the Teacher Class Monitoring System.
@@ -180,8 +181,7 @@ class SystemAdministrator(models.Model):
 
     is_main_admin=False:
         A regular Admin account created by the Main Administrator.
-        This account can use the system but cannot create or manage
-        other Admin accounts.
+        This account can use the system but cannot manage other Admin accounts.
     """
 
     user = models.OneToOneField(
@@ -190,11 +190,20 @@ class SystemAdministrator(models.Model):
         related_name="system_administrator"
     )
 
-    is_main_admin = models.BooleanField(
-        default=False
-    )
+    is_main_admin = models.BooleanField(default=False)
 
     def __str__(self):
         if self.is_main_admin:
             return f"{self.user.username} - Main Admin"
         return f"{self.user.username} - Admin"
+
+
+class MonitoringStaff(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="monitoring_staff",
+    )
+
+    def __str__(self):
+        return f"{self.user.username} - Monitoring Staff"

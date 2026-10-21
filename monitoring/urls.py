@@ -316,6 +316,13 @@ urlpatterns = [
     ),
 
     path(
+        "admin-accounts/add-monitoring-staff/",
+        views.monitoring_staff_create,
+        name="monitoring_staff_create",
+    ),
+
+
+    path(
         "admin-accounts/<int:user_id>/password/",
         views.admin_account_password,
         name="admin_account_password"

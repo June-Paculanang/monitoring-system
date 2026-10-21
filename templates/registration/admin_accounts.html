@@ -431,12 +431,21 @@
 <main class="container">
     <div class="card">
 
+
         <div class="title-row">
             <h2>Administrator Accounts</h2>
 
-            <a href="{% url 'admin_account_create' %}" class="add-button">
-                + Add Administrator
-            </a>
+            <div class="action-buttons">
+                {% if is_main_admin %}
+                    <a href="{% url 'admin_account_create' %}" class="add-button">
+                        + Add Administrator
+                    </a>
+
+                    <a href="{% url 'monitoring_staff_create' %}" class="add-button">
+                        + Add Monitoring Staff
+                    </a>
+                {% endif %}
+            </div>
         </div>
 
         <p class="description">

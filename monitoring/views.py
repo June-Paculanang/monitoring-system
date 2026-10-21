@@ -15,6 +15,8 @@ from openpyxl.utils import get_column_letter
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 from django.shortcuts import render, redirect
+from .forms import MonitoringStaffAccountForm
+from .models import MonitoringStaff
 
 import logging
 logger = logging.getLogger(__name__)
@@ -85,6 +87,7 @@ from .forms import (
     ReportTemplateForm,
     FirstAdminSetupForm,
     AdminAccountForm,
+    MonitoringStaffAccountForm,
 )
 
 from .models import (
@@ -95,7 +98,9 @@ from .models import (
     MonitoringRecord,
     ReportTemplate,
     SystemAdministrator,
+    MonitoringStaff,
 )
+
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.views import PasswordResetView
 from django.core.exceptions import ValidationError
@@ -231,6 +236,34 @@ def is_main_admin(user):
         user__is_active=True,
     ).exists()
 
+def is_monitoring_staff(user):
+    """Check whether the user is an active Monitoring Staff account."""
+    if not user.is_authenticated or not user.is_active:
+        return False
+
+    return MonitoringStaff.objects.filter(user=user).exists()
+
+
+def is_not_monitoring_staff(user):
+    """Allow only administrators into administrator-only sections."""
+    return user.is_authenticated and not is_monitoring_staff(user)
+
+
+def can_manage_schedules(user):
+    """Administrators and Monitoring Staff can manage schedules."""
+    if not user.is_authenticated or not user.is_active:
+        return False
+
+    return (
+        is_main_admin(user)
+        or is_monitoring_staff(user)
+        or SystemAdministrator.objects.filter(user=user).exists()
+    )
+
+
+def is_not_monitoring_staff_or_schedule_manager(user):
+    """Keep restricted sections available only to administrators."""
+    return is_not_monitoring_staff(user)
 
 @login_required
 @user_passes_test(is_main_admin)
@@ -253,9 +286,9 @@ def admin_accounts(request):
         {
             "admins": admins,
             "main_admin_ids": main_admin_ids,
+            "is_main_admin": is_main_admin(request.user),
         }
     )
-
 
 @login_required
 @user_passes_test(is_main_admin)
@@ -287,6 +320,30 @@ def admin_account_create(request):
         {"form": form},
     )
 
+
+@login_required
+@user_passes_test(is_main_admin)
+def monitoring_staff_create(request):
+    form = MonitoringStaffAccountForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+
+        MonitoringStaff.objects.update_or_create(
+            user=user,
+        )
+
+        messages.success(
+            request,
+            f"Monitoring Staff account '{user.username}' created successfully.",
+        )
+        return redirect("admin_accounts")
+
+    return render(
+        request,
+        "registration/monitoring_staff_form.html",
+        {"form": form},
+    )
 
 
 @login_required
