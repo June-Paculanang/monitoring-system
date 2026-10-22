@@ -6761,6 +6761,7 @@ def report_excel(request):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def report_template_list(request):
     templates = ReportTemplate.objects.all().order_by(
         "-is_active",
@@ -6775,6 +6776,7 @@ def report_template_list(request):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def report_template_create(request):
 
     if request.method == "POST":
@@ -6839,6 +6841,7 @@ def report_template_create(request):
     )
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def report_template_update(request, pk):
 
     template = get_object_or_404(
@@ -6895,8 +6898,8 @@ def report_template_update(request, pk):
         }
     )
 
-
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def report_template_delete(request, pk):
 
     template = get_object_or_404(
@@ -6917,6 +6920,7 @@ def report_template_delete(request, pk):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def report_template_bulk_delete(request):
 
     if request.method == "POST":
