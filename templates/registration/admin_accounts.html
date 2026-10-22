@@ -464,123 +464,260 @@
             </div>
         {% endif %}
 
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Username</th>
-                        <th>Status</th>
-                        <th>Staff Access</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+        <!-- MAIN ADMIN SECTION -->
+<h2 style="color: #198754; margin: 25px 0 15px;">
+    Main Administrator
+</h2>
 
-                <tbody>
-                    {% for admin in admins %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Status</th>
+                <th>Staff Access</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
 
-                            <td>
-                                <strong>{{ admin.username }}</strong>
+        <tbody>
+            {% if main_admin %}
+            <tr>
+                <td>
+                    <strong>{{ main_admin.user.username }}</strong>
+                    <span class="main-admin-badge">Main Admin</span>
+                </td>
 
-                                {% if admin.id in main_admin_ids %}
-                                    <span class="main-admin-badge">
-                                        Main Admin
-                                    </span>
-                                {% endif %}
-                            </td>
+                <td>
+                    {% if main_admin.user.is_active %}
+                        <span class="status active-status">Active</span>
+                    {% else %}
+                        <span class="status inactive-status">Deactivated</span>
+                    {% endif %}
+                </td>
 
-                            <td>
-                                {% if admin.is_active %}
-                                    <span class="status active-status">
-                                        Active
-                                    </span>
-                                {% else %}
-                                    <span class="status inactive-status">
-                                        Deactivated
-                                    </span>
-                                {% endif %}
-                            </td>
+                <td>
+                    {% if main_admin.user.is_staff %}
+                        Enabled
+                    {% else %}
+                        Disabled
+                    {% endif %}
+                </td>
 
-                            <td>
-                                {% if admin.is_staff %}
-                                    Enabled
-                                {% else %}
-                                    Disabled
-                                {% endif %}
-                            </td>
+                <td>
+                    <span class="main-admin-label">Protected</span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="empty">
+                    No Main Administrator account found.
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
 
-                            <td>
-                                {% if admin.id in main_admin_ids %}
-                                    <span class="main-admin-label">
-                                        Protected
-                                    </span>
-                                {% else %}
-                                    <div class="actions">
 
-                                        <a
-                                            href="{% url 'admin_account_password' admin.id %}"
-                                            class="action-button password-button"
-                                        >
-                                            🔑 Password
-                                        </a>
+<!-- REGULAR ADMINISTRATORS SECTION -->
+<div class="title-row" style="margin-top: 35px;">
+    <h2>Administrator Accounts</h2>
 
-                                        {% if admin.is_active %}
-                                            <form
-                                                method="POST"
-                                                action="{% url 'admin_account_deactivate' admin.id %}"
-                                                class="inline-form confirm-form"
-                                                data-confirm-title="Deactivate Administrator"
-                                                data-confirm-message="Are you sure you want to deactivate the administrator account '{{ admin.username|escape }}'?"
-                                                data-confirm-button="Deactivate"
-                                                data-confirm-action="deactivate"
-                                            >
-                                                {% csrf_token %}
+    <a href="{% url 'admin_account_create' %}" class="add-button">
+        + Add Administrator
+    </a>
+</div>
 
-                                                <button
-                                                    type="submit"
-                                                    class="action-button deactivate-button"
-                                                >
-                                                    Deactivate
-                                                </button>
-                                            </form>
-                                        {% endif %}
+<p class="description">
+    Manage regular administrator accounts.
+</p>
 
-                                        <form
-                                            method="POST"
-                                            action="{% url 'admin_account_delete' admin.id %}"
-                                            class="inline-form confirm-form"
-                                            data-confirm-title="Delete Administrator"
-                                            data-confirm-message="Are you sure you want to permanently delete the administrator account '{{ admin.username|escape }}'? This action cannot be undone."
-                                            data-confirm-button="Delete Permanently"
-                                            data-confirm-action="delete"
-                                        >
-                                            {% csrf_token %}
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Status</th>
+                <th>Staff Access</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
 
-                                            <button
-                                                type="submit"
-                                                class="action-button delete-button"
-                                            >
-                                                Delete
-                                            </button>
-                                        </form>
+        <tbody>
+            {% for admin in admins %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
 
-                                    </div>
-                                {% endif %}
-                            </td>
-                        </tr>
+                <td><strong>{{ admin.username }}</strong></td>
 
-                    {% empty %}
-                        <tr>
-                            <td colspan="5" class="empty">
-                                No administrator accounts found.
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                <td>
+                    {% if admin.is_active %}
+                        <span class="status active-status">Active</span>
+                    {% else %}
+                        <span class="status inactive-status">Deactivated</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if admin.is_staff %}
+                        Enabled
+                    {% else %}
+                        Disabled
+                    {% endif %}
+                </td>
+
+                <td>
+                    <div class="actions">
+                        <a href="{% url 'admin_account_password' admin.id %}"
+                           class="action-button password-button">
+                            🔑 Password
+                        </a>
+
+                        {% if admin.is_active %}
+                        <form method="POST"
+                              action="{% url 'admin_account_deactivate' admin.id %}"
+                              class="inline-form confirm-form"
+                              data-confirm-title="Deactivate Administrator"
+                              data-confirm-message="Deactivate {{ admin.username|escape }}?"
+                              data-confirm-button="Deactivate"
+                              data-confirm-action="deactivate">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="action-button deactivate-button">
+                                Deactivate
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <form method="POST"
+                              action="{% url 'admin_account_delete' admin.id %}"
+                              class="inline-form confirm-form"
+                              data-confirm-title="Delete Administrator"
+                              data-confirm-message="Permanently delete {{ admin.username|escape }}?"
+                              data-confirm-button="Delete Permanently"
+                              data-confirm-action="delete">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="action-button delete-button">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="5" class="empty">
+                    No regular administrator accounts found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<!-- MONITORING STAFF SECTION -->
+<div class="title-row" style="margin-top: 35px;">
+    <h2>Monitoring Staff Accounts</h2>
+
+    <a href="{% url 'monitoring_staff_create' %}" class="add-button">
+        + Add Monitoring Staff
+    </a>
+</div>
+
+<p class="description">
+    Manage accounts authorized for monitoring operations only.
+</p>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Status</th>
+                <th>Staff Access</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for staff in monitoring_staff %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+
+                <td><strong>{{ staff.user.username }}</strong></td>
+
+                <td>
+                    {% if staff.user.is_active %}
+                        <span class="status active-status">Active</span>
+                    {% else %}
+                        <span class="status inactive-status">Deactivated</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if staff.user.is_staff %}
+                        Enabled
+                    {% else %}
+                        Disabled
+                    {% endif %}
+                </td>
+
+                <td>
+                    <div class="actions">
+                        <a href="{% url 'admin_account_password' staff.user.id %}"
+                           class="action-button password-button">
+                            🔑 Password
+                        </a>
+
+                        {% if staff.user.is_active %}
+                        <form method="POST"
+                              action="{% url 'admin_account_deactivate' staff.user.id %}"
+                              class="inline-form confirm-form"
+                              data-confirm-title="Deactivate Monitoring Staff"
+                              data-confirm-message="Deactivate {{ staff.user.username|escape }}?"
+                              data-confirm-button="Deactivate"
+                              data-confirm-action="deactivate">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="action-button deactivate-button">
+                                Deactivate
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <form method="POST"
+                              action="{% url 'admin_account_delete' staff.user.id %}"
+                              class="inline-form confirm-form"
+                              data-confirm-title="Delete Monitoring Staff"
+                              data-confirm-message="Permanently delete {{ staff.user.username|escape }}?"
+                              data-confirm-button="Delete Permanently"
+                              data-confirm-action="delete">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="action-button delete-button">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="5" class="empty">
+                    No monitoring staff accounts found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
     </div>
 </main>

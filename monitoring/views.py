@@ -295,23 +295,32 @@ def admin_accounts(request):
         name="System Administrator"
     )
 
-    admins = admin_group.user_set.all().order_by("username")
+    # Get the Main Admin account
+    main_admin = SystemAdministrator.objects.filter(
+        is_main_admin=True
+    ).select_related("user").first()
 
-    main_admin_ids = set(
-        SystemAdministrator.objects.filter(
-            is_main_admin=True
-        ).values_list("user_id", flat=True)
-    )
+    # Get regular administrators only
+    admins = admin_group.user_set.exclude(
+        system_administrator__is_main_admin=True
+    ).order_by("username")
+
+    # Get Monitoring Staff accounts separately
+    monitoring_staff = MonitoringStaff.objects.select_related(
+        "user"
+    ).order_by("user__username")
 
     return render(
         request,
         "registration/admin_accounts.html",
         {
+            "main_admin": main_admin,
             "admins": admins,
-            "main_admin_ids": main_admin_ids,
+            "monitoring_staff": monitoring_staff,
             "is_main_admin": is_main_admin(request.user),
         }
     )
+
 
 @login_required
 @user_passes_test(is_main_admin)
@@ -407,9 +416,14 @@ def admin_account_password(request, user_id):
         return redirect("admin_accounts")
 
     # Only System Administrator accounts can be managed here.
-    if not user.groups.filter(
-        name="System Administrator"
-    ).exists():
+    if not (
+            user.groups.filter(
+                name="System Administrator"
+            ).exists()
+            or MonitoringStaff.objects.filter(
+        user=user
+    ).exists()
+    ):
         messages.error(
             request,
             "That account is not a System Administrator account."
@@ -482,9 +496,14 @@ def admin_account_deactivate(request, user_id):
         )
         return redirect("admin_accounts")
 
-    if not user.groups.filter(
-        name="System Administrator"
-    ).exists():
+    if not (
+            user.groups.filter(
+                name="System Administrator"
+            ).exists()
+            or MonitoringStaff.objects.filter(
+        user=user
+    ).exists()
+    ):
         messages.error(
             request,
             "That account is not a System Administrator account.",
@@ -527,9 +546,14 @@ def admin_account_delete(request, user_id):
         )
         return redirect("admin_accounts")
 
-    if not user.groups.filter(
-        name="System Administrator"
-    ).exists():
+    if not (
+            user.groups.filter(
+                name="System Administrator"
+            ).exists()
+            or MonitoringStaff.objects.filter(
+        user=user
+    ).exists()
+    ):
         messages.error(
             request,
             "That account is not a System Administrator account.",
