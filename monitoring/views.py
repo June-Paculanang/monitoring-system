@@ -2385,6 +2385,7 @@ def monitoring_update(request, pk):
 # ==========================================
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def monitoring_delete(request, pk):
 
     record = get_object_or_404(
@@ -2420,6 +2421,7 @@ def monitoring_delete(request, pk):
 # ==========================================
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def monitoring_bulk_delete(request):
 
     if request.method == "POST":
