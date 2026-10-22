@@ -228,120 +228,178 @@
 
 
         /* ==========================================
-           DATE FORM
+           DATE PICKER
         ========================================== */
-
         .date-form {
-
             display: flex;
-
-            align-items: end;
-
+            align-items: flex-end;
             gap: 10px;
-
             flex-wrap: wrap;
         }
-
-
         .date-group {
-
             display: flex;
-
             flex-direction: column;
-
             gap: 6px;
         }
-
-
         .date-group label {
-
-            font-size: 13px;
-
+            font-size: 11px;
             font-weight: bold;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #6c757d;
         }
-
-
-        .date-input {
-
-            padding: 10px;
-
-            border: 1px solid #ccc;
-
-            border-radius: 5px;
-
-            font-size: 14px;
-
-            min-width: 180px;
+        .date-controls {
+            display: flex;
+            gap: 8px;
         }
-
-
-        .date-input:focus {
-
-            outline: none;
-
+        .date-field {
+            position: relative;
+            display: flex;
+            align-items: center;
+            min-width: 230px;
+            background: #ffffff;
+            border: 1.5px solid #cfd9d3;
+            border-radius: 10px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .date-field:hover {
             border-color: #198754;
-
-            box-shadow:
-                0 0 0 2px rgba(
-                    25,
-                    135,
-                    84,
-                    0.12
-                );
         }
-
-
-        .date-button {
-
-            background: #198754;
-
-            color: white;
-
+        .date-field:focus-within {
+            border-color: #198754;
+            box-shadow: 0 0 0 4px rgba(25, 135, 84, 0.14);
+        }
+        .date-field svg {
+            position: absolute;
+            left: 13px;
+            width: 18px;
+            height: 18px;
+            color: #198754;
+            pointer-events: none;
+        }
+        .date-input {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px 0 40px;
             border: none;
-
-            padding: 10px 18px;
-
-            border-radius: 5px;
-
-            cursor: pointer;
-
+            background: transparent;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: bold;
-
+            color: #212529;
+            cursor: pointer;
+            outline: none;
+        }
+        /* The whole field opens the calendar */
+        .date-input::-webkit-calendar-picker-indicator {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .nav-button,
+        .today-button,
+        .date-button {
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
             font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
         }
-
-
+        .nav-button {
+            width: 44px;
+            background: #ffffff;
+            color: #198754;
+            border: 1.5px solid #cfd9d3;
+            font-size: 20px;
+        }
+        .nav-button:hover {
+            background: #f0f8f4;
+            border-color: #198754;
+        }
+        .today-button {
+            padding: 0 16px;
+            background: #ffffff;
+            color: #198754;
+            border: 1.5px solid #198754;
+        }
+        .today-button:hover {
+            background: #198754;
+            color: #ffffff;
+        }
+        .date-button {
+            padding: 0 22px;
+            background: #198754;
+            color: #ffffff;
+            border: 1.5px solid #198754;
+        }
         .date-button:hover {
-
             background: #146c43;
+            border-color: #146c43;
         }
-
 
         /* ==========================================
            SELECTED DATE INFORMATION
         ========================================== */
-
         .selected-date-info {
-
-            margin-top: 15px;
-
-            padding: 11px 13px;
-
-            background: #f0f8f4;
-
-            border-left: 4px solid #198754;
-
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 14px;
+            margin-top: 18px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, #f0f8f4, #e4f3eb);
+            border: 1px solid #cfe8da;
+            border-left: 5px solid #198754;
+            border-radius: 10px;
             font-size: 14px;
-
-            line-height: 1.5;
+        }
+        .selected-date-info .info-label {
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #6c757d;
+        }
+        .selected-date-info .info-date {
+            font-size: 18px;
+            font-weight: bold;
+            color: #146c43;
+        }
+        .selected-date-info .info-day {
+            padding: 4px 11px;
+            border-radius: 20px;
+            background: #198754;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .selected-date-info .info-time {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-
-        .selected-date-info strong {
-
-            color: #198754;
+        .monitor-locked {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 6px;
+            background: #e9ecef;
+            color: #6c757d;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+            cursor: not-allowed;
         }
-
 
         /* ==========================================
            CURRENT TIME BADGE
@@ -351,7 +409,7 @@
 
             display: inline-block;
 
-            margin-left: 8px;
+            margin-left: 0;
 
             padding: 4px 8px;
 
@@ -685,37 +743,23 @@
 
 
             .date-form {
-
                 flex-direction: column;
-
                 align-items: stretch;
             }
-
-
             .date-group {
-
                 width: 100%;
             }
-
-
-            .date-input,
+            .date-field {
+                flex: 1;
+                min-width: 0;
+            }
+            .today-button,
             .date-button {
-
                 width: 100%;
             }
-
-
-            .selected-date-info {
-
-                line-height: 1.8;
-            }
-
-
-            .current-time {
-
+            .selected-date-info .info-time {
                 margin-left: 0;
-
-                margin-top: 5px;
+                width: 100%;
             }
 
 
@@ -845,34 +889,40 @@
         <form
             method="GET"
             class="date-form"
+            id="dateForm"
         >
 
             <div class="date-group">
 
-                <label for="monitoring-date">
+                <label for="monitoring-date">Class Date</label>
 
-                    Class Date
+                <div class="date-controls">
 
-                </label>
+                    <button type="button" class="nav-button" id="prevDay" aria-label="Previous day" title="Previous day">&#8249;</button>
 
+                    <div class="date-field">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="4.5" width="18" height="16.5" rx="3"></rect>
+                            <path d="M3 9.5h18M8 2.5v4M16 2.5v4"></path>
+                        </svg>
+                        <input
+                            type="date"
+                            id="monitoring-date"
+                            name="date"
+                            class="date-input"
+                            value="{{ selected_date|date:'Y-m-d' }}"
+                        >
+                    </div>
 
-                <input
-                    type="date"
-                    id="monitoring-date"
-                    name="date"
-                    class="date-input"
-                    value="{{ monitoring_date|date:'Y-m-d' }}"
-                >
+                    <button type="button" class="nav-button" id="nextDay" aria-label="Next day" title="Next day">&#8250;</button>
+
+                </div>
 
             </div>
 
+            <a href="{% url 'monitoring_list' %}" class="today-button">Today</a>
 
-            <button
-                type="submit"
-                class="date-button"
-            >
-                Search Date
-            </button>
+            <button type="submit" class="date-button">Search Date</button>
 
         </form>
 
@@ -883,36 +933,53 @@
 
         <div class="selected-date-info">
 
-            <strong>
-                Selected Date:
-            </strong>
+            <div>
+                <div class="info-label">Selected Date</div>
+                <div class="info-date">{{ selected_date|date:"F d, Y" }}</div>
+            </div>
 
-            {{ selected_date|date:"F d, Y" }}
-
-            -
-
-            <strong>
-                {{ selected_day_name }}
-            </strong>
-
+            <span class="info-day">{{ selected_day_name }}</span>
 
             {% if is_today %}
-
-                <span>
-                    &nbsp; | &nbsp;
-                    Current Philippine Time:
-                </span>
-
-
-                <span class="current-time">
-
-                    {{ current_time|time:"h:i A" }}
-
-                </span>
-
+                <div class="info-time">
+                    <span class="info-label">Current Philippine Time</span>
+                    <span class="current-time">{{ current_time|time:"h:i A" }}</span>
+                </div>
             {% endif %}
 
         </div>
+
+        <script>
+            (function () {
+                var form = document.getElementById("dateForm");
+                var input = document.getElementById("monitoring-date");
+
+                function shift(days) {
+                    if (!input.value) { return; }
+                    var p = input.value.split("-");
+                    var d = new Date(+p[0], +p[1] - 1, +p[2] + days);
+                    var mm = String(d.getMonth() + 1).padStart(2, "0");
+                    var dd = String(d.getDate()).padStart(2, "0");
+                    input.value = d.getFullYear() + "-" + mm + "-" + dd;
+                    form.submit();
+                }
+
+                document.getElementById("prevDay").addEventListener("click", function () { shift(-1); });
+                document.getElementById("nextDay").addEventListener("click", function () { shift(1); });
+
+                // Open the calendar when clicking anywhere on the field (Firefox/Safari)
+                input.addEventListener("click", function () {
+                    if (typeof input.showPicker === "function") {
+                        try { input.showPicker(); } catch (e) {}
+                    }
+                });
+
+                // Load the schedules as soon as a date is chosen
+                input.addEventListener("change", function () {
+                    if (input.value) { form.submit(); }
+                });
+            })();
+        </script>
 
     </section>
 
@@ -966,9 +1033,8 @@
 
             <span class="section-count">
 
-                {{ active_schedules|length }}
-
-                class{{ active_schedules|length|pluralize }}
+                {{ display_schedules|length }}
+                class{{ display_schedules|length|pluralize }}
 
             </span>
 
@@ -1020,7 +1086,7 @@
                 <tbody>
 
 
-                    {% for schedule in active_schedules %}
+                    {% for schedule in display_schedules %}
 
                         <tr>
 
@@ -1103,12 +1169,16 @@
 
                             <td>
 
+                                {% if is_future %}
+                                    <span class="monitor-locked" title="Monitoring is only available on the day of the class">Not yet available</span>
+                                {% else %}
                                 <a
                                     href="{% url 'monitoring_create' schedule.id %}?date={{ selected_date|date:'Y-m-d' }}"
                                     class="monitor-button"
                                 >
                                     MONITOR
                                 </a>
+                                {% endif %}
 
                             </td>
 
@@ -1223,14 +1293,6 @@
 
 
                     <tbody>
-
-                        <!-- TEMPORARY DEBUG -->
-                        <tr>
-                            <td colspan="6">
-                                Debug: Selected date = {{ selected_date }},
-                                Upcoming schedules = {{ upcoming_schedules|length }}
-                            </td>
-                        </tr>
 
                         {% for schedule in upcoming_schedules %}
 
