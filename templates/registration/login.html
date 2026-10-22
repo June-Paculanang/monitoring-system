@@ -1,3 +1,32 @@
+<button id="installAppBtn" class="btn btn-primary" hidden>
+    Install App
+</button>
+
+<script>
+let deferredInstallPrompt;
+const installBtn = document.getElementById("installAppBtn");
+
+window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    installBtn.hidden = false;
+});
+
+installBtn.addEventListener("click", async () => {
+    if (!deferredInstallPrompt) return;
+
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+
+    deferredInstallPrompt = null;
+    installBtn.hidden = true;
+});
+
+window.addEventListener("appinstalled", () => {
+    installBtn.hidden = true;
+});
+</script>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
