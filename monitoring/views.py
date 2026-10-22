@@ -1654,7 +1654,7 @@ def room_bulk_delete(request):
 # ==========================================
 
 @login_required
-@user_passes_test(can_manage_schedules, login_url="dashboard")
+@user_passes_test(is_system_admin, login_url="dashboard")
 def schedule_list(request):
     search = request.GET.get("search", "").strip()
 
@@ -1681,7 +1681,7 @@ def schedule_list(request):
 
 
 @login_required
-@user_passes_test(can_manage_schedules, login_url="dashboard")
+@user_passes_test(is_system_admin, login_url="dashboard")
 def schedule_create(request):
 
     if request.method == "POST":
@@ -1770,7 +1770,7 @@ def schedule_create(request):
 
 
 @login_required
-@user_passes_test(can_manage_schedules, login_url="dashboard")
+@user_passes_test(is_system_admin, login_url="dashboard")
 def schedule_update(request, pk):
 
     schedule = get_object_or_404(
@@ -1815,6 +1815,7 @@ def schedule_update(request, pk):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def schedule_delete(request, pk):
 
     schedule = get_object_or_404(
@@ -1846,6 +1847,7 @@ def schedule_delete(request, pk):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def schedule_bulk_delete(request):
 
     if request.method == "POST":
@@ -7846,6 +7848,7 @@ def _build_existing_import_cache():
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def _schedule_import(request, classification):
     """
     Common schedule importer.
@@ -8077,6 +8080,7 @@ def _schedule_import(request, classification):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def schedule_import_part_time(request):
 
     return _schedule_import(
@@ -8086,6 +8090,7 @@ def schedule_import_part_time(request):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def schedule_import_regular(request):
 
     return _schedule_import(
@@ -8095,6 +8100,7 @@ def schedule_import_regular(request):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def schedule_import(request):
     """
     Keeps the old generic URL working.
@@ -8111,6 +8117,7 @@ def schedule_import(request):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def schedule_import_confirm(request):
 
     if request.method != "POST":
