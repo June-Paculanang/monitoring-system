@@ -225,6 +225,29 @@ def system_setup(request):
 # ADMIN ACCOUNT MANAGEMENT
 # =========================================================
 
+
+def is_system_admin(user):
+    """Allow active administrator accounts only."""
+    if not user.is_authenticated or not user.is_active:
+        return False
+
+    return SystemAdministrator.objects.filter(
+        user=user,
+        user__is_active=True,
+    ).exists()
+
+
+def is_admin_or_monitoring_staff(user):
+    """Allow registered administrators and Monitoring Staff."""
+    if not user.is_authenticated or not user.is_active:
+        return False
+
+    return (
+        is_system_admin(user)
+        or is_monitoring_staff(user)
+    )
+
+
 def is_main_admin(user):
     """Only the designated Main Administrator may manage admin accounts."""
     if not user.is_authenticated or not user.is_active:
@@ -321,30 +344,33 @@ def admin_account_create(request):
     )
 
 
+
 @login_required
 @user_passes_test(is_main_admin)
 def monitoring_staff_create(request):
-    form = MonitoringStaffAccountForm(request.POST or None)
+    if request.method == "POST":
+        form = MonitoringStaffAccountForm(request.POST)
 
-    if request.method == "POST" and form.is_valid():
-        user = form.save()
+        if form.is_valid():
+            user = form.save()
 
-        MonitoringStaff.objects.update_or_create(
-            user=user,
-        )
+            MonitoringStaff.objects.update_or_create(
+                user=user,
+            )
 
-        messages.success(
-            request,
-            f"Monitoring Staff account '{user.username}' created successfully.",
-        )
-        return redirect("admin_accounts")
+            messages.success(
+                request,
+                f"Monitoring Staff account '{user.username}' created successfully.",
+            )
+            return redirect("admin_accounts")
+    else:
+        form = MonitoringStaffAccountForm()
 
     return render(
         request,
         "registration/monitoring_staff_form.html",
         {"form": form},
     )
-
 
 @login_required
 @user_passes_test(is_main_admin)
@@ -529,6 +555,7 @@ def admin_account_delete(request, user_id):
 # ==========================================
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def instructor_list(request):
 
     search = request.GET.get("search", "").strip()
@@ -633,6 +660,7 @@ def instructor_list(request):
     )
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def instructor_bulk_delete(request):
 
     if request.method == "POST":
@@ -662,6 +690,7 @@ def instructor_bulk_delete(request):
     return redirect("instructor_list")
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def instructor_create(request):
 
     if request.method == "POST":
@@ -694,6 +723,7 @@ def instructor_create(request):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def instructor_update(request, pk):
 
     instructor = get_object_or_404(
@@ -736,6 +766,7 @@ def instructor_update(request, pk):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def instructor_delete(request, pk):
 
     instructor = get_object_or_404(
@@ -909,6 +940,7 @@ def instructor_schedule(request, instructor_id):
 # ==========================================
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def subject_list(request):
 
     search = request.GET.get(
@@ -948,6 +980,7 @@ def subject_list(request):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def subject_create(request):
 
     if request.method == "POST":
@@ -1160,6 +1193,7 @@ def subject_create(request):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def subject_update(request, pk):
 
     subject = get_object_or_404(
@@ -1229,6 +1263,7 @@ def subject_update(request, pk):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def subject_delete(request, pk):
 
     subject = get_object_or_404(
@@ -1260,6 +1295,7 @@ def subject_delete(request, pk):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def subject_bulk_delete(request):
 
     if request.method == "POST":
@@ -1309,6 +1345,7 @@ def subject_bulk_delete(request):
 # ==========================================
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def room_list(request):
 
     search = request.GET.get(
@@ -1342,6 +1379,7 @@ def room_list(request):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def room_create(request):
 
     if request.method == "POST":
@@ -1501,6 +1539,7 @@ def room_create(request):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def room_update(request, pk):
 
     room = get_object_or_404(
@@ -1546,6 +1585,7 @@ def room_update(request, pk):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def room_delete(request, pk):
 
     room = get_object_or_404(
@@ -1577,6 +1617,7 @@ def room_delete(request, pk):
 
 
 @login_required
+@user_passes_test(is_system_admin, login_url="dashboard")
 def room_bulk_delete(request):
 
     if request.method == "POST":
@@ -1613,6 +1654,7 @@ def room_bulk_delete(request):
 # ==========================================
 
 @login_required
+@user_passes_test(can_manage_schedules, login_url="dashboard")
 def schedule_list(request):
     search = request.GET.get("search", "").strip()
 
@@ -1639,6 +1681,7 @@ def schedule_list(request):
 
 
 @login_required
+@user_passes_test(can_manage_schedules, login_url="dashboard")
 def schedule_create(request):
 
     if request.method == "POST":
@@ -1727,6 +1770,7 @@ def schedule_create(request):
 
 
 @login_required
+@user_passes_test(can_manage_schedules, login_url="dashboard")
 def schedule_update(request, pk):
 
     schedule = get_object_or_404(
@@ -3105,6 +3149,7 @@ def _update_template_classification_heading(
 # ==========================================
 
 @login_required
+@user_passes_test(is_admin_or_monitoring_staff, login_url="dashboard")
 def report_printers(request):
     """
     AJAX endpoint used by reports/list.html.
@@ -6191,6 +6236,7 @@ def _build_report_pdf_bytes(
 # =============================================================
 
 @login_required
+@user_passes_test(is_admin_or_monitoring_staff, login_url="dashboard")
 def reports(request):
     """Display the selected week's monitoring records and report controls."""
 
@@ -6282,6 +6328,7 @@ def reports(request):
 # =============================================================
 
 @login_required
+@user_passes_test(is_admin_or_monitoring_staff, login_url="dashboard")
 def report_print(request):
     """Generate the selected report and send it to a Windows printer."""
 
@@ -6491,6 +6538,7 @@ def report_print(request):
 # =============================================================
 
 @login_required
+@user_passes_test(is_admin_or_monitoring_staff, login_url="dashboard")
 def report_pdf(request):
     """
     Return the generated PDF inline for preview or as a download.
@@ -6553,6 +6601,7 @@ def report_pdf(request):
 # =============================================================
 
 @login_required
+@user_passes_test(is_admin_or_monitoring_staff, login_url="dashboard")
 def report_docx(request):
     """Generate and download the Word report."""
 
@@ -6632,6 +6681,7 @@ def report_docx(request):
 # =============================================================
 
 @login_required
+@user_passes_test(is_admin_or_monitoring_staff, login_url="dashboard")
 def report_excel(request):
     """Generate and download the Excel report."""
 
