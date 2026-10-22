@@ -523,6 +523,48 @@ def admin_account_deactivate(request, user_id):
 
     return redirect("admin_accounts")
 
+@login_required
+@user_passes_test(is_main_admin)
+def admin_account_reactivate(request, user_id):
+    User = get_user_model()
+
+    user = get_object_or_404(User, pk=user_id)
+
+    # Protect the Main Administrator account.
+    target_is_main_admin = SystemAdministrator.objects.filter(
+        user=user,
+        is_main_admin=True,
+    ).exists()
+
+    if target_is_main_admin:
+        messages.error(
+            request,
+            "The Main Administrator account cannot be reactivated here.",
+        )
+        return redirect("admin_accounts")
+
+    # Only allow reactivation of System Administrator accounts.
+    if not user.groups.filter(
+        name="System Administrator"
+    ).exists():
+        messages.error(
+            request,
+            "That account is not a System Administrator account.",
+        )
+        return redirect("admin_accounts")
+
+    if request.method != "POST":
+        return redirect("admin_accounts")
+
+    user.is_active = True
+    user.save(update_fields=["is_active"])
+
+    messages.success(
+        request,
+        f"Administrator account '{user.username}' has been reactivated.",
+    )
+
+    return redirect("admin_accounts")
 
 @login_required
 @user_passes_test(is_main_admin)

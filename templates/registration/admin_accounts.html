@@ -576,19 +576,41 @@
                         </a>
 
                         {% if admin.is_active %}
-                        <form method="POST"
-                              action="{% url 'admin_account_deactivate' admin.id %}"
-                              class="inline-form confirm-form"
-                              data-confirm-title="Deactivate Administrator"
-                              data-confirm-message="Deactivate {{ admin.username|escape }}?"
-                              data-confirm-button="Deactivate"
-                              data-confirm-action="deactivate">
-                            {% csrf_token %}
-                            <button type="submit"
-                                    class="action-button deactivate-button">
-                                Deactivate
-                            </button>
-                        </form>
+                            <form
+                                method="POST"
+                                action="{% url 'admin_account_deactivate' admin.id %}"
+                                class="inline-form confirm-form"
+                                data-confirm-title="Deactivate Administrator"
+                                data-confirm-message="Are you sure you want to deactivate the administrator account '{{ admin.username|escape }}'?"
+                                data-confirm-button="Deactivate"
+                                data-confirm-action="deactivate"
+                            >
+                                {% csrf_token %}
+                                <button
+                                    type="submit"
+                                    class="action-button deactivate-button"
+                                >
+                                    Deactivate
+                                </button>
+                            </form>
+                        {% else %}
+                            <form
+                                method="POST"
+                                action="{% url 'admin_account_reactivate' admin.id %}"
+                                class="inline-form confirm-form"
+                                data-confirm-title="Reactivate Administrator"
+                                data-confirm-message="Are you sure you want to reactivate the administrator account '{{ admin.username|escape }}'?"
+                                data-confirm-button="Reactivate"
+                                data-confirm-action="reactivate"
+                            >
+                                {% csrf_token %}
+                                <button
+                                    type="submit"
+                                    class="action-button"
+                                >
+                                    Reactivate
+                                </button>
+                            </form>
                         {% endif %}
 
                         <form method="POST"
