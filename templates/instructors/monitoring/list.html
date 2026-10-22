@@ -1224,6 +1224,13 @@
 
                     <tbody>
 
+                        <!-- TEMPORARY DEBUG -->
+                        <tr>
+                            <td colspan="6">
+                                Debug: Selected date = {{ selected_date }},
+                                Upcoming schedules = {{ upcoming_schedules|length }}
+                            </td>
+                        </tr>
 
                         {% for schedule in upcoming_schedules %}
 
@@ -1317,8 +1324,7 @@
                                     class="empty-monitoring"
                                 >
 
-                                    No more upcoming classes
-                                    for today.
+                                    No classes scheduled for this date.
 
                                 </td>
 

@@ -590,12 +590,17 @@ def monitoring_staff_reactivate(request, user_id):
 
     return redirect("admin_accounts")
 
+
 @login_required
 def monitoring_list(request):
-    from datetime import datetime, time
+    from datetime import datetime
     from django.utils import timezone
+    from django.db.models import Q
 
-    selected_date_str = request.GET.get("date")
+    # ==========================================
+    # SELECTED DATE — PHILIPPINE LOCAL DATE
+    # ==========================================
+    selected_date_str = request.GET.get("date", "").strip()
     today = timezone.localdate()
 
     try:
@@ -607,33 +612,50 @@ def monitoring_list(request):
     except (ValueError, TypeError):
         selected_date = today
 
-    day_code_map = {
-        0: "M",
-        1: "T",
-        2: "W",
-        3: "TH",
-        4: "F",
-        5: "S",
+    # ==========================================
+    # MATCH COMMON DATABASE DAY FORMATS
+    # ==========================================
+    day_aliases = {
+        0: ["M", "MON", "MONDAY"],
+        1: ["T", "TU", "TUE", "TUES", "TUESDAY"],
+        2: ["W", "WE", "WED", "WEDNESDAY"],
+        3: ["TH", "THU", "THUR", "THURS", "THURSDAY", "R"],
+        4: ["F", "FRI", "FRIDAY"],
+        5: ["S", "SAT", "SATURDAY"],
+        6: ["SU", "SUN", "SUNDAY"],
     }
 
-    selected_day = day_code_map.get(selected_date.weekday())
+    day_values = day_aliases.get(selected_date.weekday(), [])
 
+    # ==========================================
+    # GET SCHEDULES FOR THE SELECTED DAY
+    # ==========================================
     schedules = Schedule.objects.none()
 
-    if selected_day:
+    if day_values:
+        day_filter = Q()
+
+        for day_value in day_values:
+            day_filter |= Q(day__iexact=day_value)
+
         schedules = (
             Schedule.objects
             .select_related("instructor", "subject", "room")
-            .filter(day=selected_day)
+            .filter(day_filter)
             .order_by("instructor__name", "start_time")
         )
 
+    # ==========================================
+    # ACTIVE AND UPCOMING CLASSES
+    # ==========================================
     now = timezone.localtime()
+    current_time = now.time()
+
     active_schedules = []
     upcoming_schedules = []
 
-    # Only hide classes already monitored if they have a record
-    # for the selected date.
+    # Only hide a schedule if it was monitored
+    # on the selected date.
     monitored_schedule_ids = set(
         MonitoringRecord.objects.filter(
             record_datetime__date=selected_date
@@ -645,24 +667,46 @@ def monitoring_list(request):
             continue
 
         if selected_date == today:
-            if schedule.start_time <= now.time() <= schedule.end_time:
+            if schedule.start_time <= current_time <= schedule.end_time:
                 active_schedules.append(schedule)
-            elif schedule.start_time > now.time():
+            elif schedule.start_time > current_time:
                 upcoming_schedules.append(schedule)
         else:
+            # Show the day's schedules for past or future dates.
             upcoming_schedules.append(schedule)
 
-    active_schedules.sort(key=lambda s: s.start_time)
-    upcoming_schedules.sort(key=lambda s: s.start_time)
+    active_schedules.sort(
+        key=lambda schedule: (
+            schedule.start_time,
+            schedule.instructor.name.lower()
+        )
+    )
 
+    upcoming_schedules.sort(
+        key=lambda schedule: (
+            schedule.start_time,
+            schedule.instructor.name.lower()
+        )
+    )
+
+    # ==========================================
+    # MONITORING RECORDS FOR SELECTED DATE
+    # ==========================================
     monitoring_records = (
         MonitoringRecord.objects
         .filter(record_datetime__date=selected_date)
-        .select_related("schedule", "schedule__instructor",
-                        "schedule__subject", "schedule__room")
+        .select_related(
+            "schedule",
+            "schedule__instructor",
+            "schedule__subject",
+            "schedule__room"
+        )
         .order_by("-record_datetime")
     )
 
+    # ==========================================
+    # PAGE CONTEXT
+    # ==========================================
     context = {
         "selected_date": selected_date,
         "active_schedules": active_schedules,
@@ -670,7 +714,12 @@ def monitoring_list(request):
         "monitoring_records": monitoring_records,
     }
 
-    return render(request, "instructors/monitoring/list.html", context)
+    return render(
+        request,
+        "instructors/monitoring/list.html",
+        context
+    )
+
 
 @login_required
 @user_passes_test(is_main_admin)
