@@ -1961,287 +1961,86 @@ def schedule_bulk_delete(request):
 
 @login_required
 def monitoring_list(request):
+    from datetime import datetime, time
+    from django.utils import timezone
 
-    # ==========================================
-    # SELECTED DATE
-    # ==========================================
+    selected_date_str = request.GET.get("date")
+    today = timezone.localdate()
 
-    date_text = request.GET.get(
-        "date",
-        ""
-    ).strip()
-
-    # ==========================================
-    # CURRENT PHILIPPINE DATE AND TIME
-    # ==========================================
-
-    current_datetime = timezone.localtime()
-
-    today = current_datetime.date()
-
-    current_time = current_datetime.time()
-
-    # ==========================================
-    # DETERMINE SELECTED DATE
-    # ==========================================
-
-    if date_text:
-
-        try:
-
-            selected_date = datetime.strptime(
-                date_text,
-                "%Y-%m-%d"
-            ).date()
-
-        except ValueError:
-
-            selected_date = today
-
-    else:
-
+    try:
+        selected_date = (
+            datetime.strptime(selected_date_str, "%Y-%m-%d").date()
+            if selected_date_str
+            else today
+        )
+    except (ValueError, TypeError):
         selected_date = today
 
-    date_text = selected_date.strftime(
-        "%Y-%m-%d"
-    )
-
-    # ==========================================
-    # DAY CODE
-    # ==========================================
-
     day_code_map = {
-
         0: "M",
-
         1: "T",
-
         2: "W",
-
         3: "TH",
-
         4: "F",
-
         5: "S",
-
     }
 
-    selected_day = day_code_map.get(
-        selected_date.weekday()
-    )
+    selected_day = day_code_map.get(selected_date.weekday())
 
-    # Sunday has no schedule code
-    # because Schedule.DAYS currently
-    # contains Monday-Saturday only.
-
-    is_today = (
-        selected_date == today
-    )
-
-    # ==========================================
-    # GET SCHEDULES FOR SELECTED DAY
-    # ==========================================
+    schedules = Schedule.objects.none()
 
     if selected_day:
-
-        schedules = list(
+        schedules = (
             Schedule.objects
-            .select_related(
-                "instructor",
-                "subject",
-                "room"
-            )
-            .filter(
-                day=selected_day
-            )
-            .order_by(
-                "instructor__name",
-                "start_time"
-            )
+            .select_related("instructor", "subject", "room")
+            .filter(day=selected_day)
+            .order_by("instructor__name", "start_time")
         )
 
-    else:
-
-        schedules = []
-
-    # ==========================================
-    # SELECTED DATE TIME RANGE
-    # ==========================================
-
-    day_start = timezone.make_aware(
-        datetime.combine(
-            selected_date,
-            time.min
-        )
-    )
-
-    day_end = timezone.make_aware(
-        datetime.combine(
-            selected_date + timedelta(days=1),
-            time.min
-        )
-    )
-
-    # ==========================================
-    # GET SCHEDULES ALREADY MONITORED
-    # ON THE SELECTED DATE
-    # ==========================================
-
-    monitored_schedule_ids = set(
-        MonitoringRecord.objects
-        .filter(
-            record_datetime__gte=day_start,
-            record_datetime__lt=day_end
-        )
-        .values_list(
-            "schedule_id",
-            flat=True
-        )
-    )
-
-    # ==========================================
-    # ACTIVE / UPCOMING CLASSES
-    # ==========================================
-
+    now = timezone.localtime()
     active_schedules = []
-
     upcoming_schedules = []
 
+    # Only hide classes already monitored if they have a record
+    # for the selected date.
+    monitored_schedule_ids = set(
+        MonitoringRecord.objects.filter(
+            record_datetime__date=selected_date
+        ).values_list("schedule_id", flat=True)
+    )
+
     for schedule in schedules:
-
-        # --------------------------------------
-        # Already monitored?
-        # --------------------------------------
-
         if schedule.id in monitored_schedule_ids:
-
             continue
 
-        # --------------------------------------
-        # TODAY
-        # --------------------------------------
-
-        if is_today:
-
-            # Currently teaching
-            if (
-                schedule.start_time
-                <= current_time
-                <= schedule.end_time
-            ):
-
-                active_schedules.append(
-                    schedule
-                )
-
-            # Upcoming
-            elif (
-                schedule.start_time
-                > current_time
-            ):
-
-                upcoming_schedules.append(
-                    schedule
-                )
-
-        # --------------------------------------
-        # FUTURE / OTHER SELECTED DATE
-        # --------------------------------------
-
+        if selected_date == today:
+            if schedule.start_time <= now.time() <= schedule.end_time:
+                active_schedules.append(schedule)
+            elif schedule.start_time > now.time():
+                upcoming_schedules.append(schedule)
         else:
+            upcoming_schedules.append(schedule)
 
-            upcoming_schedules.append(
-                schedule
-            )
-
-    # ==========================================
-    # ALPHABETICAL ORDER
-    # ==========================================
-
-    active_schedules.sort(
-        key=lambda schedule: (
-            schedule.instructor.name.lower(),
-            schedule.start_time
-        )
-    )
-
-    upcoming_schedules.sort(
-        key=lambda schedule: (
-            schedule.instructor.name.lower(),
-            schedule.start_time
-        )
-    )
-
-    # ==========================================
-    # MONITORING RECORDS FOR SELECTED DATE
-    # ==========================================
+    active_schedules.sort(key=lambda s: s.start_time)
+    upcoming_schedules.sort(key=lambda s: s.start_time)
 
     monitoring_records = (
         MonitoringRecord.objects
-        .select_related(
-            "schedule__instructor",
-            "schedule__subject",
-            "schedule__room"
-        )
-        .filter(
-            record_datetime__gte=day_start,
-            record_datetime__lt=day_end
-        )
-        .order_by(
-            "schedule__instructor__name",
-            "record_datetime"
-        )
+        .filter(record_datetime__date=selected_date)
+        .select_related("schedule", "schedule__instructor",
+                        "schedule__subject", "schedule__room")
+        .order_by("-record_datetime")
     )
-
-    # ==========================================
-    # CONTEXT
-    # ==========================================
 
     context = {
-
-        "selected_date":
-            selected_date,
-
-        "schedule_date":
-            date_text,
-
-        "selected_day":
-            selected_day,
-
-        "selected_day_name":
-            selected_date.strftime("%A"),
-
-        "today":
-            today,
-
-        "is_today":
-            is_today,
-
-        "current_datetime":
-            current_datetime,
-
-        "current_time":
-            current_time,
-
-        "active_schedules":
-            active_schedules,
-
-        "upcoming_schedules":
-            upcoming_schedules,
-
-        "monitoring_records":
-            monitoring_records,
+        "selected_date": selected_date,
+        "active_schedules": active_schedules,
+        "upcoming_schedules": upcoming_schedules,
+        "monitoring_records": monitoring_records,
     }
 
-    # ==========================================
-    # RENDER DAILY MONITORING PAGE
-    # ==========================================
+    return render(request, "instructors/monitoring/list.html", context)
 
-    return render(
-        request,
-        "instructors/monitoring/list.html",
-        context
-    )
 
 # ==========================================
 # NORMAL MONITORING
