@@ -698,19 +698,23 @@
                         </a>
 
                         {% if staff.user.is_active %}
-                        <form method="POST"
-                              action="{% url 'admin_account_deactivate' staff.user.id %}"
-                              class="inline-form confirm-form"
-                              data-confirm-title="Deactivate Monitoring Staff"
-                              data-confirm-message="Deactivate {{ staff.user.username|escape }}?"
-                              data-confirm-button="Deactivate"
-                              data-confirm-action="deactivate">
-                            {% csrf_token %}
-                            <button type="submit"
-                                    class="action-button deactivate-button">
-                                Deactivate
-                            </button>
-                        </form>
+                            <form method="POST"
+                                  action="{% url 'admin_account_deactivate' staff.user.id %}"
+                                  style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-warning btn-sm">
+                                    Deactivate
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="POST"
+                                  action="{% url 'monitoring_staff_reactivate' staff.user.id %}"
+                                  style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    Reactivate
+                                </button>
+                            </form>
                         {% endif %}
 
                         <form method="POST"
