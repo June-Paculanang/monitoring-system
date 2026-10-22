@@ -1,8 +1,8 @@
 
 {
   "id": "/",
-  "name": "Teacher Class Monitoring System",
-  "short_name": "Teacher Monitoring",
+  "name": "CAS_Faculty Monitoring System",
+  "short_name": "Faculty Monitoring",
   "description": "Faculty attendance and class monitoring system",
   "start_url": "/",
   "scope": "/",
