@@ -568,6 +568,112 @@ def admin_account_reactivate(request, user_id):
 
 @login_required
 @user_passes_test(is_main_admin)
+def monitoring_staff_reactivate(request, user_id):
+    User = get_user_model()
+
+    if request.method != "POST":
+        return redirect("admin_accounts")
+
+    user = get_object_or_404(
+        User,
+        pk=user_id,
+        monitoring_staff__isnull=False,
+    )
+
+    user.is_active = True
+    user.save(update_fields=["is_active"])
+
+    messages.success(
+        request,
+        f"Monitoring Staff account '{user.username}' has been reactivated.",
+    )
+
+    return redirect("admin_accounts")
+
+@login_required
+def monitoring_list(request):
+    from datetime import datetime, time
+    from django.utils import timezone
+
+    selected_date_str = request.GET.get("date")
+    today = timezone.localdate()
+
+    try:
+        selected_date = (
+            datetime.strptime(selected_date_str, "%Y-%m-%d").date()
+            if selected_date_str
+            else today
+        )
+    except (ValueError, TypeError):
+        selected_date = today
+
+    day_code_map = {
+        0: "M",
+        1: "T",
+        2: "W",
+        3: "TH",
+        4: "F",
+        5: "S",
+    }
+
+    selected_day = day_code_map.get(selected_date.weekday())
+
+    schedules = Schedule.objects.none()
+
+    if selected_day:
+        schedules = (
+            Schedule.objects
+            .select_related("instructor", "subject", "room")
+            .filter(day=selected_day)
+            .order_by("instructor__name", "start_time")
+        )
+
+    now = timezone.localtime()
+    active_schedules = []
+    upcoming_schedules = []
+
+    # Only hide classes already monitored if they have a record
+    # for the selected date.
+    monitored_schedule_ids = set(
+        MonitoringRecord.objects.filter(
+            record_datetime__date=selected_date
+        ).values_list("schedule_id", flat=True)
+    )
+
+    for schedule in schedules:
+        if schedule.id in monitored_schedule_ids:
+            continue
+
+        if selected_date == today:
+            if schedule.start_time <= now.time() <= schedule.end_time:
+                active_schedules.append(schedule)
+            elif schedule.start_time > now.time():
+                upcoming_schedules.append(schedule)
+        else:
+            upcoming_schedules.append(schedule)
+
+    active_schedules.sort(key=lambda s: s.start_time)
+    upcoming_schedules.sort(key=lambda s: s.start_time)
+
+    monitoring_records = (
+        MonitoringRecord.objects
+        .filter(record_datetime__date=selected_date)
+        .select_related("schedule", "schedule__instructor",
+                        "schedule__subject", "schedule__room")
+        .order_by("-record_datetime")
+    )
+
+    context = {
+        "selected_date": selected_date,
+        "active_schedules": active_schedules,
+        "upcoming_schedules": upcoming_schedules,
+        "monitoring_records": monitoring_records,
+    }
+
+    return render(request, "instructors/monitoring/list.html", context)
+
+@login_required
+@user_passes_test(is_main_admin)
 def admin_account_delete(request, user_id):
     User = get_user_model()
 

@@ -341,6 +341,12 @@ urlpatterns = [
     ),
 
     path(
+        "admin-accounts/monitoring-staff/<int:user_id>/reactivate/",
+        views.monitoring_staff_reactivate,
+        name="monitoring_staff_reactivate",
+    ),
+
+    path(
         "admin-accounts/<int:user_id>/delete/",
         views.admin_account_delete,
         name="admin_account_delete"
