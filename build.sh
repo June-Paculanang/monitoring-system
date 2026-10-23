@@ -12,7 +12,7 @@ python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
 # Start Gunicorn on the port provided by Render.
-exec gunicorn TeacherMonitoringSystem.wsgi:application \
+exec gunicorn FacultyMonitoringSystem.wsgi:application \
     --bind "0.0.0.0:${PORT:-10000}" \
     --workers 1 \
     --timeout 120

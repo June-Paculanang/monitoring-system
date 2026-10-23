@@ -9,4 +9,4 @@ python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
 # Render provides PORT. Fall back to 8000 for local Docker runs.
-exec gunicorn TeacherMonitoringSystem.wsgi:application --bind "0.0.0.0:${PORT:-8000}"
+exec gunicorn FacultyMonitoringSystem.wsgi:application --bind "0.0.0.0:${PORT:-8000}"
