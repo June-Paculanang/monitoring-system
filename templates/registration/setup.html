@@ -1,17 +1,264 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Main Administrator Setup | Cas_Faculty Attendance Monitoring</title>
-<style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#f5f7f6;font-family:Arial,sans-serif;color:#333}.card{width:100%;max-width:480px;background:#fff;padding:32px;border-radius:12px;box-shadow:0 3px 15px #00000015}h1{text-align:center;color:#198754;font-size:24px;margin:0 0 8px}p{color:#6c757d;font-size:14px;line-height:1.5}.intro{text-align:center;margin:0 0 22px}.field{margin-bottom:17px}.field label{display:block;font-weight:bold;margin-bottom:7px}.field input{width:100%;padding:11px;border:1px solid #ccc;border-radius:5px;font-size:15px}.field input:focus{outline:none;border-color:#198754;box-shadow:0 0 0 2px #19875420}.help{display:block;color:#6c757d;font-size:12px;margin-top:6px}.error{color:#842029;font-size:13px;margin-top:5px}.messages{padding:10px;background:#f8d7da;color:#842029;border-radius:5px;margin-bottom:15px;font-size:14px}button{width:100%;border:0;border-radius:5px;background:#198754;color:#fff;padding:12px;font-weight:bold;font-size:15px;cursor:pointer}button:hover{background:#146c43}@media(max-width:500px){.card{padding:24px 20px}}
-</style></head><body><main class="card">
-<h1>Cas_Faculty Attendance Monitoring</h1><p class="intro">Main Administrator Setup</p>
-<p>Create the Main Administrator account. Use an email address that the administrator can access; password-reset links will be sent to this address.</p>
-{% if messages %}{% for message in messages %}<div class="messages">{{ message }}</div>{% endfor %}{% endif %}
-<form method="post">{% csrf_token %}
-<div class="field"><label for="{{ form.username.id_for_label }}">Username</label>{{ form.username }}{% for error in form.username.errors %}<div class="error">{{ error }}</div>{% endfor %}</div>
-<div class="field"><label for="{{ form.email.id_for_label }}">Email Address</label>{{ form.email }}<span class="help">This email will be used for password recovery.</span>{% for error in form.email.errors %}<div class="error">{{ error }}</div>{% endfor %}</div>
-<div class="field"><label for="{{ form.password.id_for_label }}">Password</label>{{ form.password }}<span class="help">Use at least 8 characters.</span>{% for error in form.password.errors %}<div class="error">{{ error }}</div>{% endfor %}</div>
-<div class="field"><label for="{{ form.confirm_password.id_for_label }}">Confirm Password</label>{{ form.confirm_password }}{% for error in form.confirm_password.errors %}<div class="error">{{ error }}</div>{% endfor %}</div>
-{% for error in form.non_field_errors %}<div class="error">{{ error }}</div>{% endfor %}<button type="submit">Create Main Administrator</button></form></main></body></html>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Main Administrator Setup | Cas_Faculty Attendance Monitoring</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #f5f7f6;
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 480px;
+            background: #fff;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px #00000015;
+        }
+
+        h1 {
+            text-align: center;
+            color: #198754;
+            font-size: 24px;
+            margin: 0 0 8px;
+        }
+
+        p {
+            color: #6c757d;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .intro {
+            text-align: center;
+            margin: 0 0 22px;
+        }
+
+        .field {
+            margin-bottom: 17px;
+        }
+
+        .field > label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        .field input:not([type="checkbox"]) {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+
+        .field input:focus {
+            outline: none;
+            border-color: #198754;
+            box-shadow: 0 0 0 2px #19875420;
+        }
+
+        .help {
+            display: block;
+            color: #6c757d;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        .error {
+            color: #842029;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .messages {
+            padding: 10px;
+            background: #f8d7da;
+            color: #842029;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .show-password {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: -3px;
+            margin-bottom: 18px;
+            font-size: 14px;
+            cursor: pointer;
+            color: #495057;
+        }
+
+        .show-password input {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            accent-color: #198754;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            border: 0;
+            border-radius: 5px;
+            background: #198754;
+            color: #fff;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #146c43;
+        }
+
+        @media (max-width: 500px) {
+            .card {
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="card">
+
+        <h1>Cas_Faculty Attendance Monitoring</h1>
+
+        <p class="intro">Main Administrator Setup</p>
+
+        <p>
+            Create the Main Administrator account. Use an email address
+            that the administrator can access; password-reset links will
+            be sent to this address.
+        </p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="messages">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="field">
+                <label for="{{ form.username.id_for_label }}">
+                    Username
+                </label>
+
+                {{ form.username }}
+
+                {% for error in form.username.errors %}
+                    <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.email.id_for_label }}">
+                    Email Address
+                </label>
+
+                {{ form.email }}
+
+                <span class="help">
+                    This email will be used for password recovery.
+                </span>
+
+                {% for error in form.email.errors %}
+                    <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.password.id_for_label }}">
+                    Password
+                </label>
+
+                {{ form.password }}
+
+                <span class="help">
+                    Use at least 8 characters.
+                </span>
+
+                {% for error in form.password.errors %}
+                    <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.confirm_password.id_for_label }}">
+                    Confirm Password
+                </label>
+
+                {{ form.confirm_password }}
+
+                {% for error in form.confirm_password.errors %}
+                    <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <label class="show-password" for="show-password">
+                <input
+                    type="checkbox"
+                    id="show-password"
+                >
+                Show Password
+            </label>
+
+            {% for error in form.non_field_errors %}
+                <div class="error">{{ error }}</div>
+            {% endfor %}
+
+            <button type="submit">
+                Create Main Administrator
+            </button>
+        </form>
+
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const showPasswordCheckbox =
+                document.getElementById("show-password");
+
+            const passwordField =
+                document.getElementById(
+                    "{{ form.password.id_for_label }}"
+                );
+
+            const confirmPasswordField =
+                document.getElementById(
+                    "{{ form.confirm_password.id_for_label }}"
+                );
+
+            showPasswordCheckbox.addEventListener("change", function () {
+                const fieldType = this.checked ? "text" : "password";
+
+                passwordField.type = fieldType;
+                confirmPasswordField.type = fieldType;
+            });
+        });
+    </script>
+</body>
+</html>

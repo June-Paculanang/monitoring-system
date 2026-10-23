@@ -1,6 +1,6 @@
 import os
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "TeacherMonitoringSystem.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "FacultyMonitoringSystem.settings")
 
 import django
 django.setup()

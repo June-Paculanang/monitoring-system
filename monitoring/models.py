@@ -173,7 +173,7 @@ class ReportTemplate(models.Model):
 
 class SystemAdministrator(models.Model):
     """
-    Identifies the administrators of the Teacher Class Monitoring System.
+    Identifies the administrators of the Cas_Faculty Attendance Monitoring.
 
     is_main_admin=True:
         The Main Administrator / Dean.
