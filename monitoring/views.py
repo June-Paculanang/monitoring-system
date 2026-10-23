@@ -6267,9 +6267,7 @@ def reports(request):
         _report_week_range(request)
     )
 
-    all_records = MonitoringRecord.objects.only(
-        "record_datetime"
-    )
+    all_records = MonitoringRecord.objects.only("record_datetime")
 
     week_starts = {current_week_start}
 
@@ -6288,6 +6286,14 @@ def reports(request):
             record_date - timedelta(days=record_date.weekday())
         )
 
+    # Include the selected week, even when it has no records.
+    week_starts.add(week_start)
+
+    # Include the previous and next weeks so navigation works
+    # even when those weeks have no monitoring records.
+    week_starts.add(week_start - timedelta(days=7))
+    week_starts.add(week_start + timedelta(days=7))
+
     weeks = []
 
     for start in sorted(week_starts, reverse=True):
@@ -6295,9 +6301,7 @@ def reports(request):
 
         weeks.append({
             "value": start.strftime("%Y-%m-%d"),
-            "label": (
-                f"{start:%B %d, %Y} - {end:%B %d, %Y}"
-            ),
+            "label": f"{start:%B %d, %Y} - {end:%B %d, %Y}",
         })
 
     records, instructor_search = _report_records(
