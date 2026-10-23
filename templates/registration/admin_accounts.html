@@ -702,7 +702,7 @@
                                   action="{% url 'admin_account_deactivate' staff.user.id %}"
                                   style="display: inline;">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-warning btn-sm">
+                                <button type="submit" class="action-button deactivate-button">
                                     Deactivate
                                 </button>
                             </form>
@@ -711,7 +711,7 @@
                                   action="{% url 'monitoring_staff_reactivate' staff.user.id %}"
                                   style="display: inline;">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-success btn-sm">
+                                <button type="submit" class="action-button">
                                     Reactivate
                                 </button>
                             </form>
